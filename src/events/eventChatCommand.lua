@@ -21,10 +21,19 @@ function eventChatCommand(name, c)
   local permanentAdmin = isPermanentAdmin(name)
   
 
-  if (command == "join" and playerInGame[name] == false and mode == "gameStart" then
+  if command == "join" and playerInGame[name] == false and mode == "gameStart" then
     local isPlayerBanned = messagePlayerIsBanned(name)
-    playersAfk[name] = os.time()
     if isPlayerBanned then
+      return
+    end
+
+    if gameStats.threeTeamsMode and gameStats.canTransform then
+      if tfm.get.room.playerList[name].isDead then
+        tfm.exec.respawnPlayer(name)
+      end
+
+      chooseTeamThreeTeamsMode(name)
+      showCrownToAllPlayers()
       return
     end
 
@@ -44,12 +53,17 @@ function eventChatCommand(name, c)
         showCrownToAllPlayers()
         return
       end
-      printf("<bv>The join command is disabled now, please try the same command in few seconds<n>", name)
+      tfm.exec.chatMessage("<bv>The join command is disabled now, please try the same command in few seconds<n>", name)
       return
     end
   elseif command == "leave" and playerInGame[name] and mode == "gameStart" then
     local isPlayerBanned = messagePlayerIsBanned(name)
     if isPlayerBanned then
+      return
+    end
+
+    if gameStats.threeTeamsMode and gameStats.canTransform then
+      leaveTeamTeamsMode(name)
       return
     end
 
@@ -61,7 +75,7 @@ function eventChatCommand(name, c)
         leaveTeam(name)
         return
       end
-      printf("<bv>The leave command is disabled now, please try the same command in few seconds<n>", name)
+      tfm.exec.chatMessage("<bv>The leave command is disabled now, please try the same command in few seconds<n>", name)
       return
     end
   elseif command:sub(1,4)=="lang" then
@@ -86,7 +100,7 @@ function eventChatCommand(name, c)
         end
       end
     end
-    printf("<bv>Admins: "..str.."<n>", name)
+    tfm.exec.chatMessage("<bv>Admins: "..str.."<n>", name)
     print(str)
   elseif command == "maps" then
     local str = "<bv>Volley maps"
@@ -107,7 +121,7 @@ function eventChatCommand(name, c)
       str = ""..str.."\n\nto vote type !votemap number, example: !votemap 1<n>"
     end
 
-    printf(str, name)
+    tfm.exec.chatMessage(str, name)
     print(str)
   elseif command == "balls" then
     local str = "<bv>Volley custom balls"
@@ -115,7 +129,7 @@ function eventChatCommand(name, c)
       str = ""..str.."\n"..i.."- "..balls[i].name..""
     end
     str = ""..str.."<n>"
-    printf(str, name)
+    tfm.exec.chatMessage(str, name)
   elseif command:sub(1, 7) == "votemap" and mode == "startGame" and canVote[name] then
     local isPlayerBanned = messagePlayerIsBanned(name)
     if isPlayerBanned then
@@ -133,7 +147,7 @@ function eventChatCommand(name, c)
     end
 
     if type(tonumber(args[2])) ~= "number" then
-      printf('<bv>Second parameter invalid, must be a number<n>', name)
+      tfm.exec.chatMessage('<bv>Second parameter invalid, must be a number<n>', name)
       return
     end
 
@@ -141,10 +155,10 @@ function eventChatCommand(name, c)
     local indexMap = math.abs(math.floor(tonumber(args[2])))
 
     if type(indexMap) ~= "number" then
-      printf('<bv>Second parameter invalid, must be a number<n>', name)
+      tfm.exec.chatMessage('<bv>Second parameter invalid, must be a number<n>', name)
       return
     elseif indexMap < 1 or indexMap > #maps then
-      printf('<bv>Second parameter invalid, the map index must be higher than 1 and less than '..tostring(#maps)..'<n>', name)
+      tfm.exec.chatMessage('<bv>Second parameter invalid, the map index must be higher than 1 and less than '..tostring(#maps)..'<n>', name)
       return
     end
 
@@ -162,12 +176,12 @@ function eventChatCommand(name, c)
     end
 
     verifyMostMapVoted()
-    printf("<bv>"..name.." voted for the "..maps[indexMap][3].." map ("..tostring(mapsVotes[indexMap]).." votes), type !maps to see the maps list and to vote !votemap (number)<n>", nil)
+    tfm.exec.chatMessage("<bv>"..name.." voted for the "..maps[indexMap][3].." map ("..tostring(mapsVotes[indexMap]).." votes), type !maps to see the maps list and to vote !votemap (number)<n>", nil)
   elseif command:sub(1, 5) == "crown" then
     local args = split(command)
 
     if args[2] ~= "true" and args[2] ~= "false" then
-      printf('<bv>Second parameter invalid, must be true or false<n>', name)
+      tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
 
       return
     end
@@ -197,11 +211,11 @@ function eventChatCommand(name, c)
     end
   elseif command == "discord" then
     if permanentAdmin then
-      printf("info", "<bv>https://discord.com/invite/pWNTesmNhu", nil)  
+      tfm.exec.chatMessage("<bv>https://discord.com/invite/pWNTesmNhu", nil)  
       return
     end
 
-    printf("info", "<bv>https://discord.com/invite/pWNTesmNhu", name)
+    tfm.exec.chatMessage("<bv>https://discord.com/invite/pWNTesmNhu", name)
   end
   
   
@@ -214,14 +228,14 @@ function eventChatCommand(name, c)
     if command == "resettimer" and mode == "startGame" then
       initGame = os.time() + 15000
 
-      printf("<bv>resettimer command enabled by admin "..name.."<n>", nil)
+      tfm.exec.chatMessage("<bv>resettimer command enabled by admin "..name.."<n>", nil)
     elseif command:sub(1,11) == "setduration" then
       local args = split(command)
 
       if #args >= 2 then
         if type(tonumber(args[2])) ~= "number" then
           print('<bv>Second parameter invalid, must be a number<n>', name)
-          printf('<bv>Second parameter invalid, must be a number<n>', name)
+          tfm.exec.chatMessage('<bv>Second parameter invalid, must be a number<n>', name)
           return
         end
 
@@ -231,7 +245,7 @@ function eventChatCommand(name, c)
 
         tfm.exec.setGameTime(durationTimerPause, true)
         print("<bv>The match duration was set to "..tostring(durationTimerPause).." seconds by admin "..name.."<n>")
-        printf("<bv>The match duration was set to"..tostring(durationTimerPause).." seconds by admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>The match duration was set to"..tostring(durationTimerPause).." seconds by admin "..name.."<n>", nil)
 
         return
       end
@@ -240,11 +254,11 @@ function eventChatCommand(name, c)
       durationTimerPause = durationDefault
       tfm.exec.setGameTime(durationDefault, true)
       print("<bv>The match duration was set to "..tostring(durationDefault).." seconds by admin "..name.."<n>")
-      printf("<bv>The match duration was set to"..tostring(durationDefault).." seconds by admin "..name.."<n>", nil)
+      tfm.exec.chatMessage("<bv>The match duration was set to"..tostring(durationDefault).." seconds by admin "..name.."<n>", nil)
     elseif command == "skiptimer" and mode == "startGame" then
       initGame = os.time() + 5000
 
-      printf("<bv>skiptimer command enabled by admin "..name.."<n>", nil)
+      tfm.exec.chatMessage("<bv>skiptimer command enabled by admin "..name.."<n>", nil)
     elseif command == "stoptimer" and mode == "startGame" then
       local permanentAdmin = isPermanentAdmin(name)
 
@@ -255,14 +269,14 @@ function eventChatCommand(name, c)
       if not gameStats.stopTimer then
         gameStats.stopTimer = true
 
-        printf("<bv>stoptimer command enabled by admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>stoptimer command enabled by admin "..name.."<n>", nil)
 
         return
       end
 
       initGame = os.time() + (gameStats.initTimer * 1000)
       gameStats.stopTimer = false
-      printf("<bv>stoptimer command disabled by admin "..name.."<n>", nil)
+      tfm.exec.chatMessage("<bv>stoptimer command disabled by admin "..name.."<n>", nil)
     elseif command:sub(1, 13) == "setmaxplayers" then
       if #command <= 14 then
         return
@@ -274,9 +288,9 @@ function eventChatCommand(name, c)
 
       if maxNumberPlayers >= 6 and maxNumberPlayers <= 20 then
         tfm.exec.setRoomMaxPlayers(maxNumberPlayers)
-        printf("<bv>"..playerLanguage[name].tr.messageSetMaxPlayers.." "..command:sub(15).." by admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>"..playerLanguage[name].tr.messageSetMaxPlayers.." "..command:sub(15).." by admin "..name.."<n>", nil)
       else
-        printf(playerLanguage[name].tr.messageMaxPlayersAlert, name)
+        tfm.exec.chatMessage(playerLanguage[name].tr.messageMaxPlayersAlert, name)
       end
     elseif command:sub(1, 6) == "setmap" and mode == "startGame" then
       if gameStats.teamsMode then
@@ -290,9 +304,9 @@ function eventChatCommand(name, c)
         end
 
         gameStats.setMapName = command:sub(8)
-        printf("<bv>"..gameStats.setMapName.." map selected by admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>"..gameStats.setMapName.." map selected by admin "..name.."<n>", nil)
       else
-        printf("<bv>Invalid map to select, valid options: small or large<n>", name)
+        tfm.exec.chatMessage("<bv>Invalid map to select, valid options: small or large<n>", name)
       end
     elseif command:sub(1, 8) == "winscore" and mode == "gameStart" then
       if gameStats.teamsMode then
@@ -304,37 +318,37 @@ function eventChatCommand(name, c)
       end
 
       if type(tonumber(command:sub(10))) ~= "number" then
-        printf('<bv>Second parameter invalid, must be a number<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be a number<n>', name)
         return
       end
 
       local winscoreNumber = math.abs(math.floor(tonumber(command:sub(10))))
       if type(winscoreNumber) ~= "number" then
-        printf('<bv>Second parameter invalid, must be a number<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be a number<n>', name)
         return
       end
 
       if winscoreNumber > score_red and winscoreNumber > score_blue and winscoreNumber > 0 then
         gameStats.winscore = math.abs(winscoreNumber)
-        printf("<bv>Winscore changed to "..command:sub(10).."<n>", nil)
+        tfm.exec.chatMessage("<bv>Winscore changed to "..command:sub(10).."<n>", nil)
       end
     elseif command:sub(1,2) == "pw" then
       tfm.exec.setRoomPassword(command:sub(4))
       if command:sub(4) ~= "" then
-        printf("<bv>"..playerLanguage[name].tr.newPassword.." "..command:sub(4).." by admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>"..playerLanguage[name].tr.newPassword.." "..command:sub(4).." by admin "..name.."<n>", nil)
       else
-        printf(playerLanguage[name].tr.passwordRemoved, name)
+        tfm.exec.chatMessage(playerLanguage[name].tr.passwordRemoved, name)
       end
     elseif command:sub(1, 9) == "randommap" and mode == "startGame" and customMapCommand[name] then
       if gameStats.realMode then
-        printf("<bv>The command !randomMap is not available on Volley Real Mode<n>", name)
+        tfm.exec.chatMessage("<bv>The command !randomMap is not available on Volley Real Mode<n>", name)
         return
       end
 
       local args = split(command)
       
       if args[2] ~= "true" and args[2] ~= "false" then
-        printf('<bv>Second parameter invalid, must be true or false<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
         return
       end
 
@@ -356,13 +370,13 @@ function eventChatCommand(name, c)
         end
 
         print("<bv>Random map has been disabled by the admin "..name.."<n>", nil)
-        printf("<bv>Random map has been disabled by the admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>Random map has been disabled by the admin "..name.."<n>", nil)
       end
 
       if args[2] == "true" then
         local indexMap = ''
         gameStats.isCustomMap = true
-        printf("<bv>Random map has been enabled by the admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>Random map has been enabled by the admin "..name.."<n>", nil)
 
         for name1, data in pairs(tfm.get.room.playerList) do
           if selectMapOpen[name1] then
@@ -373,7 +387,7 @@ function eventChatCommand(name, c)
         if gameStats.twoTeamsMode or gameStats.teamsMode then
           indexMap = math.random(1, #customMapsFourTeamsMode)
           gameStats.customMapIndex = indexMap
-          printf('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
+          tfm.exec.chatMessage('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
           print('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected randomly<n>')
           return
         end
@@ -381,7 +395,7 @@ function eventChatCommand(name, c)
         indexMap = math.random(1, #customMaps)
         gameStats.customMapIndex = indexMap
         print('<bv>'..customMaps[gameStats.customMapIndex][3]..' map (created by '..customMaps[gameStats.customMapIndex][4]..') selected randomly<n>', nil)
-        printf('<bv>'..customMaps[gameStats.customMapIndex][3]..' map (created by '..customMaps[gameStats.customMapIndex][4]..') selected randomly<n>', nil)
+        tfm.exec.chatMessage('<bv>'..customMaps[gameStats.customMapIndex][3]..' map (created by '..customMaps[gameStats.customMapIndex][4]..') selected randomly<n>', nil)
         return
       end
   
@@ -396,21 +410,21 @@ function eventChatCommand(name, c)
 
     elseif command:sub(1, 9) == "custommap" and mode == "startGame" and customMapCommand[name] then
       if gameStats.realMode then
-        printf("<bv>The command !customMap is not available on Volley Real Mode<n>", name)
+        tfm.exec.chatMessage("<bv>The command !customMap is not available on Volley Real Mode<n>", name)
         return
       end
       local args = split(command)
       local indexMap = ""
       if #args >= 3 then
         if type(tonumber(args[3])) ~= "number" then
-          printf('<bv>Third parameter invalid, must be a number<n>', name)
+          tfm.exec.chatMessage('<bv>Third parameter invalid, must be a number<n>', name)
           return
         end
         indexMap = math.abs(math.floor(tonumber(args[3])))
       end
 
       if args[2] ~= "true" and args[2] ~= "false" then
-        printf('<bv>Second parameter invalid, must be true or false<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
         return
       end
 
@@ -435,20 +449,27 @@ function eventChatCommand(name, c)
       end
 
       if type(indexMap) ~= "number" then
-        printf('<bv>Third parameter invalid, must be a number<n>', name)
+        tfm.exec.chatMessage('<bv>Third parameter invalid, must be a number<n>', name)
         return
       end
 
       if gameStats.twoTeamsMode or gameStats.teamsMode then
         if indexMap < 1 or indexMap > #customMapsFourTeamsMode then
-          printf('<bv>Third parameter invalid, the map index must be higher than 1 and less than '..tostring(#customMapsFourTeamsMode)..'<n>', name)
+          tfm.exec.chatMessage('<bv>Third parameter invalid, the map index must be higher than 1 and less than '..tostring(#customMapsFourTeamsMode)..'<n>', name)
+          return
+        end
+      end
+
+      if gameStats.threeTeamsMode then
+        if indexMap < 1 or indexMap > #customMapsThreeTeamsMode then
+          tfm.exec.chatMessage('<bv>Third parameter invalid, the map index must be higher than 1 and less than '..tostring(#customMapsThreeTeamsMode)..'<n>', name)
           return
         end
       end
 
       if not gameStats.twoTeamsMode and not gameStats.teamsMode then
         if indexMap < 1 or indexMap > #customMaps then
-          printf('<bv>Third parameter invalid, the map index must be higher than 1 and less than '..tostring(#customMaps)..'<n>', name)
+          tfm.exec.chatMessage('<bv>Third parameter invalid, the map index must be higher than 1 and less than '..tostring(#customMaps)..'<n>', name)
           return
         end
       end
@@ -470,19 +491,25 @@ function eventChatCommand(name, c)
           end
         end
         if gameStats.twoTeamsMode then
-          printf('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
+          tfm.exec.chatMessage('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
           print('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>')
           return
         end
 
+        if gameStats.threeTeamsMode then
+          tfm.exec.chatMessage('<bv>'..customMapsThreeTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsThreeTeamsMode[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
+          print('<bv>'..customMapsThreeTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsThreeTeamsMode[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>')
+          return
+        end
+
         if gameStats.teamsMode then
-          printf('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
+          tfm.exec.chatMessage('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
           print('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>')
           return
         end
 
         print('<bv>'..customMaps[gameStats.customMapIndex][3]..' map (created by '..customMaps[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
-        printf('<bv>'..customMaps[gameStats.customMapIndex][3]..' map (created by '..customMaps[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
+        tfm.exec.chatMessage('<bv>'..customMaps[gameStats.customMapIndex][3]..' map (created by '..customMaps[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
         return
       end
 
@@ -503,7 +530,7 @@ function eventChatCommand(name, c)
 
       if #args >= 3 then
         if type(tonumber(args[3])) ~= "number" then
-          printf("<bv>Third parameter invalid, must be a number<n>", name)
+          tfm.exec.chatMessage("<bv>Third parameter invalid, must be a number<n>", name)
 
           return
         end
@@ -512,7 +539,7 @@ function eventChatCommand(name, c)
       end
 
       if type(args[2]) ~= "string" then
-        printf('<bv>Second parameter invalid, must be a name player in the room or the value can be: red or blue<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be a name player in the room or the value can be: red or blue<n>', name)
         return
       end
 
@@ -523,23 +550,23 @@ function eventChatCommand(name, c)
         end
 
         if type(scoreNumber) ~= "number" then
-          printf("<bv>Third parameter invalid, must be a number and the number must be less than the actual winscore "..gameStats.winscore.."<n>", name)
+          tfm.exec.chatMessage("<bv>Third parameter invalid, must be a number and the number must be less than the actual winscore "..gameStats.winscore.."<n>", name)
           return
         end
 
         if scoreNumber >= gameStats.winscore then
-          printf("<bv>Third parameter invalid, must be a number and the number must be less than the actual winscore "..gameStats.winscore.."<n>", name)
+          tfm.exec.chatMessage("<bv>Third parameter invalid, must be a number and the number must be less than the actual winscore "..gameStats.winscore.."<n>", name)
           return
         end
 
         if args[2] == "red" then
           score_red = scoreNumber
-          printf("<r>Red score changed to "..score_red.." by admin "..name.."<n>", nil)
+          tfm.exec.chatMessage("<r>Red score changed to "..score_red.." by admin "..name.."<n>", nil)
         end
 
         if args[2] == "blue" then
           score_blue = scoreNumber
-          printf("<bv>Blue score changed to "..score_blue.." by admin "..name.."<n>", nil)
+          tfm.exec.chatMessage("<bv>Blue score changed to "..score_blue.." by admin "..name.."<n>", nil)
         end
 
         showTheScore()
@@ -554,35 +581,41 @@ function eventChatCommand(name, c)
       end
 
       if not isPlayerInTheRoom then
-        printf('<bv>Second parameter invalid, must be a name player in the room<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be a name player in the room<n>', name)
         return
       end
 
       if type(scoreNumber) == "number" then
         tfm.exec.setPlayerScore(args[2], scoreNumber, false)
-        printf("<bv>the "..args[2].."'s score was changed to "..args[3].."<n>", name)
+        tfm.exec.chatMessage("<bv>the "..args[2].."'s score was changed to "..args[3].."<n>", name)
       else
         tfm.exec.setPlayerScore(args[2], 1, true)
-        printf("<bv>added +1 to "..args[2].."'s score<n>", name)
+        tfm.exec.chatMessage("<bv>added +1 to "..args[2].."'s score<n>", name)
       end
     elseif command:sub(1, 10) == "4teamsmode" and mode == "startGame" then
       if gameStats.twoTeamsMode then
-        printf("<bv>You should disable the 2 teams mode first to enable the 4 teams mode<n>", nil)
+        tfm.exec.chatMessage("<bv>You should disable the 2 teams mode first to enable the 4 teams mode<n>", nil)
+        return
+      end
+      if gameStats.threeTeamsMode then
+        tfm.exec.chatMessage("<bv>You should disable the 3 teams mode first to enable the 4 teams mode<n>", nil)
         return
       end
       if gameStats.realMode then
-        printf("<bv>You should disable the real mode first to enable the 4 teams mode<n>", nil)
+        tfm.exec.chatMessage("<bv>You should disable the real mode first to enable the 4 teams mode<n>", nil)
         return
       end
       local args = split(command)
       if args[2] ~= "true" and args[2] ~= "false" then
-        printf('<bv>Second parameter invalid, must be true or false<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
         return
       end
 
       gameStats.canJoin = false
       gameStats.isCustomMap = false
       gameStats.customMapIndex = 0
+      getTeamsColorsName = {0xF59E0B, 0xEF4444, 0x3B82F6, 0x109267}
+      teamsLifes = { [1] = {yellow = 3}, [2] = {red = 3}, [3] = {blue = 3}, [4] = {green = 3} }
 
       if args[2] == "true" then
         if gameStats.teamsMode then
@@ -591,8 +624,8 @@ function eventChatCommand(name, c)
         resetMapsToTest()
         gameStats.teamsMode = true
         resetMapsList()
-        printf("<bv>4-team volley mode activated by admin "..name.."<n>", nil)
-        updateLobbyTextAreas(gameStats.teamsMode)
+        updateLobbyTextAreas()
+        tfm.exec.chatMessage("<bv>4-team volley mode activated by admin "..name.."<n>", nil)
         return
       end
 
@@ -603,22 +636,74 @@ function eventChatCommand(name, c)
 
       gameStats.teamsMode = false
       resetMapsList()
-      printf("<bv>4-team volley mode disabled by admin "..name.."<n>", nil)
-      updateLobbyTextAreas(gameStats.teamsMode)
+      tfm.exec.chatMessage("<bv>4-team volley mode disabled by admin "..name.."<n>", nil)
+      updateLobbyTextAreas()
+    elseif command:sub(1, 10) == "3teamsmode" and mode == "startGame" then
+      if gameStats.teamsMode then
+        tfm.exec.chatMessage("<bv>You should disable the 4 teams mode first to enable the 3 teams mode<n>", nil)
+        return
+      end
+      if gameStats.twoTeamsMode then
+        tfm.exec.chatMessage("<bv>You should disable the 2 teams mode first to enable the 3 teams mode<n>", nil)
+        return
+      end
+      if gameStats.realMode then
+        tfm.exec.chatMessage("<bv>You should disable the real mode first to enable the 3 teams mode<n>", nil)
+        return
+      end
+      local args = split(command)
+      if args[2] ~= "true" and args[2] ~= "false" then
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
+        return
+      end
+
+      gameStats.canJoin = false
+      gameStats.isCustomMap = false
+      gameStats.customMapIndex = 0
+      getTeamsColorsName = {0xEF4444, 0x3B82F6, 0x109267}
+      teamsLifes = { [1] = {yellow = 5}, [2] = {red = 5}, [3] = {blue = 5}, [4] = {green = 5} }
+
+      if args[2] == "true" then
+        if gameStats.threeTeamsMode then
+          return
+        end
+        resetMapsToTest()
+        gameStats.threeTeamsMode = true
+        resetMapsList()
+        tfm.exec.chatMessage("<bv>3-team volley mode activated by admin "..name.."<n>", nil)
+        updateLobbyTextAreas()
+        return
+      end
+
+      if not gameStats.threeTeamsMode then
+        return
+      end
+      resetMapsToTest()
+
+      gameStats.threeTeamsMode = false
+      gameStats.threeBalls = false
+      resetMapsList()
+      tfm.exec.chatMessage("<bv>3-team volley mode disabled by admin "..name.."<n>", nil)
+      updateLobbyTextAreas()
     elseif command:sub(1, 8) == "realmode" and mode == "startGame" then
       if gameStats.twoTeamsMode then
-        printf("<bv>You should disable the real mode first to enable the 4 teams mode<n>", nil)
+        tfm.exec.chatMessage("<bv>You should disable the real mode first to enable the 4 teams mode<n>", nil)
+        return
+      end
+
+      if gameStats.threeTeamsMode then
+        tfm.exec.chatMessage("<bv>You should disable the 3 teams mode first to enable the real mode<n>", nil)
         return
       end
 
       if gameStats.teamsMode then
-        printf("<bv>You should disable the realmode mode first to enable the 2 teams mode<n>", nil)
+        tfm.exec.chatMessage("<bv>You should disable the realmode mode first to enable the real mode<n>", nil)
         return
       end
 
       local args = split(command)
       if args[2] ~= "true" and args[2] ~= "false" then
-        printf('<bv>Second parameter invalid, must be true or false<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
         return
       end
 
@@ -629,14 +714,14 @@ function eventChatCommand(name, c)
         gameStats.realMode = true
         resetMapsToTest()
         resetMapsList()
-        printf("<bv>real volley mode activated by admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>real volley mode activated by admin "..name.."<n>", nil)
         return
       end
 
       gameStats.realMode = false
       resetMapsList()
       resetMapsToTest()
-      printf("<bv>real volley mode disabled by admin "..name.."<n>", nil)
+      tfm.exec.chatMessage("<bv>real volley mode disabled by admin "..name.."<n>", nil)
     elseif command:sub(1, 5) == "admin" then
       local args = split(command)
 
@@ -647,7 +732,7 @@ function eventChatCommand(name, c)
           end
 
           admins[name1] = true
-          printf("<bv>Admin selected for "..name1.." command used by "..name.."<n>", nil)
+          tfm.exec.chatMessage("<bv>Admin selected for "..name1.." command used by "..name.."<n>", nil)
 
           if mode == "startGame" then
             ui.addWindow(31, "<p align='center'><font size='13px'><a href='event:settings'>Room settings", name, 350, 370, 150, 30, 1, false, false, _)
@@ -667,7 +752,7 @@ function eventChatCommand(name, c)
         for i = 1, #permanentAdmins do
           admins[permanentAdmins[i]] = true
         end
-        printf("<bv>Admin list reseted by admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>Admin list reseted by admin "..name.."<n>", nil)
         return
       end
 
@@ -686,10 +771,10 @@ function eventChatCommand(name, c)
 
           if name1 == getRoomAdmin and permanentAdmin then
             admins[name1] = false
-            printf("<bv>Admin removed for "..name1.." command used by "..name.."<n>", nil)
+            tfm.exec.chatMessage("<bv>Admin removed for "..name1.." command used by "..name.."<n>", nil)
           end
           admins[name1] = false
-          printf("<bv>Admin removed for "..name1.." command used by "..name.."<n>", nil)
+          tfm.exec.chatMessage("<bv>Admin removed for "..name1.." command used by "..name.."<n>", nil)
 
           if mode == "startGame" then
             closeWindow(31, name1)
@@ -718,8 +803,8 @@ function eventChatCommand(name, c)
       for name1, data in pairs(tfm.get.room.playerList) do
         if string.lower(name1) == args[2] then
           tfm.exec.kickPlayer(name1)
-          printf("<bv>You have been kicked from the room by the admin "..name.."<n>", name1)
-          printf("<bv>"..name.." kicked the player "..name1.." from the room<n>", nil)
+          tfm.exec.chatMessage("<bv>You have been kicked from the room by the admin "..name.."<n>", name1)
+          tfm.exec.chatMessage("<bv>"..name.." kicked the player "..name1.." from the room<n>", nil)
           print("<bv>"..name.." kicked the player "..name1.." from the room<n>")
         end
       end
@@ -740,17 +825,19 @@ function eventChatCommand(name, c)
 
       for name1, data in pairs(tfm.get.room.playerList) do
         if string.lower(name1) == args[2] then
-          if gameStats.teamsMode and gameStats.canTransform then
-            leaveTeamTeamsMode(name1)
-            printf("<bv>Force leave used on "..name1.." command used by "..name.."<n>", nil)
-            return
+          if gameStats.teamsMode or gameStats.threeTeamsMode then
+            if gameStats.canTransform then
+                leaveTeamTeamsMode(name1)
+                tfm.exec.chatMessage("<bv>Force leave used on "..name1.." command used by "..name.."<n>", nil)
+                return
+            end
           else
             if not gameStats.teamsMode then
               leaveTeam(name1)
-              printf("<bv>Force leave used on "..name1.." command used by "..name.."<n>", nil)
+              tfm.exec.chatMessage("<bv>Force leave used on "..name1.." command used by "..name.."<n>", nil)
               return
             end
-            printf("<bv>The force leave command is disabled now, please try the same command in few seconds<n>", name)
+            tfm.exec.chatMessage("<bv>The force leave command is disabled now, please try the same command in few seconds<n>", name)
             return
           end
         end
@@ -776,8 +863,8 @@ function eventChatCommand(name, c)
             return
           end
           playerBan[name1] = true
-          printf("<bv>You have been banned from the room by the admin "..name.."<n>", name1)
-          printf("<bv>"..name.." banned the player "..name1.." from the room<n>", nil)
+          tfm.exec.chatMessage("<bv>You have been banned from the room by the admin "..name.."<n>", name1)
+          tfm.exec.chatMessage("<bv>"..name.." banned the player "..name1.." from the room<n>", nil)
           print("<bv>"..name.." banned the player "..name1.." from the room<n>")
           tfm.exec.kickPlayer(name1)
           playerBanHistory[name1] = name
@@ -792,7 +879,7 @@ function eventChatCommand(name, c)
                 leaveTeam(name1)
                 return
               end
-              printf("<bv>The force leave command is disabled now, please try the same command in few seconds<n>", name)
+              tfm.exec.chatMessage("<bv>The force leave command is disabled now, please try the same command in few seconds<n>", name)
               return
             end
           end
@@ -817,7 +904,7 @@ function eventChatCommand(name, c)
           end
 
           playerBan[name1] = false
-          printf("<bv>"..name.." unbanned the player "..name1.." from the room<n>", nil)
+          tfm.exec.chatMessage("<bv>"..name.." unbanned the player "..name1.." from the room<n>", nil)
           print("<bv>"..name.." unbanned the player "..name1.." from the room<n>")
         end
       end
@@ -825,62 +912,65 @@ function eventChatCommand(name, c)
       local args = split(command)
 
       if args[2] ~= "true" and args[2] ~= "false" then
-        printf('<bv>Second parameter invalid, must be true or false<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
         return
       end
       
       if args[2] ~= "true" and args[2] ~= "false" then
-        printf('<bv>Second parameter invalid, must be true or false<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
         return
       end
 
       if args[2] == "true" then        
         print("<bv>Random ball has been enabled by the admin "..name.."<n>", nil)
-        printf("<bv>Random ball has been enabled by the admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>Random ball has been enabled by the admin "..name.."<n>", nil)
         
         gameStats.customBall = true
         local indexBall= math.random(1, #balls)
         gameStats.customBallId = indexBall
         print("<bv>"..balls[gameStats.customBallId].name.." selected randomly<n>", nil)
-        printf("<bv>"..balls[gameStats.customBallId].name.." selected randomly<n>", nil)
+        tfm.exec.chatMessage("<bv>"..balls[gameStats.customBallId].name.." selected randomly<n>", nil)
         return
       end
 
       gameStats.customBall = false
       print("<bv>Random ball has been disabled by the admin "..name.."<n>", nil)
-      printf("<bv>Random ball has been disabled by the admin "..name.."<n>", nil)
+      tfm.exec.chatMessage("<bv>Random ball has been disabled by the admin "..name.."<n>", nil)
 
     elseif command:sub(1, 10) == "customball" and mode == "startGame" then
       local args = split(command)
 
       if type(tonumber(args[2])) ~= "number" then
-        printf('<bv>Second parameter invalid, must be a number<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be a number<n>', name)
         return
       end
       local indexBall = math.abs(math.floor(tonumber(args[2])))
 
       if type(indexBall) ~= "number" then
-        printf('<bv>Second parameter invalid, must be a number<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be a number<n>', name)
         return
       elseif indexBall < 1 or indexBall > #balls then
-        printf('<bv>Second parameter invalid, the ball index must be higher than 1 and less than '..tostring(#balls)..'<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, the ball index must be higher than 1 and less than '..tostring(#balls)..'<n>', name)
         return
       end
 
       gameStats.customBall = true
       gameStats.customBallId = indexBall
 
-      printf("<bv>"..balls[gameStats.customBallId].name.." selected by admin "..name.."<n>", nil)
+      tfm.exec.chatMessage("<bv>"..balls[gameStats.customBallId].name.." selected by admin "..name.."<n>", nil)
     elseif command:sub(1, 6) == "lobby" and mode == "gameStart" then
       ballOnGame = false
       ballOnGame2 = false
-      ballOnGameTwoBalls = {ballOnGame, ballOnGame2}
+      ballOnGame3 = false
+      ballOnGameTwoBalls = {ballOnGame, ballOnGame2, ballOnGame3}
       tfm.exec.removeObject(ball_id)
       mode = "endGame"
       gameTimeEnd = os.time() + 5000
 
       if gameStats.teamsMode then
         updateRankingFourTeamsMode()
+      elseif gameStats.threeTeamsMode then
+        updateRankingThreeTeamsMode()
       elseif gameStats.twoTeamsMode then
         updateRankingTwoTeamsMode()
       elseif gameStats.realMode then
@@ -889,7 +979,7 @@ function eventChatCommand(name, c)
         updateRankingNormalMode()
       end
 
-      printf("<bv>The command to reset lobby was actived by admin "..name..", the match will restart in 5 seconds<n>", nil)
+      tfm.exec.chatMessage("<bv>The command to reset lobby was actived by admin "..name..", the match will restart in 5 seconds<n>", nil)
     elseif command:sub(1, 8) == "killspec" then
 
       local findAdminPermanent = false
@@ -905,7 +995,7 @@ function eventChatCommand(name, c)
         if mode == "startGame" then
           local boolean = command:sub(10)
           if boolean ~= "true" and boolean ~= "false" then
-            printf('<bv>Second parameter invalid, must be true or false<n>', name)
+            tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
             return
           end
 
@@ -921,7 +1011,7 @@ function eventChatCommand(name, c)
         elseif mode == "gameStart" then
           local boolean = command:sub(10)
           if boolean ~= "true" and boolean ~= "false" then
-            printf('<bv>Second parameter invalid, must be true or false<n>', name)
+            tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
             return
           end
 
@@ -943,7 +1033,7 @@ function eventChatCommand(name, c)
     elseif command == "pause" and mode == "gameStart" then
 
       if gameStats.realMode then
-        printf("<bv>The command !pause isn't available on Volley Real Mode<n>", name)
+        tfm.exec.chatMessage("<bv>The command !pause isn't available on Volley Real Mode<n>", name)
 
         return
       end
@@ -962,11 +1052,13 @@ function eventChatCommand(name, c)
           gameStats.isGamePaused = true
           ballOnGame = false
           ballOnGame2 = false
-          ballOnGameTwoBalls = {ballOnGame, ballOnGame2}
+          ballOnGame3 = false
+          ballOnGameTwoBalls = {ballOnGame, ballOnGame2, ballOnGame3}
 
           tfm.exec.removeObject(ball_id)
           tfm.exec.removeObject(ball_id2)
-          printf("<bv>Command !pause used by admin "..name.."<n>", nil)
+          tfm.exec.removeObject(ball_id3)
+          tfm.exec.chatMessage("<bv>Command !pause used by admin "..name.."<n>", nil)
 
           local timer = math.ceil((duration - os.time())/1000)
 
@@ -994,7 +1086,7 @@ function eventChatCommand(name, c)
         end
 
         tfm.exec.setPlayerSync(newPlayerSync)
-        printf("<bv>Set new player sync: "..newPlayerSync.." selected by admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>Set new player sync: "..newPlayerSync.." selected by admin "..name.."<n>", nil)
       else
         local permanentAdmin = isPermanentAdmin(name)
 
@@ -1015,7 +1107,7 @@ function eventChatCommand(name, c)
 
         if playerOnRoom then
           tfm.exec.setPlayerSync(playerName)
-          printf("<bv>Set new player sync: "..playerName.." selected by admin "..name.."<n>", nil)
+          tfm.exec.chatMessage("<bv>Set new player sync: "..playerName.." selected by admin "..name.."<n>", nil)
         end
 
       end
@@ -1028,7 +1120,7 @@ function eventChatCommand(name, c)
       local playerSync = tfm.exec.getPlayerSync()
       local syncLatency = tfm.get.room.playerList[playerSync].averageLatency
 
-      printf("<bv>Set new player sync: "..playerSync.."<n>", nil)
+      tfm.exec.chatMessage("<bv>Set new player sync: "..playerSync.."<n>", nil)
     elseif command == "listsync" then
       local permanentAdmin = isPermanentAdmin(name)
       local playersSync = {}
@@ -1054,37 +1146,48 @@ function eventChatCommand(name, c)
     elseif command:sub(1, 14) == "setplayerforce" and mode == "startGame" then
       local numberForce = tonumber(command:sub(16))
       if type(numberForce) ~= "number" then
-        printf('<bv>Second parameter invalid, must be a number<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be a number<n>', name)
         return
       elseif numberForce < 0 or numberForce > 1.05 then
-        printf('<bv>The number to set the force is low or high than allowed, the value must be between (0 the minimum and 1.05 the maximum)<n>', name)
+        tfm.exec.chatMessage('<bv>The number to set the force is low or high than allowed, the value must be between (0 the minimum and 1.05 the maximum)<n>', name)
         return
       end
 
       gameStats.psyhicObjectForce = numberForce
 
-      printf("<bv>The strength of the player's object has been changed to "..tostring(gameStats.psyhicObjectForce).."<n>", name)
+      tfm.exec.chatMessage("<bv>The strength of the player's object has been changed to "..tostring(gameStats.psyhicObjectForce).."<n>", name)
       print("<bv>The strength of the player's object has been changed to "..tostring(gameStats.psyhicObjectForce).."<n>")
     elseif command == "test" and tfm.get.room.isTribeHouse and mode == "startGame" then
-      playersRed[1].name = "a"
-      playersRed[2].name = "a"
-      playersBlue[1].name = "a"
-      playersBlue[2].name = "a"
-      playersGreen[1].name = "a"
-      playersYellow[1].name = "a"
-      eventNewGameShowLobbyTexts(gameStats.teamsMode)
+      if gameStats.threeTeamsMode then
+        playersRed[1].name = "a"
+        playersBlue[1].name = "a"
+        playersGreen[1].name = "a"
+      else
+        playersRed[1].name = "a"
+        playersRed[2].name = "a"
+        playersBlue[1].name = "a"
+        playersBlue[2].name = "a"
+        playersGreen[1].name = "a"
+        playersYellow[1].name = "a"
+      end
+      
+      eventNewGameShowLobbyTexts()
     elseif command:sub(1, 10) == "2teamsmode" and mode == "startGame" then
       if gameStats.teamsMode then
-        printf("<bv>You should disable the 4 teams mode first to enable the 2 teams mode<n>", nil)
+        tfm.exec.chatMessage("<bv>You should disable the 4 teams mode first to enable the 2 teams mode<n>", nil)
+        return
+      end
+      if gameStats.threeTeamsMode then
+        tfm.exec.chatMessage("<bv>You should disable the 3 teams mode first to enable the 2 teams mode<n>", nil)
         return
       end
       if gameStats.realMode then
-        printf("<bv>You should disable the real mode first to enable the 2 teams mode<n>", nil)
+        tfm.exec.chatMessage("<bv>You should disable the real mode first to enable the 2 teams mode<n>", nil)
         return
       end
       local args = split(command)
       if args[2] ~= "true" and args[2] ~= "false" then
-        printf('<bv>Second parameter invalid, must be true or false<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
         return
       end
 
@@ -1098,7 +1201,7 @@ function eventChatCommand(name, c)
         resetMapsToTest()
         gameStats.twoTeamsMode = true
         resetMapsList()
-        printf("<bv>2-team volley mode activated by admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>2-team volley mode activated by admin "..name.."<n>", nil)
         return
       end
 
@@ -1110,134 +1213,127 @@ function eventChatCommand(name, c)
       resetMapsList()
       gameStats.twoTeamsMode = false
       resetMapsList()
-      printf("<bv>2-team volley mode disabled by admin "..name.."<n>", nil)
-    elseif command:sub(1, 9) == "afksystem" and false and mode == "startGame" then
-      local args = split(command)
-      if args[2] ~= "true" and args[2] ~= "false" then
-        printf('<bv>Second parameter invalid, must be true or false<n>', name)
-        return
-      end
-      if args[2] == "true" then
-        enableAfkSystem = true
-        printf("<bv>The afk system has enabled by the admin "..name.."<n>", nil)
-        return
-      end
-
-      enableAfkSystem = false
-      printf("<bv>The afk system has disabled by the admin "..name.."<n>", nil)
-
-      return
-    elseif command:sub(1, 10) == "setafktime" and false then
-      local args = split(command)
-      if type(tonumber(args[2])) ~= "number" then
-        printf('<bv>Second parameter invalid, must be a number<n>', name)
-        return
-      end
-
-      local afkTime = math.abs(math.floor(tonumber(args[2])))
-
-      if type(afkTime) ~= "number" then
-        printf('<bv>Second parameter invalid, must be a number<n>', name)
-        return
-      end
-
-      if afkTime < 60 then
-        printf("<bv>Second invalid parameter, the time in seconds must be greater than or equal to 60<n>", name)
-        return
-      end
-
-      afkTimeValue = math.abs(afkTime - (afkTime * 2))
-
-      printf("<bv>Afk timeout changed to "..afkTime.." seconds by admin "..name.."<n>", nil)
+      tfm.exec.chatMessage("<bv>2-team volley mode disabled by admin "..name.."<n>", nil)
     elseif command:sub(1, 8) == "twoballs" and mode == "startGame" then
       local args = split(command)
       print(args[2])
       if gameStats.realMode then
-        printf("<bv>The command two balls isn't available for Volley Real Mode<n>", name)
+        tfm.exec.chatMessage("<bv>The command two balls isn't available for Volley Real Mode<n>", name)
 
         return
       end
       if args[2] ~= "true" and args[2] ~= "false" then
-        printf('<bv>Second parameter invalid, must be true or false<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
         return
       end
       if args[2] == "true" then
         gameStats.twoBalls = true
-        printf("<bv>Two balls has been enabled by the admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>Two balls has been enabled by the admin "..name.."<n>", nil)
         return
       end
 
       gameStats.twoBalls = false
-      printf("<bv>Two balls has been disabled by the admin "..name.."<n>", nil)
+      tfm.exec.chatMessage("<bv>Two balls has been disabled by the admin "..name.."<n>", nil)
+    elseif command:sub(1, 10) == "threeballs" and mode == "startGame" then
+      local args = split(command)
+      print(args[2])
+      if not gameStats.threeTeamsMode then
+        tfm.exec.chatMessage("<bv>This command is only available for the 3-team mode.<n>", name)
+
+        return
+      end
+      if args[2] ~= "true" and args[2] ~= "false" then
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
+        return
+      end
+      if args[2] == "true" then
+        print('ativou')
+        gameStats.threeBalls = true
+        tfm.exec.chatMessage("<bv>Two balls has been enabled by the admin "..name.."<n>", nil)
+        return
+      end
+
+      gameStats.threeBalls = false
+      tfm.exec.chatMessage("<bv>Two balls has been disabled by the admin "..name.."<n>", nil)
     elseif command:sub(1, 11) == "consumables" and mode == "startGame" then
       local args = split(command)
 
       if not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realMode then
-        printf("<bv>The command consumables only works on normal mode<n>", name)
+        tfm.exec.chatMessage("<bv>The command consumables only works on normal mode<n>", name)
       end
 
       if args[2] ~= "true" and args[2] ~= "false" then
-        printf('<bv>Second parameter invalid, must be true or false<n>', name)
+        tfm.exec.chatMessage('<bv>Second parameter invalid, must be true or false<n>', name)
         return
       end
 
       if args[2] == "true" then
         gameStats.consumables = true
-        printf("<bv>Consumables on normal mode has enabled by the admin "..name.."<n>", nil)
+        tfm.exec.chatMessage("<bv>Consumables on normal mode has enabled by the admin "..name.."<n>", nil)
         return
       end
 
       gameStats.consumables = false
-      printf("<bv>Consumables on normal mode has disabled by the admin "..name.."<n>", nil)
+      tfm.exec.chatMessage("<bv>Consumables on normal mode has disabled by the admin "..name.."<n>", nil)
     elseif command == "settings" then 
       closeRankingUI(name)
       removeUITrophies(name)
       settings[name] = true
       
-      ui.addWindow(24, ""..playerLanguage[name].tr.titleSettings.."", name, 125, 60, 650, 300, 1, false, true, playerLanguage[name].tr.closeUIText)
-      ui.addTextArea(99992, ""..playerLanguage[name].tr.textSettings, name, 150, 110, 500, 200, 0x161616, 0x161616, 0, true)
-
-      ui.addWindow(25, "<p align='center'><font size='11px'><a href='event:openMode'>Select a mode</a>", name, 665, 105, 100, 30, 1, false, false)
-      
-      if globalSettings.randomBall then
-        ui.addWindow(21, "<p align='center'><font size='11px'><a href='event:randomball'>Enabled</a>", name, 665, 160, 100, 30, 1, false, false)
-        else
-        ui.addWindow(21, "<p align='center'><font size='11px'><a href='event:randomball'>Disabled</a>", name, 665, 160, 100, 30, 1, false, false)
-      end
-
-      if globalSettings.randomMap then
-        ui.addWindow(22, "<p align='center'><font size='11px'><a href='event:randommap'>Enabled</a>", name, 665, 215, 100, 30, 1, false, false)
-        else
-        ui.addWindow(22, "<p align='center'><font size='11px'><a href='event:randommap'>Disabled</a>", name, 665, 215, 100, 30, 1, false, false)
-      end
-
-      if globalSettings.twoBalls then
-        ui.addWindow(44, "<p align='center'><font size='11px'><a href='event:twoballs'>Enabled</a>", name, 665, 275, 100, 30, 1, false, false)
-        else
-        ui.addWindow(44, "<p align='center'><font size='11px'><a href='event:twoballs'>Disabled</a>", name, 665, 275, 100, 30, 1, false, false)
-      end
+      updateSettingsUI(name)
     elseif command:sub(1, 2) == "np" and tfm.get.room.isTribeHouse and mode == "startGame" then
       local args = split(command)
       local regexMap = "^@%d%d%d%d%d%d%d$"
 
       if gameStats.realMode then
-        printf("<bv>There aren't availables maps to test on volley real mode", name)
+        tfm.exec.chatMessage("<bv>There aren't availables maps to test on volley real mode", name)
         return
       end
 
       if gameStats.setMapName == "extra-large" then
-        printf("<bv>There aren't availables maps to test on extra-large map", name)
+        tfm.exec.chatMessage("<bv>There aren't availables maps to test on extra-large map", name)
+        return
+      end
+
+      if gameStats.threeTeamsMode then
+        if type(args[2]) == "nil" then
+          tfm.exec.chatMessage("<bv>Second parameter invalid, must be a tfm map like @3493212<n>", name)
+          return
+        end
+
+        if string.match(args[2], regexMap) == nil then
+          tfm.exec.chatMessage("<bv>Second parameter invalid, must be a tfm map like @3493212<n>", name)
+          return
+        end
+
+        mapsToTest[1] = args[2]
+
+        if type(args[3]) == "nil" then
+          mapsToTest[2] = customMapsThreeTeamsMode[1][2]
+          tfm.exec.chatMessage("<bv>Warning: in 4-team mode, the !np command should be !np @map @map @map, but if you only have one map ready and want to test it, the game will set the default map for the other maps<n>", name)
+          print("<bv>Warning: in 4-team mode, the !np command should be !np @map @map @map, but if you only have one map ready and want to test it, the game will set the default map for the other maps<n>")
+        else
+          if string.match(args[3], regexMap) == nil then
+            tfm.exec.chatMessage("<bv>Third parameter invalid, must be a tfm map like @3493212<n>", name)
+
+            return
+          else
+            mapsToTest[2] = args[3]
+          end
+        end
+
+        tfm.exec.chatMessage("<bv>Test map successfully selected<n>", nil)
         return
       end
 
       if gameStats.teamsMode then
         if type(args[2]) == "nil" then
-          printf("<bv>Second parameter invalid, must be a tfm map like @3493212<n>", name)
+          tfm.exec.chatMessage("<bv>Second parameter invalid, must be a tfm map like @3493212<n>", name)
           return
         end
 
         if string.match(args[2], regexMap) == nil then
-          printf("<bv>Second parameter invalid, must be a tfm map like @3493212<n>", name)
+          tfm.exec.chatMessage("<bv>Second parameter invalid, must be a tfm map like @3493212<n>", name)
           return
         end
 
@@ -1245,11 +1341,11 @@ function eventChatCommand(name, c)
 
         if type(args[3]) == "nil" then
           mapsToTest[2] = customMapsFourTeamsMode[34][2]
-          printf("<bv>Warning: in 4-team mode, the !np command should be !np @map @map @map, but if you only have one map ready and want to test it, the game will set the default map for the other maps<n>", name)
+          tfm.exec.chatMessage("<bv>Warning: in 4-team mode, the !np command should be !np @map @map @map, but if you only have one map ready and want to test it, the game will set the default map for the other maps<n>", name)
           print("<bv>Warning: in 4-team mode, the !np command should be !np @map @map @map, but if you only have one map ready and want to test it, the game will set the default map for the other maps<n>")
         else
           if string.match(args[3], regexMap) == nil then
-            printf("<bv>Third parameter invalid, must be a tfm map like @3493212<n>", name)
+            tfm.exec.chatMessage("<bv>Third parameter invalid, must be a tfm map like @3493212<n>", name)
 
             return
           else
@@ -1259,11 +1355,11 @@ function eventChatCommand(name, c)
 
         if type(args[4]) == "nil" then
           mapsToTest[3] = customMapsFourTeamsMode[34][5]
-          printf("<bv>Warning: in 4-team mode, the !np command should be !np @map @map @map, but if you only have one map ready and want to test it, the game will set the default map for the other maps<n>", name)
+          tfm.exec.chatMessage("<bv>Warning: in 4-team mode, the !np command should be !np @map @map @map, but if you only have one map ready and want to test it, the game will set the default map for the other maps<n>", name)
           print("<bv>Warning: in 4-team mode, the !np command should be !np @map @map @map, but if you only have one map ready and want to test it, the game will set the default map for the other maps<n>")
         else
           if string.match(args[4], regexMap) == nil then
-            printf("<bv>Fourth parameter invalid, must be a tfm map like @3493212<n>", name)
+            tfm.exec.chatMessage("<bv>Fourth parameter invalid, must be a tfm map like @3493212<n>", name)
 
             return
           else
@@ -1271,21 +1367,21 @@ function eventChatCommand(name, c)
           end
         end
 
-        printf("<bv>Test map successfully selected<n>", nil)
+        tfm.exec.chatMessage("<bv>Test map successfully selected<n>", nil)
         return
       end
 
       if type(args[2]) == "nil" then
-        printf("<bv>Second parameter invalid, must be a tfm map like @3493212<n>", name)
+        tfm.exec.chatMessage("<bv>Second parameter invalid, must be a tfm map like @3493212<n>", name)
         return
       end
       if string.match(args[2], regexMap) == nil then
-        printf("<bv>Second parameter invalid, must be a tfm map like @3493212<n>", name)
+        tfm.exec.chatMessage("<bv>Second parameter invalid, must be a tfm map like @3493212<n>", name)
         return
       end
 
       mapsToTest[1] = args[2]
-      printf("<bv>Test map successfully selected<n>", nil)
+      tfm.exec.chatMessage("<bv>Test map successfully selected<n>", nil)
     elseif command:sub(1,2) == "tp" and mode == gameStart then
       local permanentAdmin = isPermanentAdmin(name)
       if not permanentAdmin then

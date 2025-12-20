@@ -26,7 +26,3 @@ function checkRoomkAdmins()
   end
   return false
 end
-
-if not checkRoomkAdmins() then
-    spawnGetAdminButton()
-end

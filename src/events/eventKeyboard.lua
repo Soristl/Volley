@@ -19,6 +19,8 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
   tfm.get.room.playerList[name].y = coordinatesY
 
   if key == 0 or key == 1 or key == 2 or key == 3 then
+    playersAfk[name] = os.time()
+
     removePlayerTrophy(name)
   end
 
@@ -77,14 +79,14 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
           if keysEmote[i] == key then
             playerConsumableKey[name] = keysEmote[i]
             playerConsumableItem[name] = consumablesId[i]
-            printf("<bv>You chose the consumable "..consumablesNames[i].."<n>", name)
+            tfm.exec.chatMessage("<bv>You chose the consumable "..consumablesNames[i].."<n>", name)
             print("<bv>You chose the consumable "..consumablesNames[i].."<n>")
           end
         end
 
         if key == 77 then
           if not playerConsumable[name] then
-            printf("<bv>You need wait 5 seconds to spawn a new consumable<n>", name)
+            tfm.exec.chatMessage("<bv>You need wait 5 seconds to spawn a new consumable<n>", name)
             print("<bv>You need wait 5 seconds to spawn a new item<n>")
 
             return
@@ -95,7 +97,7 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
           local enablePlayerConsumable = addTimer(function(i)
             if i == 1 then
               playerConsumable[name] = true
-              printf("<bv>You can spawn a new consumable<n>", name)
+              tfm.exec.chatMessage("<bv>You can spawn a new consumable<n>", name)
               print("<bv>You can spawn a new consumable <n>")
             end
           end, 5000, 1, "enablePlayerConsumable")
@@ -113,29 +115,25 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
       end
     end
 
-    if key == 0 or key == 1 or key == 2 or key == 3 or key == 32 then
-      playersAfk[name] = os.time()
-    end
-
     if gameStats.realMode then
       if key == 49 then
         playerForce[name] = 0
-        printf("<bv>Your strength changed to normal<n>", name)
+        tfm.exec.chatMessage("<bv>Your strength changed to normal<n>", name)
       elseif key == 50 then
         playerForce[name] = -0.2
-        printf("<bv>Your strength has been reduced by 20%<n>", name)
+        tfm.exec.chatMessage("<bv>Your strength has been reduced by 20%<n>", name)
       elseif key == 51 then
         playerForce[name] = -0.45
-        printf("<bv>Your strength has been reduced by 45%<n>", name)
+        tfm.exec.chatMessage("<bv>Your strength has been reduced by 45%<n>", name)
       elseif key == 52 then
         playerForce[name] = -1
-        printf("<bv>Your strength has been reduced by 100%<n>", name)
+        tfm.exec.chatMessage("<bv>Your strength has been reduced by 100%<n>", name)
       end
 
       if x <= 599 or x >= 2001 then
         if not playerOutOfCourt[name] and not showOutOfCourtText[name] then
           showOutOfCourtText[name] = true
-          printf("<bv>you are outside the court you have 7 seconds to make an action, otherwise you will not be able to use the space key outside the court<n>", name)
+          tfm.exec.chatMessage("<bv>you are outside the court you have 7 seconds to make an action, otherwise you will not be able to use the space key outside the court<n>", name)
           print("<bv>you are outside the court you have 7 seconds to make an action, otherwise you will not be able to use the space key outside the court<n>")
         end
         delayToDoAnAction = addTimer(function(i)

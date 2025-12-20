@@ -1,4 +1,39 @@
 function updateLobbyTexts(name)
+  if gameStats.threeTeamsMode then
+    for i = 1, 4 do
+      if playersRed[i].name == name then
+        playersRed[i].name = ''
+
+        ui.addTextArea(threeTeamsMode.id[i], "<p align='center'><font size='14px'><a href='event:joinTeamRed"..i.."'>Join", nil, threeTeamsMode.x[i], threeTeamsMode.y[i], 150, 40, 0xE14747, 0xE14747, 1, false)
+        
+        return
+      end
+    end
+
+    for i = 5, 8 do
+      if playersBlue[i - 4].name == name then
+        playersBlue[i - 4].name = ''
+
+        ui.addTextArea(threeTeamsMode.id[i], "<p align='center'><font size='14px'><a href='event:joinTeamBlue"..(i - 4).."'>Join", nil, threeTeamsMode.x[i], threeTeamsMode.y[i], 150, 40, 0x184F81, 0x184F81, 1, false)
+
+        return
+      end
+    end
+
+    for i = 9, 12 do
+      if playersGreen[i - 8].name == name then
+        playersGreen[i - 8].name = ''
+
+        ui.addTextArea(threeTeamsMode.id[i], "<p align='center'><font size='14px'><a href='event:joinTeamGreen"..(i - 8).."'>Join", nil, threeTeamsMode.x[i], threeTeamsMode.y[i], 150, 40, 0x109267, 0x109267, 1, false)
+
+        return
+      end
+    end
+
+    return
+  end
+
+
   for i = 1, 3 do
     if playersRed[i].name == name then
       playersRed[i].name = ''

@@ -3,42 +3,44 @@ function leaveTeamTeamsModeConfig(name)
   local index = 1
 
   if gameStats.typeMap == "large4v4" then
-    for i= 1, #playersYellow do
-      if playersYellow[i].name == name then
-        playersYellow[i].name = ''
-        tfm.exec.killPlayer(name)
-        removePlayerOnSpawnConfig(name)
-        
-        local movePlayer = addTimer(function(i)
-          tfm.exec.respawnPlayer(name)
+    if gameStats.teamsMode then
+      for i= 1, #playersYellow do
+        if playersYellow[i].name == name then
+          playersYellow[i].name = ''
+          tfm.exec.killPlayer(name)
+          removePlayerOnSpawnConfig(name)
           
-          teleportPlayersToSpecWithSpecificSpawn(name)
-        end, 1000, 1, "movePlayer")
-      end
-      
-      if playersYellow[i].name ~= '' then
-        count = count + 1
-      end
-    end
-    if count == 0 then
-      ballOnGame = false
-      ballOnGame2 = false
-      ball_id = nil
-      ball_id2 = nil
-      updateTwoBallOnGame()
-      printf("<j>Yellow team lost all their lives<n>", nil)
-      teamsLifes[1].yellow = 0
-      toggleMapType()
-      updateTeamsColors(1)
-      gameStats.canTransform = false
-      disablePlayersCanTransform(4000)
-      delayToToggleMap = addTimer(function(i)
-        if i == 1 then
-          toggleMap()
+          local movePlayer = addTimer(function(i)
+            tfm.exec.respawnPlayer(name)
+            
+            teleportPlayersToSpecWithSpecificSpawn(name)
+          end, 1000, 1, "movePlayer")
         end
-      end, 3000, 1, "delayToToggleMap")
-      
-      return
+        
+        if playersYellow[i].name ~= '' then
+          count = count + 1
+        end
+      end
+      if count == 0 then
+        ballOnGame = false
+        ballOnGame2 = false
+        ball_id = nil
+        ball_id2 = nil
+        updateTwoBallOnGame()
+        tfm.exec.chatMessage("<j>Yellow team lost all their lives<n>", nil)
+        teamsLifes[1].yellow = 0
+        toggleMapType()
+        updateTeamsColors(1)
+        gameStats.canTransform = false
+        disablePlayersCanTransform(4000)
+        delayToToggleMap = addTimer(function(i)
+          if i == 1 then
+            toggleMap()
+          end
+        end, 3000, 1, "delayToToggleMap")
+        
+        return
+      end
     end
     
     count = 0
@@ -66,10 +68,16 @@ function leaveTeamTeamsModeConfig(name)
       ball_id = nil
       ball_id2 = nil
       updateTwoBallOnGame()
-      printf("<r>Red team lost all their lives<n>", nil)
+      tfm.exec.chatMessage("<r>Red team lost all their lives<n>", nil)
       teamsLifes[2].red = 0
       toggleMapType()
-      updateTeamsColors(2)
+      local index = 2
+
+      if gameStats.threeTeamsMode then
+        index = 1
+      end
+
+      updateTeamsColors(index)
       gameStats.canTransform = false
       disablePlayersCanTransform(4000)
       delayToToggleMap = addTimer(function(i)
@@ -105,10 +113,17 @@ function leaveTeamTeamsModeConfig(name)
       ball_id = nil
       ball_id2 = nil
       updateTwoBallOnGame()
-      printf("<bv>Blue team lost all their lives<n>", nil)
+      tfm.exec.chatMessage("<bv>Blue team lost all their lives<n>", nil)
       teamsLifes[3].blue = 0
       toggleMapType()
-      updateTeamsColors(3)
+
+      local index = 3
+
+      if gameStats.threeTeamsMode then
+        index = 2
+      end
+
+      updateTeamsColors(index)
       gameStats.canTransform = false
       disablePlayersCanTransform(4000)
       delayToToggleMap = addTimer(function(i)
@@ -144,10 +159,16 @@ function leaveTeamTeamsModeConfig(name)
       ball_id = nil
       ball_id2 = nil
       updateTwoBallOnGame()
-      printf("<vp>Green team lost all their lives<n>", nil)
+      tfm.exec.chatMessage("<vp>Green team lost all their lives<n>", nil)
       teamsLifes[4].green = 0
       toggleMapType()
-      updateTeamsColors(3)
+      local index = 4
+
+      if gameStats.threeTeamsMode then
+        index = 3
+      end
+
+      updateTeamsColors(index)
       gameStats.canTransform = false
       disablePlayersCanTransform(4000)
       delayToToggleMap = addTimer(function(i)
@@ -177,12 +198,33 @@ function leaveTeamTeamsModeConfig(name)
       end
       
       if count == 0 then
+        if gameStats.threeTeamsMode then
+          tfm.exec.chatMessage(messageTeamsLifes[index], nil)
+          print(messageTeamsLifes[index])
+          showTheScore()
+          updateTeamsColors(index)
+          showMessageWinner()
+          ballOnGame = false
+          ballOnGame2 = false
+          ballOnGame3 = false
+          ball_id = nil
+          ball_id2 = nil
+          ball_id3 = nil
+          updateTwoBallOnGame()
+          threeTeamsModeWinner(messageTeamsLifes[1], teamsPlayersOnGame[1])
+          updateRankingThreeTeamsMode()
+          tfm.exec.removeObject (ball_id)
+          mode = "endGame"
+          gameTimeEnd = os.time() + 5000
+          return
+        end
+
         ballOnGame = false
         ballOnGame2 = false
         ball_id = nil
         ball_id2 = nil
         updateTwoBallOnGame()
-        printf(messageTeamsLifes[index], nil)
+        tfm.exec.chatMessage(messageTeamsLifes[index], nil)
         print(messageTeamsLifes[index])
         updateTeamsColors(index)
         toggleMapType()
@@ -219,7 +261,7 @@ function leaveTeamTeamsModeConfig(name)
       end
       
       if count == 0 then
-        printf(messageTeamsLifes[index], nil)
+        tfm.exec.chatMessage(messageTeamsLifes[index], nil)
         print(messageTeamsLifes[index])
         showTheScore()
         updateTeamsColors(index)

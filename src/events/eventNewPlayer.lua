@@ -1,4 +1,21 @@
 function eventNewPlayer(name)
+  if string.sub(name, 1, 1) == "*" then
+    tfm.exec.chatMessage("<bv>This room does not allow guest accounts to enter. Create an account to enter the room.<n>", name)
+    tfm.exec.kickPlayer(name)
+
+    return
+  end
+
+  if tfm.get.room.isTribeHouse then
+    if tfm.get.room.name:sub(3) == tfm.get.room.playerList[name].tribeName then
+      if name == "Tonycoolnees#0000" then
+        permanentAdmins[#permanentAdmins + 1] = "Tonycoolnees#0000"
+      end
+      admins[name] = true
+    end
+  end
+
+  pagePlayerSettings[name] = 1
   customMapCommand[name] = true
   selectMapOpen[name] = false
   selectMapPage[name] = 1
@@ -67,6 +84,8 @@ function eventNewPlayer(name)
     pageNormalMode[name] = 1
     playersFourTeamsMode[name] = {name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0, winsYellow = 0, winsGreen = 0}
     pageFourTeamsMode[name] = 1
+    playersThreeTeamsMode[name] = {name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0, winsGreen = 0}
+    pageThreeTeamsMode[name] = 1
     playersTwoTeamsMode[name] = {name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0}
     pageTwoTeamsMode[name] = 1
     playersRealMode[name] = {name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0}
@@ -77,24 +96,12 @@ function eventNewPlayer(name)
   playerCanTransform[name] = true
   playerInGame[name] = false
   playerPhysicId[name] = 0
-  
-  system.bindKeyboard(name, 32, true, true)
-  system.bindKeyboard(name, 0, true, true)
-  system.bindKeyboard(name, 1, true, true)
-  system.bindKeyboard(name, 2, true, true)
-  system.bindKeyboard(name, 3, true, true)
-  system.bindKeyboard(name, 49, true, true)
-  system.bindKeyboard(name, 50, true, true)
-  system.bindKeyboard(name, 51, true, true)
-  system.bindKeyboard(name, 52, true, true)
-  system.bindKeyboard(name, 55, true, true)
-  system.bindKeyboard(name, 56, true, true)
-  system.bindKeyboard(name, 57, true, true)
-  system.bindKeyboard(name, 48, true, true)
-  system.bindKeyboard(name, 77, true, true)
-  system.bindKeyboard(name, 76, true, true)
-  system.bindKeyboard(name, 80, true, true)
+  local keys = {32, 0, 1, 2, 3, 49, 50, 51, 52, 55, 56, 57, 48, 77, 76, 80}
 
+  for i = 1, #keys do
+    system.bindKeyboard(name, keys[i], true, true)
+  end
+  
   tfm.exec.setNameColor(name, 0xD1D5DB)
   if playerBan[name] then
     tfm.exec.chatMessage("<bv>You have been banned from the room by the admin "..playerBanHistory[name].."<n>", name)
@@ -105,7 +112,7 @@ function eventNewPlayer(name)
   tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
   
   if mode == "startGame" then
-    eventNewGameShowLobbyTexts(gameStats.teamsMode)
+    eventNewGameShowLobbyTexts()
 
     ui.addWindow(30, "<p align='center'><font size='13px'><a href='event:selectMap'>Select a map", name, 10, 370, 150, 30, 1, false, false, _)
 

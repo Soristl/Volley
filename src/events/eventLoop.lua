@@ -31,6 +31,27 @@ function eventLoop(elapsedTime, remainingTime)
         end
       end
 
+      if gameStats.threeTeamsMode then
+        if playersOnGame.red >= 1 and playersOnGame.blue >= 1 and playersOnGame.green >= 1 then
+          gameStats.actualMode = "3 teams mode"
+          rankCrown = rankThreeTeamsMode
+          gameStats.redX = 599
+          gameStats.blueX = 1199
+          gameStats.greenX = 1201
+          removeTextAreasOfLobby()
+          removeWindowsOnBottom()
+
+          mode = "gameStart"
+          gameStats.typeMap = "large4v4"
+          startGame()
+
+          return
+        else
+          initGame = os.time() + 25000
+          return
+        end
+      end
+
       if gameStats.teamsMode then
         if playersOnGame.red >= 1 and playersOnGame.blue >= 1 and playersOnGame.yellow >= 1 and playersOnGame.green >= 1 then
           gameStats.actualMode = "4 teams mode"

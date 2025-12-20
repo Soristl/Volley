@@ -12,6 +12,7 @@ function closeAllWindows(name)
   closeWindow(266, name)
   removeButtons(25, name)
   removeButtons(26, name)
+  removeButtons(27, name)
   settings[name] = false
   settingsMode[name] = false
   

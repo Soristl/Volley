@@ -22,9 +22,9 @@ function init()
   
   ballOnGame = false
   ballOnGame2 = false
-  ballOnGameTwoBalls = {ballOnGame, ballOnGame2}
-  ballsId = {nil, nil}
-  
+  ballOnGame3 = false
+  ballOnGameTwoBalls = {ballOnGame, ballOnGame2, ballOnGame3}
+  ballsId = {nil, nil, nil}
   tfm.exec.disableAllShamanSkills(true)
   
   playerCanTransform = {}
@@ -94,8 +94,8 @@ function init()
     redQuantitySpawn = 0, redLimitSpawn = 3, blueQuantitySpawn = 0, blueLimitSpawn = 3,
     lastPlayerRed = "", lastPlayerBlue = "", teamWithOutAce = "",
     reduceForce = false, aceRed = false, aceBlue = false,
-    twoBalls = false, consumables = false, actualMode = "", stopTimer = false,
-    admins = ""
+    twoBalls = false, consumables = false, actualMode = "", stopTimer = false, threeTeamsMode = false,
+    threeBalls = false, admins = ""
   }
 
   playerCoordinates = {}
@@ -110,25 +110,52 @@ function init()
 
   if globalSettings.mode == "4 teams mode" then
     gameStats.teamsMode = true
-    updateLobbyTextAreas(gameStats.teamsMode)
-    printf("<bv>Room Setup: The room has been configured for "..globalSettings.mode.."<n>", nil)
+    getTeamsColorsName = {0xF59E0B, 0xEF4444, 0x3B82F6, 0x109267}
+    teamsLifes = { [1] = {yellow = 3}, [2] = {red = 3}, [3] = {blue = 3}, [4] = {green = 3} }
+    updateLobbyTextAreas()
+    tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for "..globalSettings.mode.."<n>", nil)
+  elseif globalSettings.mode == "3 teams mode" then
+    gameStats.threeTeamsMode = true
+    getTeamsColorsName = {0xEF4444, 0x3B82F6, 0x109267}
+    playersYellow = {
+      [1] = {name = ''},
+      [2] = {name = ''},
+      [3] = {name = ''},
+      [4] = {name = ''}
+    }
+
+    playersGreen = {
+      [1] = {name = ''},
+      [2] = {name = ''},
+      [3] = {name = ''},
+      [4] = {name = ''}
+    }
+
+    teamsLifes = { [1] = {yellow = 5}, [2] = {red = 5}, [3] = {blue = 5}, [4] = {green = 5} }
+    updateLobbyTextAreas()
+    tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for "..globalSettings.mode.."<n>", nil)
   elseif globalSettings.mode == "2 teams mode" then
     gameStats.twoTeamsMode = true
-    printf("<bv>Room Setup: The room has been configured for "..globalSettings.mode.."<n>", nil)
+    tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for "..globalSettings.mode.."<n>", nil)
   elseif globalSettings.mode == "Real mode" then
     gameStats.realMode = true
-    printf("<bv>Room Setup: The room has been configured for "..globalSettings.mode.."<n>", nil)
+    tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for "..globalSettings.mode.."<n>", nil)
+  end
+
+  if globalSettings.threeBalls then
+    gameStats.threeBalls = true
+    tfm.exec.chatMessage("<bv>Room Setup: The three-ball mode has been activated", nil)
   end
 
   if globalSettings.twoBalls then
     gameStats.twoBalls = true
-    printf("<bv>Room Setup: The two-ball mode has been activated<n>", nil)
+    tfm.exec.chatMessage("<bv>Room Setup: The two-ball mode has been activated<n>", nil)
   end
 
   if globalSettings.randomBall then
     gameStats.customBall = true
 
-    printf("<bv>Room Setup: The random ball mode has been activated<n>", nil)
+    tfm.exec.chatMessage("<bv>Room Setup: The random ball mode has been activated<n>", nil)
     
     local indexBall= math.random(1, #balls)
     gameStats.customBallId = indexBall
@@ -140,7 +167,7 @@ function init()
     gameStats.isCustomMap = true
     local indexMap = ''
     
-    printf("<bv>Room Setup: The random map mode has been activated<n>", nil)
+    tfm.exec.chatMessage("<bv>Room Setup: The random map mode has been activated<n>", nil)
     
     for name1, data in pairs(tfm.get.room.playerList) do
       if selectMapOpen[name1] then
@@ -151,13 +178,32 @@ function init()
     if gameStats.twoTeamsMode or gameStats.teamsMode then
       indexMap = math.random(1, #customMapsFourTeamsMode)
       gameStats.customMapIndex = indexMap
-      printf('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected randomly<n>', nil)
+      tfm.exec.chatMessage('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected randomly<n>', nil)
+      print('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected randomly<n>')
+    elseif gameStats.threeTeamsMode then
+      indexMap = math.random(1, #customMapsThreeTeamsMode)
+      gameStats.customMapIndex = indexMap
+      tfm.exec.chatMessage('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected randomly<n>', nil)
       
     elseif not gameStats.realMode then
       indexMap = math.random(1, #customMaps)
       gameStats.customMapIndex = indexMap
       
-      printf('<bv>'..customMaps[gameStats.customMapIndex][3]..' map (created by '..customMaps[gameStats.customMapIndex][4]..') selected randomly<n>', nil)
+      tfm.exec.chatMessage('<bv>'..customMaps[gameStats.customMapIndex][3]..' map (created by '..customMaps[gameStats.customMapIndex][4]..') selected randomly<n>', nil)
+    end
+  end
+
+  if not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realmode then
+    if globalSettings.consumables then
+      gameStats.consumables = true
+
+      tfm.exec.chatMessage("<bv>Room Setup: Consumables has been activated in normal mode<n>", nil)
+    end
+
+    if globalSettings.mapType ~= '' then
+      gameStats.setMapName = globalSettings.mapType
+
+      tfm.exec.chatMessage("<bv>Room Setup: The map size has been set to "..globalSettings.mapType.."<n>", nil)
     end
   end
 
@@ -172,21 +218,11 @@ function init()
     playerCoordinates[name] = {x = 0, y = 0}
     playerPhysicId[name] = 0
     playersOnGameHistoric[name] = { teams = {} }
-    playersAfk[name] = os.time()
-    system.bindKeyboard(name, 32, true, true)
-    system.bindKeyboard(name, 0, true, true)
-    system.bindKeyboard(name, 1, true, true)
-    system.bindKeyboard(name, 2, true, true)
-    system.bindKeyboard(name, 3, true, true)
-    system.bindKeyboard(name, 49, true, true)
-    system.bindKeyboard(name, 50, true, true)
-    system.bindKeyboard(name, 51, true, true)
-    system.bindKeyboard(name, 52, true, true)
-    system.bindKeyboard(name, 55, true, true)
-    system.bindKeyboard(name, 56, true, true)
-    system.bindKeyboard(name, 57, true, true)
-    system.bindKeyboard(name, 48, true, true)
-    system.bindKeyboard(name, 77, true, true)
+
+    for i = 1, #keys do
+      system.bindKeyboard(name, keys[i], true, true)
+    end
+
     tfm.exec.setNameColor(name, 0xD1D5DB)
     tfm.exec.setPlayerScore(name, 0, false)
     pagesList[name] = {helpPage = 1}
@@ -226,7 +262,13 @@ function init()
     end
   end
 
+  afkSystem() 
+
   initGame = os.time() + 25000
+
+  if not checkRoomkAdmins() then
+    spawnGetAdminButton()
+  end
 end
 
 init()

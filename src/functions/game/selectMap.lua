@@ -10,6 +10,45 @@ function selectMap()
     return
   end
 
+  if gameStats.threeTeamsMode then
+    if mapsToTest[1] ~= "" then
+      tfm.exec.newGame(mapsToTest[1])
+      local foundMap = addTimer(function(i)
+        if i == 1 then
+          foundBallSpawnsOnMap(mapsToTest[1], false)
+          foundMiceSpawnsOnMap(mapsToTest[1], false)
+        end
+      end, 1000)
+
+      return
+    end
+    
+    if gameStats.isCustomMap then
+      tfm.exec.newGame(customMapsThreeTeamsMode[gameStats.customMapIndex][1])
+      foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.customMapIndex][1], false)
+      foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.customMapIndex][1], false)
+
+      return
+    end
+
+    if gameStats.totalVotes == 1 then
+      tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
+    end
+    if gameStats.totalVotes >= 2 then
+      tfm.exec.newGame(customMapsThreeTeamsMode[gameStats.mapIndexSelected][1])
+      foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][1], false)
+      foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][1], false)
+      tfm.exec.chatMessage("<bv>The "..customMapsThreeTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsThreeTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
+      print("<bv>The "..customMapsThreeTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsThreeTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>")
+
+      return
+    end
+
+    tfm.exec.newGame(customMapsThreeTeamsMode[1][1])
+
+    return
+  end
+
   if gameStats.teamsMode then
     if mapsToTest[1] ~= "" then
       tfm.exec.newGame(mapsToTest[1])
@@ -30,13 +69,13 @@ function selectMap()
       return
     end
     if gameStats.totalVotes == 1 then
-      printf('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
+      tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
     end
     if gameStats.totalVotes >= 2 then
       tfm.exec.newGame(customMapsFourTeamsMode[gameStats.mapIndexSelected][1])
       foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
       foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
-      printf("<bv>The "..customMapsFourTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsFourTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
+      tfm.exec.chatMessage("<bv>The "..customMapsFourTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsFourTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
       print("<bv>The "..customMapsFourTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsFourTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>")
 
       return
@@ -65,13 +104,13 @@ function selectMap()
       return
     end
     if gameStats.totalVotes == 1 then
-      printf('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
+      tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
     end
     if gameStats.totalVotes >= 2 then
       tfm.exec.newGame(customMapsFourTeamsMode[gameStats.mapIndexSelected][1])
       foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
       foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
-      printf("<bv>The "..customMapsFourTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsFourTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
+      tfm.exec.chatMessage("<bv>The "..customMapsFourTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsFourTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
       print("<bv>The "..customMapsFourTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsFourTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>")
 
       return
@@ -99,13 +138,13 @@ function selectMap()
         foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][1], false)
       else
         if gameStats.totalVotes == 1 then
-          printf('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
+          tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
         end
         if gameStats.totalVotes >= 2 then
           tfm.exec.newGame(customMaps[gameStats.mapIndexSelected][1])
           foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
           foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
-          printf("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
+          tfm.exec.chatMessage("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
           print("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>")
         else
           tfm.exec.newGame(maps[1])
@@ -131,13 +170,13 @@ function selectMap()
         foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][2], true)
       else
         if gameStats.totalVotes == 1 then
-          printf('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
+          tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
         end
         if gameStats.totalVotes >= 2 then
           tfm.exec.newGame(customMaps[gameStats.mapIndexSelected][2])
           foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
           foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
-          printf("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
+          tfm.exec.chatMessage("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
         else
           tfm.exec.newGame(maps[2])
         end
@@ -165,13 +204,13 @@ function selectMap()
         foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][1], false)
       else
         if gameStats.totalVotes == 1 then
-          printf('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
+          tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
         end
         if gameStats.totalVotes >= 2 then
           tfm.exec.newGame(customMaps[gameStats.mapIndexSelected][1])
           foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
           foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
-          printf("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
+          tfm.exec.chatMessage("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
         else
           tfm.exec.newGame(maps[1])
         end
@@ -197,13 +236,13 @@ function selectMap()
         foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][2], true)
       else
         if gameStats.totalVotes == 1 then
-          printf('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
+          tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
         end
         if gameStats.totalVotes >= 2 then
           tfm.exec.newGame(customMaps[gameStats.mapIndexSelected][2])
           foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
           foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
-          printf("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
+          tfm.exec.chatMessage("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
         else
           tfm.exec.newGame(maps[2])
         end

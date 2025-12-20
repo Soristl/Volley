@@ -28,7 +28,7 @@ function setLostLife()
             playerInGame[playersYellow[i].name] = false
             playersYellow[i].name = ''
           end
-          printf("<j>Yellow team lost all their lives<n>", nil)
+          tfm.exec.chatMessage("<j>Yellow team lost all their lives<n>", nil)
           toggleMapType()
           updateTeamsColors(1)
           gameStats.canTransform = false
@@ -41,8 +41,8 @@ function setLostLife()
           
           return
         end
-        printf("<j>Yellow team lost a life<n>", nil)
-        printf("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
+        tfm.exec.chatMessage("<j>Yellow team lost a life<n>", nil)
+        tfm.exec.chatMessage("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
         print("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
         local ballSpawnX = 0
         local ballSpawnY = 0
@@ -71,7 +71,7 @@ function setLostLife()
             playerInGame[playersRed[i].name] = false
             playersRed[i].name = ''
           end
-          printf("<r>Red team lost all their lives<n>", nil)
+          tfm.exec.chatMessage("<r>Red team lost all their lives<n>", nil)
           toggleMapType()
           updateTeamsColors(2)
           gameStats.canTransform = false
@@ -86,8 +86,8 @@ function setLostLife()
         local ballSpawnX = 0
         local ballSpawnY = 0
         
-        printf("<r>Red team lost a life<n>", nil)
-        printf("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
+        tfm.exec.chatMessage("<r>Red team lost a life<n>", nil)
+        tfm.exec.chatMessage("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
         print("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
         if #spawnBallArea800 ~= 0 then
           randomIndex = math.random(1, #spawnBallArea800)
@@ -112,7 +112,7 @@ function setLostLife()
             playerInGame[playersBlue[i].name] = false
             playersBlue[i].name = ''
           end
-          printf("<bv>Blue team lost all their lives<n>", nil)
+          tfm.exec.chatMessage("<bv>Blue team lost all their lives<n>", nil)
           toggleMapType()
           updateTeamsColors(3)
           gameStats.canTransform = false
@@ -124,8 +124,8 @@ function setLostLife()
           end, 3000, 1, "delayToToggleMap")
           return
         end
-        printf("<bv>Blue team lost a life<n>", nil)
-        printf("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
+        tfm.exec.chatMessage("<bv>Blue team lost a life<n>", nil)
+        tfm.exec.chatMessage("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
         print("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
         local ballSpawnX = 0
         local ballSpawnY = 0
@@ -153,7 +153,7 @@ function setLostLife()
             playerInGame[playersGreen[i].name] = false
             playersGreen[i].name = ''
           end
-          printf("<vp>Green team lost all their lives<n>", nil)
+          tfm.exec.chatMessage("<vp>Green team lost all their lives<n>", nil)
           toggleMapType()
           updateTeamsColors(4)
           gameStats.canTransform = false
@@ -168,8 +168,8 @@ function setLostLife()
         local ballSpawnX = 0
         local ballSpawnY = 0
         
-        printf("<vp>Green team lost a life<n>", nil)
-        printf("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
+        tfm.exec.chatMessage("<vp>Green team lost a life<n>", nil)
+        tfm.exec.chatMessage("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
         print("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
         if #spawnBallArea1600 ~= 0 then
           randomIndex = math.random(1, #spawnBallArea1600)
@@ -196,7 +196,7 @@ function setLostLife()
               playerInGame[teamsPlayersOnGame[i][j].name] = false
               teamsPlayersOnGame[i][j].name = ''
             end
-            printf(messageTeamsLifes[1], nil)
+            tfm.exec.chatMessage(messageTeamsLifes[1], nil)
             print(messageTeamsLifes[1])
             updateTeamsColors(1)
             toggleMapType()
@@ -209,9 +209,9 @@ function setLostLife()
             end, 3000, 1, "delayToToggleMap")
             return
           end
-          printf(messageTeamsLostOneLife[1], nil)
+          tfm.exec.chatMessage(messageTeamsLostOneLife[1], nil)
           print(messageTeamsLostOneLife[1])
-          printf(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."", nil)
+          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."", nil)
           print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."")
           
           local ballSpawnX = 0
@@ -239,7 +239,7 @@ function setLostLife()
               playerInGame[teamsPlayersOnGame[i][j].name] = false
               teamsPlayersOnGame[i][j].name = ''
             end
-            printf(messageTeamsLifes[2], nil)
+            tfm.exec.chatMessage(messageTeamsLifes[2], nil)
             print(messageTeamsLifes[2])
             toggleMapType()
             updateTeamsColors(2)
@@ -252,9 +252,9 @@ function setLostLife()
             end, 3000, 1, "delayToToggleMap")
             return
           end
-          printf(messageTeamsLostOneLife[2], nil)
+          tfm.exec.chatMessage(messageTeamsLostOneLife[2], nil)
           print(messageTeamsLostOneLife[2])
-          printf(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."", nil)
+          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."", nil)
           print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."")
           
           local ballSpawnX = 0
@@ -282,7 +282,7 @@ function setLostLife()
               playerInGame[teamsPlayersOnGame[i][j].name] = false
               teamsPlayersOnGame[i][j].name = ''
             end
-            printf(messageTeamsLifes[3], nil)
+            tfm.exec.chatMessage(messageTeamsLifes[3], nil)
             print(messageTeamsLifes[3])
             toggleMapType()
             updateTeamsColors(3)
@@ -296,9 +296,9 @@ function setLostLife()
             return
           end
           
-          printf(messageTeamsLostOneLife[3], nil)
+          tfm.exec.chatMessage(messageTeamsLostOneLife[3], nil)
           print(messageTeamsLostOneLife[3])
-          printf(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."", nil)
+          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."", nil)
           print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."")
           local ballSpawnX = 0
           local ballSpawnY = 0
@@ -328,7 +328,7 @@ function setLostLife()
             end
             print(teamsPlayersOnGame)
             print(messageTeamsLifes[1])
-            printf(messageTeamsLifes[1], nil)
+            tfm.exec.chatMessage(messageTeamsLifes[1], nil)
             showTheScore()
             updateTeamsColors(1)
             showMessageWinner()
@@ -343,9 +343,9 @@ function setLostLife()
             gameTimeEnd = os.time() + 5000
             return
           end
-          printf(messageTeamsLostOneLife[1], nil)
+          tfm.exec.chatMessage(messageTeamsLostOneLife[1], nil)
           print(messageTeamsLostOneLife[1])
-          printf(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."", nil)
+          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."", nil)
           print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."")
           local ballSpawnX = 0
           local ballSpawnY = 0
@@ -369,7 +369,7 @@ function setLostLife()
               playerInGame[teamsPlayersOnGame[i][j].name] = false
               teamsPlayersOnGame[i][j].name = ''
             end
-            printf(messageTeamsLifes[2], nil)
+            tfm.exec.chatMessage(messageTeamsLifes[2], nil)
             print(messageTeamsLifes[2])
             showTheScore()
             updateTeamsColors(2)
@@ -384,9 +384,9 @@ function setLostLife()
             gameTimeEnd = os.time() + 5000
             return
           end
-          printf(messageTeamsLostOneLife[2], nil)
+          tfm.exec.chatMessage(messageTeamsLostOneLife[2], nil)
           print(messageTeamsLostOneLife[2])
-          printf(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."", nil)
+          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."", nil)
           print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."")
           local ballSpawnX = 0
           local ballSpawnY = 0

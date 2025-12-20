@@ -3,9 +3,14 @@ function spawnBallsOnSpecificPlaces(spawnBallsTable, defaultSpawnBallTable)
   local defaultSpawnBall = defaultSpawnBallTable
   
   local randomIndex = 0
-  local spawnPlaces = {[1] = {x = 0, y = 50}, [2] = {x = 0, y = 50}}
-  
-  for i = 1, 2 do
+  local spawnPlaces = {[1] = {x = 0, y = 50}, [2] = {x = 0, y = 50}, [3] = {x = 0, y = 50}}
+  local maxIndex = 2
+
+  if gameStats.threeTeamsMode then
+    maxIndex = 3
+  end
+
+  for i = 1, maxIndex do
     local randomTeamSpawn = math.random(1, #spawnBalls)
     if #spawnBalls > 0 and #spawnBalls[randomTeamSpawn] ~= 0 then
       randomIndex = math.random(1, #spawnBalls[randomTeamSpawn])

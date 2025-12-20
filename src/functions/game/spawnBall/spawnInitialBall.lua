@@ -1,6 +1,24 @@
 function spawnInitialBall()
   local x = {}
 
+  if gameStats.threeTeamsMode and gameStats.typeMap == "large4v4" then
+    local spawnBalls = { spawnBallArea400, spawnBallArea800, spawnBallArea1200 }
+
+    x = {300, 900, 1500}
+
+    spawnBallConfig(spawnBalls, x)
+
+    return
+  elseif gameStats.threeTeamsMode and gameStats.typeMap == "large3v3" then
+    local spawnBalls = { spawnBallArea400, spawnBallArea800 }
+
+    x = {300, 600, 900}
+
+    spawnBallConfig(spawnBalls, x)
+
+    return
+  end
+
   if gameStats.teamsMode and gameStats.typeMap == "large4v4" or gameStats.twoTeamsMode then
     local spawnBalls = { spawnBallArea400, spawnBallArea800, spawnBallArea1200, spawnBallArea1600 }
 

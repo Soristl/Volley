@@ -10,7 +10,7 @@ function eventPlayerLeft(name)
   elseif mode ~= "startGame" then
     canVote[name] = true
 
-    if gameStats.teamsMode then
+    if gameStats.teamsMode or gameStats.threeTeamsMode then
       leaveTeamTeamsModeConfig(name)
     end
 

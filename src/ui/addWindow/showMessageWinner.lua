@@ -1,5 +1,5 @@
 function showMessageWinner()
-  if gameStats.teamsMode then
+  if gameStats.teamsMode or gameStats.threeTeamsMode then
     ui.addTextArea(6, "<p align='center'><font size='30px'><textformat leading='150'><br>"..messageWinners[1].."", nil, 0, 0, 800, 400, 0x161616, 0x161616, 0.8, true)
     return
   end

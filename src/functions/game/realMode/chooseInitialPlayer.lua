@@ -12,7 +12,7 @@ function chooseInitialPlayer()
           gameStats.redPlayerServe = playersRed[i].name
           gameStats.redServe = true
           tfm.exec.movePlayer(playersRed[i].name, 700, 334)
-          printf("<bv>"..playersRed[i].name.." will serve the ball<n>", nil)
+          tfm.exec.chatMessage("<bv>"..playersRed[i].name.." will serve the ball<n>", nil)
           print("<bv>"..playersRed[i].name.." will serve the ball<n>")
           return chooseTeam
         end
@@ -24,7 +24,7 @@ function chooseInitialPlayer()
           gameStats.redPlayerServe = playersRed[i].name
           gameStats.redServe = true
           tfm.exec.movePlayer(playersRed[i].name, 700, 334)
-          printf("<bv>"..playersRed[i].name.." will serve the ball<n>", nil)
+          tfm.exec.chatMessage("<bv>"..playersRed[i].name.." will serve the ball<n>", nil)
           print("<bv>"..playersRed[i].name.." will serve the ball<n>")
           return chooseTeam
         end
@@ -36,7 +36,7 @@ function chooseInitialPlayer()
           gameStats.redPlayerServe = playersRed[i].name
           gameStats.redServe = true
           tfm.exec.movePlayer(playersRed[i].name, 700, 334)
-          printf("<bv>"..playersRed[i].name.." will serve the ball<n>", nil)
+          tfm.exec.chatMessage("<bv>"..playersRed[i].name.." will serve the ball<n>", nil)
           print("<bv>"..playersRed[i].name.." will serve the ball<n>")
           return chooseTeam
         end
@@ -52,7 +52,7 @@ function chooseInitialPlayer()
           gameStats.bluePlayerServe = playersBlue[i].name
           gameStats.blueServe = true
           tfm.exec.movePlayer(playersBlue[i], name, 1900, 334)
-          printf("<bv>"..playersBlue[i].name.." will serve the ball<n>", nil)
+          tfm.exec.chatMessage("<bv>"..playersBlue[i].name.." will serve the ball<n>", nil)
           print("<bv>"..playersBlue[i].name.." will serve the ball<n>")
           return chooseTeam
         end
@@ -64,7 +64,7 @@ function chooseInitialPlayer()
           gameStats.bluePlayerServe = playersBlue[i].name
           gameStats.blueServe = true
           tfm.exec.movePlayer(playersBlue[i].name, 1900, 334)
-          printf("<bv>"..playersBlue[i].name.." will serve the ball<n>", nil)
+          tfm.exec.chatMessage("<bv>"..playersBlue[i].name.." will serve the ball<n>", nil)
           print("<bv>"..playersBlue[i].name.." will serve the ball<n>")
           return chooseTeam
         end
@@ -76,7 +76,7 @@ function chooseInitialPlayer()
           gameStats.bluePlayerServe = playersBlue[i].name
           gameStats.blueServe = true
           tfm.exec.movePlayer(playersBlue[i].name, 1900, 334)
-          printf("<bv>"..playersBlue[i].name.." will serve the ball<n>", nil)
+          tfm.exec.chatMessage("<bv>"..playersBlue[i].name.." will serve the ball<n>", nil)
           print("<bv>"..playersBlue[i].name.." will serve the ball<n>")
           return chooseTeam
         end

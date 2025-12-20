@@ -5,26 +5,50 @@ function toggleMap()
 
   if gameStats.typeMap == "large3v3" then
     ui.removeTextArea(8998991)
-    
-    if mapsToTest[2] ~= "" then
-      tfm.exec.newGame(mapsToTest[2])
-      local foundMap = addTimer(function(i)
-        if i == 1 then
-          foundBallSpawnsOnMap(mapsToTest[2], false)
-          foundMiceSpawnsOnMap(mapsToTest[2], false)
-        end
-      end, 1000)
-    else
-      if gameStats.isCustomMap then
-        tfm.exec.newGame(customMapsFourTeamsMode[gameStats.customMapIndex][2])
-        foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][2], false)
-        foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][2], false)
-      elseif gameStats.totalVotes >= 2 then
-        tfm.exec.newGame(customMapsFourTeamsMode[gameStats.mapIndexSelected][2])
-        foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][2], false)
-        foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][2], false)
+
+    if gameStats.teamsMode then
+      if mapsToTest[2] ~= "" then
+        tfm.exec.newGame(mapsToTest[2])
+        local foundMap = addTimer(function(i)
+          if i == 1 then
+            foundBallSpawnsOnMap(mapsToTest[2], false)
+            foundMiceSpawnsOnMap(mapsToTest[2], false)
+          end
+        end, 1000)
       else
-        tfm.exec.newGame(customMapsFourTeamsMode[34][2])
+        if gameStats.isCustomMap then
+          tfm.exec.newGame(customMapsFourTeamsMode[gameStats.customMapIndex][2])
+          foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][2], false)
+          foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][2], false)
+        elseif gameStats.totalVotes >= 2 then
+          tfm.exec.newGame(customMapsFourTeamsMode[gameStats.mapIndexSelected][2])
+          foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][2], false)
+          foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][2], false)
+        else
+          tfm.exec.newGame(customMapsFourTeamsMode[34][2])
+        end
+      end
+    elseif gameStats.threeTeamsMode then
+      if mapsToTest[2] ~= "" then
+        tfm.exec.newGame(mapsToTest[2])
+        local foundMap = addTimer(function(i)
+          if i == 1 then
+            foundBallSpawnsOnMap(mapsToTest[2], false)
+            foundMiceSpawnsOnMap(mapsToTest[2], false)
+          end
+        end, 1000)
+      else
+        if gameStats.isCustomMap then
+          tfm.exec.newGame(customMapsThreeTeamsMode[gameStats.customMapIndex][2])
+          foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.customMapIndex][2], false)
+          foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.customMapIndex][2], false)
+        elseif gameStats.totalVotes >= 2 then
+            tfm.exec.newGame(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2])
+            foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2], false)
+            foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2], false)
+        else
+          tfm.exec.newGame(customMaps[6][2])
+        end
       end
     end
     

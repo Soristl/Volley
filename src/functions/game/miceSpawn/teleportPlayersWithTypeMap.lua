@@ -10,7 +10,12 @@ function teleportPlayersWithTypeMap(islargeMode)
 
   if islargeMode then
     sideToTeleport = { true, true, true }
-    teleportX = { 200, 600, 1000 }
+    if gameStats.threeTeamsMode then
+      teleportX = { 300, 900 }
+    else
+      teleportX = { 200, 600, 1000 }
+    end
+    
     messageTeamsLifes = {}
     messageTeamsLostOneLife = {}
     messageTeamsLifesTextChat = {}
@@ -32,6 +37,22 @@ function teleportPlayersWithTypeMap(islargeMode)
   local messageLostOneLife = {"<j>Yellow team lost a life<n>", "<r>Red team lost a life<n>", "<bv>Blue team lost a life<n>", "<vp>Green team lost a life<n>"}
   local messageTeamsLifesText = {"<j>Team Yellow<n>", "<r>Team Red<n>", "<bv>Team Blue<n>", "<vp>Team Green<n>"}
   local messageWinnersText = {"<j>Team Yellow won!<n>", "<r>Team Red won!<n>", "<bv>Team Blue won!<n>", "<vp>Team Green won!<n>"}
+
+  if gameStats.threeTeamsMode then
+    teamsToTeleport = {teamsLifes[2].red, teamsLifes[3].blue, teamsLifes[4].green}
+    teamsPlayers = {playersRed, playersBlue, playersGreen}
+    teamsColors = {0xEF4444, 0x3B82F6, 0x109267}
+    spawnTeleport = {playersSpawn400, playersSpawn800 }
+
+    teamsColorsText = {"<r>", "<bv>", "<vp>"}
+    mapCoords = {gameStats.redX, gameStats.blueX, gameStats.greenX}
+    mapCoordsX = {599, 601}
+    messageLostAllLifes = {"<r>Red team lost all their lives<n>", "<bv>Blue team lost all their lives<n>", "<vp>Green team lost all their lives<n>"}
+    messageLostOneLife = {"<r>Red team lost a life<n>", "<bv>Blue team lost a life<n>", "<vp>Green team lost a life<n>"}
+    messageTeamsLifesText = {"<r>Team Red<n>", "<bv>Team Blue<n>", "<vp>Team Green<n>"}
+    messageWinnersText = {"<r>Team Red won!<n>", "<bv>Team Blue won!<n>", "<vp>Team Green won!<n>"}
+  end
+
   mapCoordsTeams = {}
   getTeamsLifes = {}
 

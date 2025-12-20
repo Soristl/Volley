@@ -4,7 +4,7 @@ function resetMapsToTest()
   end
   
   if mapsToTest[1] ~= "" then
-    printf("<bv>The test maps were removed due to the game mode change, you need to add the map again with the command !np @map<n>", nil)
+    tfm.exec.chatMessage("<bv>The test maps were removed due to the game mode change, you need to add the map again with the command !np @map<n>", nil)
   end
   
   mapsToTest = {

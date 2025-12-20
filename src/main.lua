@@ -12,10 +12,8 @@ local admins =
   ["Lylastyla#0000"] = true,
   ["Ppoppohaejuseyo#2315"] = true,
   ["Rowed#4415"] = true,
-  ["Tonycoolnees#0000"] = true,
   ["Tanarchosl#4785"] = true,
-  ["Sadzia#0000"] = true,
-  ["Haytam#0000"] = true
+  ["Sadzia#0000"] = true
 }
 
 local permanentAdmins = 
@@ -30,9 +28,7 @@ local permanentAdmins =
   "Ppoppohaejuseyo#2315",
   "Rowed#4415",
   "Tanarchosl#4785",
-  "Tonycoolnees#0000",
-  "Sadzia#0000",
-  "Haytam#0000"
+  "Sadzia#0000"
 }
 
 local trad = ""
@@ -73,7 +69,6 @@ local playerCanTransform = {}
 local playerForce = {}
 local playerBan = {}
 local playerBanHistory = {}
-local playersAfk = {}
 local playerInGame = {}
 local countId = 1
 local playerPhysicId = {}
@@ -98,11 +93,9 @@ local gameStats = {gameMode = ''}
 local pagesList = {}
 local mapsVotes = {}
 local canVote = {}
-local afkTimeValue = -60
-local enableAfkSystem = false
 local playerOutOfCourt = {}
 local showOutOfCourtText = {}
-local globalSettings = { mode = 'Normal mode', twoBalls = false, randomBall = false, randomMap = false }
+local globalSettings = { mode = 'Normal mode', twoBalls = false, randomBall = false, randomMap = false, mapType = '', consumables = false, threeBalls = false }
 local settings = {}
 local settingsMode = {}
 local playersNormalMode = {}
@@ -119,6 +112,9 @@ local pageTwoTeamsMode = {}
 local rankRealMode = {}
 local playersRealMode = {}
 local pageRealMode = {}
+local rankThreeTeamsMode = {}
+local playersThreeTeamsMode = {}
+local pageThreeTeamsMode = {}
 local openRank = {}
 local countMatches = 0
 local playerLastMatchCount = {}
@@ -146,8 +142,14 @@ local playersSpawn400 = {}
 local playersSpawn800 = {}
 local playersSpawn1200 = {}
 local playersSpawn1600 = {}
+local playersAfk = {}
+local pagePlayerSettings = {}
+local maxPageSettings = 2
+local threeTeamsMode = {id = {1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13}, x = {100, 280, 460, 640, 100, 280, 460, 640, 100, 280, 460, 640}, y = {100, 100, 100, 100, 160, 160, 160, 160, 220, 220, 220, 220}}
 
 local gameTimeEnd = os.time() + 5000
+
+local keys = {32, 0, 1, 2, 3, 49, 50, 51, 52, 55, 56, 57, 48, 77, 76, 80}
 
 for name, data in pairs(tfm.get.room.playerList) do
   customMapCommand[name] = true
@@ -168,12 +170,16 @@ for name, data in pairs(tfm.get.room.playerList) do
     }
   end
   
+  pagePlayerSettings[name] = 1
+  playersAfk[name] = os.time()
   playerAchievementsImages[name] = {}
   showCrownImages[name] = true
   playersNormalMode[name] = {name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0}
   pageNormalMode[name] = 1
   playersFourTeamsMode[name] = {name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0, winsYellow = 0, winsGreen = 0}
   pageFourTeamsMode[name] = 1
+  playersThreeTeamsMode[name] = {name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0, winsGreen = 0}
+  pageThreeTeamsMode[name] = 1
   playersTwoTeamsMode[name] = {name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0}
   pageTwoTeamsMode[name] = 1
   playersRealMode[name] = {name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0}
@@ -192,33 +198,20 @@ for name, data in pairs(tfm.get.room.playerList) do
   playerBanHistory[name] = ""
   showOutOfCourtText[name] = false
 
-  welcomeMessage = welcomeMessage.."<br><j>Welcome to the Volley, created by Refletz#6472"
-  welcomeMessage = welcomeMessage.."<br>".."<n>#Volley Version: <j>2.3.0<n>"
-  welcomeMessage = welcomeMessage.."<br>".."<v>Join our #Volley Discord server: <ce>discord.com/invite/pWNTesmNhu<n><br>"
-
-  printf("info", playerLanguage[name].tr.welcomeMessage, name)
-  printf("info", "<n>#Volley Version: <j>"..gameVersion, name)
-  printf("info", "<n>Join our #Volley Discord server: <ce>https://discord.com/invite/pWNTesmNhu<n><br>", name)
+  tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
+  tfm.exec.chatMessage("<n>#Volley Version: <j>"..gameVersion, name)
+  tfm.exec.chatMessage("<n>Join our #Volley Discord server: <ce>https://discord.com/invite/pWNTesmNhu<n><br>", name)
 
   if tfm.get.room.isTribeHouse then
     if tfm.get.room.name:sub(3) == tfm.get.room.playerList[name].tribeName then
+      if name == "Tonycoolnees#0000" then
+        permanentAdmins[#permanentAdmins + 1] = "Tonycoolnees#0000"
+      end
       admins[name] = true
     end
   end
-  system.bindKeyboard(name, 32, true, true)
-  system.bindKeyboard(name, 0, true, true)
-  system.bindKeyboard(name, 1, true, true)
-  system.bindKeyboard(name, 2, true, true)
-  system.bindKeyboard(name, 3, true, true)
-  system.bindKeyboard(name, 49, true, true)
-  system.bindKeyboard(name, 50, true, true)
-  system.bindKeyboard(name, 51, true, true)
-  system.bindKeyboard(name, 52, true, true)
-  system.bindKeyboard(name, 55, true, true)
-  system.bindKeyboard(name, 56, true, true)
-  system.bindKeyboard(name, 57, true, true)
-  system.bindKeyboard(name, 48, true, true)
-  system.bindKeyboard(name, 77, true, true)
-  system.bindKeyboard(name, 76, true, true)
-  system.bindKeyboard(name, 80, true, true)
+
+  for i = 1, #keys do
+    system.bindKeyboard(name, keys[i], true, true)
+  end
 end

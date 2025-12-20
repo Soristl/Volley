@@ -8,13 +8,13 @@ function verifyIsPointRealMode()
     if gameStats.redQuantitySpawn > 0 or gameStats.redServe then
       gameStats.aceRed = false
       score_blue = score_blue + 1
-      printf("<bv>Team Blue scored!<n>", nil)
+      tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
     else
       gameStats.aceBlue = false
       score_red = score_red + 1
-      printf("<r>Team Red scored!<n>", nil)
+      tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
     end
-    printf("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
+    tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
     if score_red >= gameStats.winscore or score_blue >= gameStats.winscore then
       showTheScore()
       showMessageWinner()
@@ -65,8 +65,8 @@ function verifyIsPointRealMode()
   elseif ballX >= gameStats.redX and ballX <= 1299 and ballY >= 368 then
     score_blue = score_blue + 1
     gameStats.aceRed = false
-    printf("<bv>Team Blue scored!<n>", nil)
-    printf("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
+    tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
+    tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
     if score_blue >= gameStats.winscore then
       ballOnGame = false
       tfm.exec.removeObject (ball_id)
@@ -97,8 +97,8 @@ function verifyIsPointRealMode()
   elseif ballX >= 1301 and ballX <= gameStats.blueX and ballY >= 368 then
     score_red = score_red + 1
     gameStats.aceBlue = false
-    printf("<r>Team Red scored!<n>", nil)
-    printf("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
+    tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
+    tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
     if score_red >= gameStats.winscore then
       showTheScore()
       showMessageWinner()
@@ -130,14 +130,14 @@ function verifyIsPointRealMode()
     if gameStats.blueQuantitySpawn > 0 or gameStats.blueServe then
       gameStats.aceBlue = false
       score_red = score_red + 1
-      printf("<r>Team Red scored!<n>", nil)
+      tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
     else
       gameStats.aceRed = false
       score_blue = score_blue + 1
-      printf("<bv>Team Blue scored!<n>", nil)
+      tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
     end
     
-    printf("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
+    tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
     if score_blue >= gameStats.winscore or score_red >= gameStats.winscore then
       ballOnGame = false
       tfm.exec.removeObject (ball_id)

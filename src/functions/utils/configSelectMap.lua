@@ -4,6 +4,12 @@ function configSelectMap()
   if gameStats.realMode then
     return {}
   end
+
+  if gameStats.threeTeamsMode then
+    maps = customMapsThreeTeamsMode
+
+    return maps
+  end
   
   if gameStats.teamsMode or gameStats.twoTeamsMode then
     maps = customMapsFourTeamsMode

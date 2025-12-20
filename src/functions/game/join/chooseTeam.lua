@@ -229,6 +229,6 @@ function chooseTeam(name)
     end
     return
   else
-    printf("<bv>The teams are full<n>", name)
+    tfm.exec.chatMessage("<bv>The teams are full<n>", name)
   end
 end

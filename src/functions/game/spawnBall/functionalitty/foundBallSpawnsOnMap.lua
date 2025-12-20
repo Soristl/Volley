@@ -23,26 +23,37 @@ function foundBallSpawnsOnMap(map, isLargeMap)
     
     local x = tonumber(xString)
     local y = tonumber(yString)
-    
-    if isLargeMap then
+    if gameStats.threeTeamsMode then
       if x >= 0 and x <= 600 then
-        spawnBallArea800[#spawnBallArea800 + 1] = {x = x, y = y}
-      end
-      if x >= 600 and x <= 1200 then
-        spawnBallArea1600[#spawnBallArea1600 + 1] = {x = x, y = y}
-      end
-    else
-      if x >= 0 and x <= 400 then
         spawnBallArea400[#spawnBallArea400 + 1] = { x = x, y = y}
       end
-      if x >= 400 and x <= 800 then
+      if x >= 600 and x <= 1200 then
         spawnBallArea800[#spawnBallArea800 + 1] = { x  = x, y = y}
       end
-      if x >= 800 and x <= 1200 then
+      if x >= 1200 and x <= 1800 then
         spawnBallArea1200[#spawnBallArea1200 + 1] = { x = x, y = y}
       end
-      if x >= 1200 and x <= 1600 then
-        spawnBallArea1600[#spawnBallArea1600 + 1] = { x = x, y = y}
+    else
+      if isLargeMap then
+        if x >= 0 and x <= 600 then
+          spawnBallArea800[#spawnBallArea800 + 1] = {x = x, y = y}
+        end
+        if x >= 600 and x <= 1200 then
+          spawnBallArea1600[#spawnBallArea1600 + 1] = {x = x, y = y}
+        end
+      else
+        if x >= 0 and x <= 400 then
+          spawnBallArea400[#spawnBallArea400 + 1] = { x = x, y = y}
+        end
+        if x >= 400 and x <= 800 then
+          spawnBallArea800[#spawnBallArea800 + 1] = { x  = x, y = y}
+        end
+        if x >= 800 and x <= 1200 then
+          spawnBallArea1200[#spawnBallArea1200 + 1] = { x = x, y = y}
+        end
+        if x >= 1200 and x <= 1600 then
+          spawnBallArea1600[#spawnBallArea1600 + 1] = { x = x, y = y}
+        end
       end
     end
   end

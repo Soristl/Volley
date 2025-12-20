@@ -42,6 +42,8 @@ function showMode(mode, name)
       if mode == "4 teams mode" then
         winsYellow = ""..winsYellow.."<br>"..rank[index].winsYellow..""
         winsGreen = ""..winsGreen.."<br>"..rank[index].winsGreen..""
+      elseif mode == "3 teams mode" then
+        winsGreen = ""..winsGreen.."<br>"..rank[index].winsGreen..""
       end
       
       if colorBackground == 0x2d5a61 then
@@ -64,9 +66,12 @@ function showMode(mode, name)
     ui.addTextArea(9999547, "<p align='center'><font size='13px'><a href='event:4 teams mode'>»</a>", name, 520, 86, 30, 18, 0x142b2e, 0x8a583c, 1, true)
   elseif mode == "4 teams mode" then
     ui.addTextArea(9999546, "<p align='center'><font size='13px'><a href='event:Normal mode'>«</a>", name, 350, 86, 30, 18, 0x142b2e, 0x8a583c, 1, true)
+    ui.addTextArea(9999547, "<p align='center'><font size='13px'><a href='event:3 teams mode'>»</a>", name, 520, 86, 30, 18, 0x142b2e, 0x8a583c, 1, true)
+  elseif mode == "3 teams mode" then
+    ui.addTextArea(9999546, "<p align='center'><font size='13px'><a href='event:4 teams mode'>«</a>", name, 350, 86, 30, 18, 0x142b2e, 0x8a583c, 1, true)
     ui.addTextArea(9999547, "<p align='center'><font size='13px'><a href='event:2 teams mode'>»</a>", name, 520, 86, 30, 18, 0x142b2e, 0x8a583c, 1, true)
   elseif mode == "2 teams mode" then
-    ui.addTextArea(9999546, "<p align='center'><font size='13px'><a href='event:4 teams mode'>«</a>", name, 350, 86, 30, 18, 0x142b2e, 0x8a583c, 1, true)
+    ui.addTextArea(9999546, "<p align='center'><font size='13px'><a href='event:3 teams mode'>«</a>", name, 350, 86, 30, 18, 0x142b2e, 0x8a583c, 1, true)
     ui.addTextArea(9999547, "<p align='center'><font size='13px'><a href='event:Real mode'>»</a>", name, 520, 86, 30, 18, 0x142b2e, 0x8a583c, 1, true)
   elseif mode == "Real mode" then
     ui.addTextArea(9999546, "<p align='center'><font size='13px'><a href='event:2 teams mode'>«</a>", name, 350, 86, 30, 18, 0x142b2e, 0x8a583c, 1, true)
@@ -80,6 +85,10 @@ function showMode(mode, name)
     ui.addTextArea(9999552, "<textformat leading='3px'><r>WR<n>"..winsRed.."", name, 535, 115, 50, 185, 0x161616, 0x161616, 0, true)
     ui.addTextArea(9999553, "<textformat leading='3px'><bv>WB<n>"..winsBlue.."", name, 597, 115, 50, 185, 0x161616, 0x161616, 0, true)
     ui.addTextArea(9999564, "<textformat leading='3px'><j>WY<n>"..winsYellow.."", name, 659, 115, 50, 185, 0x161616, 0x161616, 0, true)
+    ui.addTextArea(9999565, "<textformat leading='3px'><vp>WG<n>"..winsGreen.."", name, 721, 115, 50, 185, 0x161616, 0x161616, 0, true)
+  elseif mode == "3 teams mode" then
+    ui.addTextArea(9999552, "<textformat leading='3px'><r>WR<n>"..winsRed.."", name, 597, 115, 50, 185, 0x161616, 0x161616, 0, true)
+    ui.addTextArea(9999553, "<textformat leading='3px'><bv>WB<n>"..winsBlue.."", name, 659, 115, 50, 185, 0x161616, 0x161616, 0, true)
     ui.addTextArea(9999565, "<textformat leading='3px'><vp>WG<n>"..winsGreen.."", name, 721, 115, 50, 185, 0x161616, 0x161616, 0, true)
   else
     ui.addTextArea(9999552, "<textformat leading='3px'><r>WR<n>"..winsRed.."", name, 650, 115, 50, 185, 0x161616, 0x161616, 0, true)

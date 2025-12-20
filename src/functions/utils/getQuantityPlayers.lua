@@ -1,9 +1,11 @@
 function getQuantityPlayers()
   local quantity = {yellow = 0, red = 0, blue = 0, green = 0}
   if gameStats.typeMap == "large4v4" then
-    for i = 1, #playersYellow do
-      if playersYellow[i].name ~= "" then
-        quantity.yellow = quantity.yellow + 1
+    if gameStats.teamsMode then
+      for i = 1, #playersYellow do
+        if playersYellow[i].name ~= "" then
+          quantity.yellow = quantity.yellow + 1
+        end
       end
     end
     for i = 1, #playersRed do

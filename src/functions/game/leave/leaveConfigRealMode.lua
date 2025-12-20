@@ -6,7 +6,7 @@ function leaveConfigRealMode(name)
   if team == "red" and gameStats.redServe then
     gameStats.aceRed = false
     if quantity.red >= 1 then
-      printf("<ce>[System]: player who was going to serve has left, the system will choose another player to serve<n>", nil)
+      tfm.exec.chatMessage("<ce>[System]: player who was going to serve has left, the system will choose another player to serve<n>", nil)
       ballOnGame = false
       gameStats.canTransform = false
       local delayTeleport = addTimer(function(i)
@@ -28,7 +28,7 @@ function leaveConfigRealMode(name)
 
   if quantity.blue >= 1 and gameStats.blueServe then
     gameStats.aceBlue = false
-    printf("<ce>[System]: player who was going to serve has left, the system will choose another player to serve<n>", nil)
+    tfm.exec.chatMessage("<ce>[System]: player who was going to serve has left, the system will choose another player to serve<n>", nil)
     ballOnGame = false
     gameStats.canTransform = false
     local delayTeleport = addTimer(function(i)

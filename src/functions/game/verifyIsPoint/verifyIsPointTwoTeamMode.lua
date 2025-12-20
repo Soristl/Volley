@@ -10,8 +10,8 @@ function verifyIsPointTwoTeamsMode()
     if ballOnGameTwoBalls[j] and ballsId[j] ~= nil then
       if tfm.get.room.objectList[ballsId[j]].x <= gameStats.blueX and tfm.get.room.objectList[ballsId[j]].y >= 368 then
         score_red = score_red + 1
-        printf("<r>Team Red scored!<n>", nil)
-        printf("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
+        tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
+        tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
         if score_red >= gameStats.winscore then
           showTheScore()
           showMessageWinner()
@@ -36,8 +36,8 @@ function verifyIsPointTwoTeamsMode()
         showTheScore()
       elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.redX and tfm.get.room.objectList[ballsId[j]].y >= 368 then
         score_blue = score_blue + 1
-        printf("<bv>Team Blue scored!<n>", nil)
-        printf("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
+        tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
+        tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
         if score_blue >= gameStats.winscore then
           ballOnGame = false
           ballOnGame2 = false
@@ -62,8 +62,8 @@ function verifyIsPointTwoTeamsMode()
         showTheScore()
       elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.blueX2 and tfm.get.room.objectList[ballsId[j]].y >= 368 then
         score_red = score_red + 1
-        printf("<r>Team Red scored!<n>", nil)
-        printf("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
+        tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
+        tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
         if score_red >= gameStats.winscore then
           showTheScore()
           showMessageWinner()
@@ -88,8 +88,8 @@ function verifyIsPointTwoTeamsMode()
         showTheScore()
       elseif tfm.get.room.objectList[ballsId[j]].x >= gameStats.redX2 and tfm.get.room.objectList[ballsId[j]].y >= 368 then
         score_blue = score_blue + 1
-        printf("<bv>Team Blue scored!<n>", nil)
-        printf("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
+        tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
+        tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
         if score_blue >= gameStats.winscore then
           ballOnGame = false
           ballOnGame2 = false

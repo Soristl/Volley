@@ -20,7 +20,6 @@ function startGame()
     groundCollision = false   
   })
 
-  enableAfkMode()
   removeTextAreasOfLobby()
   showTheScore()
 
@@ -34,5 +33,5 @@ function startGame()
   verifyIsPoint()
   showCrownToAllPlayers()
   mode = "gameStart"
-  printf("<ch>If you don't want to see the ranking crowns, type the command !crown false<n>", nil)
+  tfm.exec.chatMessage("<ch>If you don't want to see the ranking crowns, type the command !crown false<n>", nil)
 end

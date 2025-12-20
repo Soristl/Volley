@@ -9,6 +9,13 @@ function eventTextAreaCallback(id, name, c)
       local index = tonumber(string.sub(c, 12))
       playerInGame[name] = true
       playersRed[index].name = name
+
+      if gameStats.threeTeamsMode then
+        ui.addTextArea(threeTeamsMode.id[index], "<p align='center'><font size='14px'><a href='event:leaveTeamRed"..index.."'>"..name.."", nil, threeTeamsMode.x[index], threeTeamsMode.y[index], 150, 40, 0x871F1F, 0x871F1F, 1, false)
+
+        return
+      end
+
       if index > 3 then
         ui.addTextArea(index + 4, "<p align='center'><font size='14px'><a href='event:leaveTeamRed"..index.."'>"..name.."", nil, x[index + 3], y[index + 3], 150, 40, 0x871F1F, 0x871F1F, 1, false)
       else
@@ -23,34 +30,56 @@ function eventTextAreaCallback(id, name, c)
       local index = tonumber(string.sub(c, 13))
       playerInGame[name] = false
       playersRed[index].name = ''
+
+      if gameStats.threeTeamsMode then
+        ui.addTextArea(threeTeamsMode.id[index], "<p align='center'><font size='14px'><a href='event:joinTeamRed"..index.."'>Join", nil, threeTeamsMode.x[index], threeTeamsMode.y[index], 150, 40, 0xE14747, 0xE14747, 1, false)
+
+        return
+      end
+
       if index > 3 then
         ui.addTextArea(index + 4, "<p align='center'><font size='14px'><a href='event:joinTeamRed"..index.."'>Join", nil, x[index + 3], y[index + 3], 150, 40, 0xE14747, 0xE14747, 1, false)
       else
         ui.addTextArea(index, "<p align='center'><font size='14px'><a href='event:joinTeamRed"..index.."'>Join", nil, x[index], y[index], 150, 40, 0xE14747, 0xE14747, 1, false)
       end
-    elseif string.sub(c, 1, 12) == "joinTeamBlue" and playerInGame[name] == false and playersBlue[tonumber(string.sub(c, 13)-3)].name == '' then
+    elseif string.sub(c, 1, 12) == "joinTeamBlue" and playerInGame[name] == false and playersBlue[teamBlueIndex(tonumber(string.sub(c, 13)))].name == '' then
       local isPlayerBanned = messagePlayerIsBanned(name)
       if isPlayerBanned then
         return
       end
 
-      local index = tonumber(string.sub(c, 13) - 3)
+      local index = teamBlueIndex(tonumber(string.sub(c, 13)))
       playerInGame[name] = true
       playersBlue[index].name = name
+
+      if gameStats.threeTeamsMode then
+        ui.addTextArea(threeTeamsMode.id[index + 4], "<p align='center'><font size='14px'><a href='event:leaveTeamBlue"..(index).."'>"..name.."", nil, threeTeamsMode.x[index + 4], threeTeamsMode.y[index + 4], 150, 40, 0x0B3356, 0x0B3356, 1, false)
+
+        return
+      end
+
       if index > 3 then
         ui.addTextArea(index + 7, "<p align='center'><font size='14px'><a href='event:leaveTeamBlue"..(index + 3).."'>"..name.."", nil, x[index + 6], y[index + 6], 150, 40, 0x0B3356, 0x0B3356, 1, false)
       else
         ui.addTextArea(index + 3, "<p align='center'><font size='14px'><a href='event:leaveTeamBlue"..(index + 3).."'>"..name.."", nil, x[index + 3], y[index + 3], 150, 40, 0x0B3356, 0x0B3356, 1, false)
       end
-    elseif string.sub(c, 1, 13) == "leaveTeamBlue" and playersBlue[tonumber(string.sub(c, 14)) - 3].name == name then
+    elseif string.sub(c, 1, 13) == "leaveTeamBlue" and playersBlue[teamBlueIndex(tonumber(string.sub(c, 14)))].name == name then
       local isPlayerBanned = messagePlayerIsBanned(name)
       if isPlayerBanned then
         return
       end
 
-      local index = tonumber(string.sub(c, 14) - 3)
+      local index = teamBlueIndex(tonumber(string.sub(c, 14)))
       playerInGame[name] = false
       playersBlue[index].name = ''
+
+      if gameStats.threeTeamsMode then
+
+        ui.addTextArea(threeTeamsMode.id[index + 4], "<p align='center'><font size='14px'><a href='event:joinTeamBlue"..(index).."'>Join", nil, threeTeamsMode.x[index + 4], threeTeamsMode.y[index + 4], 150, 40, 0x184F81, 0x184F81, 1, false)
+
+        return
+      end
+
       if index > 3 then
         ui.addTextArea(index + 7, "<p align='center'><font size='14px'><a href='event:joinTeamBlue"..(index + 3).."'>Join", nil, x[index + 6], y[index + 6], 150, 40, 0x184F81, 0x184F81, 1, false)
       else
@@ -88,6 +117,12 @@ function eventTextAreaCallback(id, name, c)
       playerInGame[name] = true
       playersGreen[index].name = name
 
+      if gameStats.threeTeamsMode then
+        ui.addTextArea(threeTeamsMode.id[index + 8], "<p align='center'><font size='14px'><a href='event:leaveTeamGreen"..index.."'>"..name.."", nil, threeTeamsMode.x[index + 8], threeTeamsMode.y[index + 8], 150, 40, 0x0C6346, 0x0C6346, 1, false)
+
+        return
+      end
+
       ui.addTextArea(index + 10, "<p align='center'><font size='14px'><a href='event:leaveTeamGreen"..index.."'>"..name.."", nil, x[index + 9], y[index + 9], 150, 40, 0x0C6346, 0x0C6346, 1, false)
     elseif string.sub(c, 1, 14) == "leaveTeamGreen" and playersGreen[tonumber(string.sub(c, 15))].name == name then
       local isPlayerBanned = messagePlayerIsBanned(name)
@@ -98,6 +133,12 @@ function eventTextAreaCallback(id, name, c)
       local index = tonumber(string.sub(c, 15))
       playerInGame[name] = false
       playersGreen[index].name = ''
+
+      if gameStats.threeTeamsMode then
+        ui.addTextArea(threeTeamsMode.id[index + 8], "<p align='center'><font size='14px'><a href='event:joinTeamGreen"..index.."'>Join", nil, threeTeamsMode.x[index + 8], threeTeamsMode.y[index + 8], 150, 40, 0x109267, 0x109267, 1, false)
+
+        return
+      end
 
       ui.addTextArea(index + 10, "<p align='center'><font size='14px'><a href='event:joinTeamGreen"..index.."'>Join", nil, x[index + 9], y[index + 9], 150, 40, 0x109267, 0x109267, 1, false)
     end
@@ -136,19 +177,19 @@ function eventTextAreaCallback(id, name, c)
     messageLog("<bv>"..name.." was faster to click and is now an admin!<n>")
     closeWindow(20, nil)
   elseif c == "roomadmin" then
-    printf("<rose>/room *#volley0"..name.."<n>", name)
+    tfm.exec.chatMessage("<rose>/room *#volley0"..name.."<n>", name)
   elseif string.sub(c, 1, 4) == "sync" then
     local playerSync = string.sub(c, 5)
 
     print(playerLeft[name])
 
     if playerLeft[playerSync] then
-      printf("<bv>Player not found, choose another player<n>", name)
+      tfm.exec.chatMessage("<bv>Player not found, choose another player<n>", name)
       windowUISync(name)
     else
       closeWindow(24, name)
       tfm.exec.setPlayerSync(playerSync)
-      printf("<bv>Set new player sync: "..playerSync.."<n>", nil)
+      tfm.exec.chatMessage("<bv>Set new player sync: "..playerSync.."<n>", nil)
     end
   elseif c == "openMode" and admins[name] then
     settingsMode[name] = true
@@ -157,7 +198,7 @@ function eventTextAreaCallback(id, name, c)
     for i = 1, #modes do
       str = ""..str..""..modes[i].."<br>"
     end
-    ui.addWindow(25, "<p align='center'><font size='11px'><a href='event:closeMode'>Select a mode</a><br><br>"..str.."", name, 665, 110, 100, 100, 1, false, false)
+    ui.addWindow(25, "<p align='center'><font size='11px'><a href='event:closeMode'>Select a mode</a><br><br>"..str.."", name, 665, 100, 100, 110, 1, false, false)
   elseif c:sub(1, 7) == "setMode" then
     local modes = getModesText()
     local index = tonumber(c:sub(8))
@@ -165,6 +206,9 @@ function eventTextAreaCallback(id, name, c)
     globalSettings.mode = modes[index]
     messageLog("<bv>The room has been set to "..modes[index]..", selected by the admin "..name.."<n>")
     updateSettingsUI()
+  elseif c == "closeMode" then
+    settingsMode[name] = false
+    ui.addWindow(25, "<p align='center'><font size='11px'><a href='event:openMode'>Select a mode</a>", name, 665, 100, 100, 30, 1, false, false)
   elseif c == "twoballs" and admins[name] then
     if globalSettings.twoBalls then
       globalSettings.twoBalls = false
@@ -173,6 +217,16 @@ function eventTextAreaCallback(id, name, c)
       globalSettings.twoBalls = true
       messageLog("<bv>The two balls command was enabled globally in the room, selected by the admin "..name.."<n>")
       print("<bv>The two balls command was enabled globally in the room, selected by the admin "..name.."<n>")
+    end
+    updateSettingsUI()
+  elseif c == "threeballs" and admins[name] then
+    if globalSettings.threeBalls then
+      globalSettings.threeBalls = false
+      messageLog("<bv>The three balls on 3 teams mode command was disabled globally in the room, selected by the admin "..name.."<n>")
+    else
+      globalSettings.threeBalls = true
+      messageLog("<bv>The three balls on 3 teams mode command was enabled globally in the room, selected by the admin "..name.."<n>")
+      print("<bv>The three balls on 3 teams mode command was enabled globally in the room, selected by the admin "..name.."<n>")
     end
     updateSettingsUI()
   elseif c == "randomball" and admins[name] then
@@ -185,9 +239,34 @@ function eventTextAreaCallback(id, name, c)
       messageLog("<bv>The random ball command was enabled globally in the room, selected by the admin "..name.."<n>")
     end
     updateSettingsUI()
-  elseif c == "closeMode" then
+  elseif c == "openMapType" and admins[name] then
+    settingsMode[name] = true
+    local modes = getMapTypesActions()
+    local str = ''
+    for i = 1, #modes do
+      str = ""..str..""..modes[i].."<br>"
+    end
+    ui.addWindow(25, "<p align='center'><font size='11px'><a href='event:closeMapType'>Select map</a><br><br>"..str.."", name, 665, 100, 100, 100, 1, false, false)
+  elseif c:sub(1, 10) == "setMapType" and not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realMode then
+    local modes = getMapTypesText()
+    local index = tonumber(c:sub(11))
+
+    globalSettings.mapType = string.lower(modes[index])
+    messageLog("<bv>The map size in normal mode was set by "..modes[index].." by the admin "..name.."<n>")
+    updateSettingsUI()
+  elseif c == "closeMapType" then
     settingsMode[name] = false
-    ui.addWindow(25, "<p align='center'><font size='11px'><a href='event:openMode'>Select a mode</a>", name, 665, 110, 100, 30, 1, false, false)
+    ui.addWindow(25, "<p align='center'><font size='11px'><a href='event:openMapType'>Select map</a>", name, 665, 100, 100, 30, 1, false, false)
+  elseif string.sub(c, 1, 12) == 'nextSettings' then
+    local page = tonumber(string.sub(c, 13))
+    pagePlayerSettings[name] = page
+
+    updateSettingsUI(name)
+  elseif string.sub(c, 1, 12) == 'prevSettings' then
+    local page = tonumber(string.sub(c, 13))
+    pagePlayerSettings[name] = page
+
+    updateSettingsUI(name)
   elseif c == "ranking" then
     removeUITrophies(name)
     openRank[name] = true
@@ -201,6 +280,10 @@ function eventTextAreaCallback(id, name, c)
     showMode(playerRankingMode[name], name)
   elseif c == "4 teams mode" then
     playerRankingMode[name] = "4 teams mode"
+
+    showMode(playerRankingMode[name], name)
+  elseif c == "3 teams mode" then
+    playerRankingMode[name] = "3 teams mode"
 
     showMode(playerRankingMode[name], name)
   elseif c == "2 teams mode" then
@@ -246,7 +329,7 @@ function eventTextAreaCallback(id, name, c)
   elseif string.sub(c, 1, 7) == "trophie" then
     local index = tonumber(string.sub(c, 8))
 
-    printf("<ce>"..playerLanguage[name].tr.msgsTrophies[index].."<n>", name)
+    tfm.exec.chatMessage("<ce>"..playerLanguage[name].tr.msgsTrophies[index].."<n>", name)
     print("<ce>"..playerLanguage[name].tr.msgsTrophies[index].."<n>")
 
     if playerAchievements[name][index].quantity >= 1 then
@@ -267,7 +350,7 @@ function eventTextAreaCallback(id, name, c)
     selectMapPage[name] = index
     selectMapUI(name)
   elseif string.sub(c, 1, 3) == "map" then
-    printf('<bv>'..string.sub(c, 4)..'<n>', name)
+    tfm.exec.chatMessage('<bv>'..string.sub(c, 4)..'<n>', name)
   elseif string.sub(c, 1, 7) == "votemap" and canVote[name] and not gameStats.realMode and mode == "startGame" then
     local index = tonumber(string.sub(c, 8))
     local maps = configSelectMap()
@@ -287,19 +370,31 @@ function eventTextAreaCallback(id, name, c)
       end
     end
 
-    printf("<bv>"..name.." voted for the "..maps[index][3].." map ("..tostring(mapsVotes[index]).." votes), type !maps to see the maps list and to vote !votemap (number)<n>", nil)
+    tfm.exec.chatMessage("<bv>"..name.." voted for the "..maps[index][3].." map ("..tostring(mapsVotes[index]).." votes), type !maps to see the maps list and to vote !votemap (number)<n>", nil)
   elseif string.sub(c, 1, 9) == "randommap" and not gameStats.realMode and admins[name] then
     if globalSettings.randomMap then
-        globalSettings.randomMap = false
-        print("<bv>The random map command was disabled globally in the room, selected by the admin "..name.."<n>")
-        messageLog("<bv>The random map command was disabled globally in the room, selected by the admin "..name.."<n>")
-      else
-        globalSettings.randomMap = true
-        print("<bv>The random map command was enabled globally in the room, selected by the admin "..name.."<n>")
-        messageLog("<bv>The random map command was enabled globally in the room, selected by the admin "..name.."<n>")
-      end
+      globalSettings.randomMap = false
+      print("<bv>The random map command was disabled globally in the room, selected by the admin "..name.."<n>")
+      messageLog("<bv>The random map command was disabled globally in the room, selected by the admin "..name.."<n>")
+    else
+      globalSettings.randomMap = true
+      print("<bv>The random map command was enabled globally in the room, selected by the admin "..name.."<n>")
+      messageLog("<bv>The random map command was enabled globally in the room, selected by the admin "..name.."<n>")
+    end
 
-      updateSettingsUI()    
+    updateSettingsUI()
+  elseif c == "consumables" then
+    if globalSettings.consumables then
+      globalSettings.consumables = false
+
+      messageLog("<bv>The consumables command has been disabled globally by the admin "..name.."<n>")
+    else
+      globalSettings.consumables = true
+
+      messageLog("<bv>The consumables command has been enabled globally by the admin "..name.."<n>")
+    end
+
+    updateSettingsUI()
   elseif string.sub(c, 1, 6)  == "setmap" and customMapCommand[name] and not gameStats.realMode and mode == "startGame" and admins[name] then
     local index = tonumber(string.sub(c, 7))
     local maps = configSelectMap()
@@ -315,7 +410,7 @@ function eventTextAreaCallback(id, name, c)
     gameStats.isCustomMap = true
     gameStats.customMapIndex = index
 
-    printf('<bv>'..maps[gameStats.customMapIndex][3]..' map (created by '..maps[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
+    tfm.exec.chatMessage('<bv>'..maps[gameStats.customMapIndex][3]..' map (created by '..maps[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>', nil)
     print('<bv>'..maps[gameStats.customMapIndex][3]..' map (created by '..maps[gameStats.customMapIndex][4]..') selected by admin '..name..'<n>')
 
     for name1, data in pairs(tfm.get.room.playerList) do
@@ -328,29 +423,6 @@ function eventTextAreaCallback(id, name, c)
     removeUITrophies(name)
     settings[name] = true
 
-    ui.addWindow(24, ""..playerLanguage[name].tr.titleSettings.."", name, 125, 60, 650, 300, 1, false, true, playerLanguage[name].tr.closeUIText)
-    ui.addTextArea(99992, ""..playerLanguage[name].tr.textSettings, name, 150, 110, 500, 200, 0x161616, 0x161616, 0, true)
-
-    ui.addWindow(25, "<p align='center'><font size='11px'><a href='event:openMode'>Select a mode</a>", name, 665, 105, 100, 30, 1, false, false)
-    
-    if globalSettings.randomBall then
-      ui.addWindow(21, "<p align='center'><font size='11px'><a href='event:randomball'>Enabled</a>", name, 665, 160, 100, 30, 1, false, false)
-      else
-      ui.addWindow(21, "<p align='center'><font size='11px'><a href='event:randomball'>Disabled</a>", name, 665, 160, 100, 30, 1, false, false)
-    end
-
-    if globalSettings.randomMap then
-      print("RANDOM MAP UI UPDATE")
-      ui.addWindow(22, "<p align='center'><font size='11px'><a href='event:randommap'>Enabled</a>", name, 665, 215, 100, 30, 1, false, false)
-      else
-      ui.addWindow(22, "<p align='center'><font size='11px'><a href='event:randommap'>Disabled</a>", name, 665, 215, 100, 30, 1, false, false)
-    end
-
-    if globalSettings.twoBalls then
-      ui.addWindow(44, "<p align='center'><font size='11px'><a href='event:twoballs'>Enabled</a>", name, 665, 275, 100, 30, 1, false, false)
-      else
-      ui.addWindow(44, "<p align='center'><font size='11px'><a href='event:twoballs'>Disabled</a>", name, 665, 275, 100, 30, 1, false, false)
-    end
-
+    updateSettingsUI(name)
   end
 end
