@@ -13,6 +13,7 @@ local balls = {
   [12] = { id = 6, isImage = true, image = '18fd18e5dc6.png', name = 'Original Volley ball' },
   [13] = { id = 604, isImage = true, image = '197d9275c53.png', name = 'Morocco ball' },
   [14] = { id = 604, isImage = false, image = '', name = 'Soccer ball' },
+  [15] = { id = 6, isImage = true, image = '19a63e144c6.png', name = 'Uruguay ball'}
   -- [99] = {
   --   id = 6,
   --   isImage = no,

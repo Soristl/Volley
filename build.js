@@ -7,6 +7,7 @@ combine(
 	[
 		"src/balls.lua",
 		"src/maps.lua",
+		"src/printf.lua",
 		"src/translate.lua",
 		"src/timer.lua",
 		"src/main.lua",

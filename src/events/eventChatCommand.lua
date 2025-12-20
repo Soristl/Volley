@@ -1,5 +1,26 @@
+local short_commands = { j = "join", l = "leave", la = "lang", ads = "admins", b = "balls", 
+                   vm = "votemap", cr = "crown", pr = "profile", rt = "resettimer",
+                   skip = "skiptimer", stop = "stoptimer", smp = "setmaxplayers",
+                   w = "winscore", rm = "randommap", cm = "custommap", bc = "ballcoords",
+                   ssc = "setscore", ftm = "4teamsmode", rm = "realmode",
+                   a = "admin", ua = "unadmin", k = "kick", f = "fleave", b = "ban",
+                   ub = "unban", rb = "randomball", cb = "customball", lo = "lobby",
+                   ks = "killspec", p = "pause", sy = "sync", ssy = "setsync",
+                   syt = "synctfm", lsy = "listsync", spf = "setplayerforce", 
+                   t = "test", tt = "2teamsmode", afk = "afksystem", sat = "setafktime",
+                   tb = "twoballs", co = "consumables", se = "settings", dc = "discord"
+                }
+
 function eventChatCommand(name, c)
   local command = string.lower(c)
+  
+  if short_commands[command] then
+    command = short_commands[command]
+  end
+
+  local permanentAdmin = isPermanentAdmin(name)
+  
+
   if command == "join" and playerInGame[name] == false and mode == "gameStart" then
     local isPlayerBanned = messagePlayerIsBanned(name)
     if isPlayerBanned then
@@ -12,7 +33,7 @@ function eventChatCommand(name, c)
       end
 
       chooseTeamThreeTeamsMode(name)
-      --showCrownToAllPlayers()
+      showCrownToAllPlayers()
       return
     end
 
@@ -188,13 +209,22 @@ function eventChatCommand(name, c)
         end
       end
     end
+  elseif command == "discord" then
+    if permanentAdmin then
+      tfm.exec.chatMessage("<bv>https://discord.com/invite/pWNTesmNhu", nil)  
+      return
+    end
+
+    tfm.exec.chatMessage("<bv>https://discord.com/invite/pWNTesmNhu", name)
   end
+  
   
   if admins[name] then
     local isPlayerBanned = messagePlayerIsBanned(name)
     if isPlayerBanned then
       return
     end
+
     if command == "resettimer" and mode == "startGame" then
       initGame = os.time() + 15000
 
@@ -267,10 +297,12 @@ function eventChatCommand(name, c)
         commandNotAvailable(command:sub(1, 6), name)
         return
       end
+
       if command:sub(8) == "small" or command:sub(8) == "large" or command:sub(8) == "extra-large" then
         if command:sub(8) == "small" or command:sub(8) == "large" then
           resetMapsToTest()
         end
+
         gameStats.setMapName = command:sub(8)
         tfm.exec.chatMessage("<bv>"..gameStats.setMapName.." map selected by admin "..name.."<n>", nil)
       else
@@ -327,7 +359,7 @@ function eventChatCommand(name, c)
           if i == 1 then
             customMapCommand[name] = true
           end
-        end, 2000, 1, "customMapCommandDelay")
+        end, 2500, 1, "customMapCommandDelay")
 
         gameStats.isCustomMap = false
         gameStats.customMapIndex = 0
@@ -403,7 +435,7 @@ function eventChatCommand(name, c)
           if i == 1 then
             customMapCommand[name] = true
           end
-        end, 2000, 1, "customMapCommandDelay")
+        end, 2500, 1, "customMapCommandDelay")
 
         gameStats.isCustomMap = false
         gameStats.customMapIndex = 0
@@ -592,8 +624,8 @@ function eventChatCommand(name, c)
         resetMapsToTest()
         gameStats.teamsMode = true
         resetMapsList()
-        tfm.exec.chatMessage("<bv>4-team volley mode activated by admin "..name.."<n>", nil)
         updateLobbyTextAreas()
+        tfm.exec.chatMessage("<bv>4-team volley mode activated by admin "..name.."<n>", nil)
         return
       end
 
@@ -655,7 +687,7 @@ function eventChatCommand(name, c)
       updateLobbyTextAreas()
     elseif command:sub(1, 8) == "realmode" and mode == "startGame" then
       if gameStats.twoTeamsMode then
-        tfm.exec.chatMessage("<bv>You should disable the real mode first to enable the real mode<n>", nil)
+        tfm.exec.chatMessage("<bv>You should disable the real mode first to enable the 4 teams mode<n>", nil)
         return
       end
 
@@ -703,7 +735,7 @@ function eventChatCommand(name, c)
           tfm.exec.chatMessage("<bv>Admin selected for "..name1.." command used by "..name.."<n>", nil)
 
           if mode == "startGame" then
-            ui.addWindow(31, "<p align='center'><font size='13px'><a href='event:settings'>Room settings", name1, 180, 370, 150, 30, 1, false, false, _)
+            ui.addWindow(31, "<p align='center'><font size='13px'><a href='event:settings'>Room settings", name, 350, 370, 150, 30, 1, false, false, _)
 
             if selectMapOpen[name1] then
               selectMapUI(name1)
@@ -1350,6 +1382,29 @@ function eventChatCommand(name, c)
 
       mapsToTest[1] = args[2]
       tfm.exec.chatMessage("<bv>Test map successfully selected<n>", nil)
+    elseif command:sub(1,2) == "tp" and mode == gameStart then
+      local permanentAdmin = isPermanentAdmin(name)
+      if not permanentAdmin then
+        return
+      end
+
+      local args = split(command)
+      
+      if #args >= 3 then
+        local colorValues = {yellow = 200, blue = 400, red = 600, green = 1000}  
+        if colorValues[args[2]] then
+          args[2] = colorValues[args[2]]
+        end
+
+        if type(tonumber(args[2])) ~= "number" or type(tonumber(args[3])) ~= "number" then
+          print('<bv>Second or third parameters invalid, must be numbers<n>', name)
+          return
+        end
+
+        xTarget = math.abs(math.floor(tonumber(args[2])))
+        yTarget = math.abs(math.floor(tonumber(args[3])))  
+        tfm.exec.movePlayer(name, xTarget, yTarget)
+      end
     end
   end
 end

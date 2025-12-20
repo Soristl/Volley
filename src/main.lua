@@ -1,4 +1,6 @@
 -- from https://www.lua.org/pil/11.4.html
+local branch = "test"
+
 local admins = 
 {
   ["Refletz#6472"] = true,
@@ -45,13 +47,12 @@ else
   trad = lang.en
 end
 
+
 local regex = "#volley%d+([%+_]*[%w_#]+)"
 local getRoomAdmin = string.match(tfm.get.room.name, regex)
 
 if getRoomAdmin ~= nil then
   admins[getRoomAdmin] = true
-else
-  getRoomAdmin = ""
 end
 
 tfm.exec.disableAutoShaman(true)
@@ -118,20 +119,24 @@ local openRank = {}
 local countMatches = 0
 local playerLastMatchCount = {}
 local playerLeft = {}
+
 local showCrownImages = {}
 local redCrown = {'15296835cdd.png', '1529683757b.png', '15296838f74.png', '1529683a830.png', '1529683c1e0.png', '1529655c3e4.png', '1529655df16.png', '1529655fb1b.png', '152965616ff.png', '15296563a9e.png'}
 local blueCrown = {'1529682cc1e.png', '1529682e815.png', '15296830d1a.png', '1529683291f.png', '15296834389.png', '1529653b65f.png', '1529653d855.png', '1529653fa44.png', '15296541aed.png', '15296543994.png'}
 local yellowCrown = {'192e02e0140.png', '192e02e18b0.png', '192e02e3022.png', '192e02e4795.png', '192e02e5f06.png', '192e02e767b.png', '192e02e8deb.png', '192e02ea7b1.png', '192e02ebf90.png', '192e02ed701.png'}
 local greenCrown = {'192e02d16d0.png', '192e02d2e3f.png', '192e02d45b2.png', '192e02d5d22.png', '192e02d7494.png', '192e02d8c06.png', '192e02da37a.png', '192e02dbaea.png', '192e02dd25c.png', '192e02de9ce.png'}
 local rankCrown = {}
+
 local playerAchievements = {}
 local playerAchievementsImages = {}
 local playerTrophyImage = {}
 local isOpenProfile = {}
+
 local selectMapOpen = {}
 local selectMapPage = {}
 local selectMapImages = {}
 local customMapCommand = {}
+
 local lobbySpawn = {}
 local playersSpawn400 = {}
 local playersSpawn800 = {}
@@ -151,6 +156,7 @@ for name, data in pairs(tfm.get.room.playerList) do
   selectMapOpen[name] = false
   selectMapPage[name] = 1
   selectMapImages[name] = {}
+  
   isOpenProfile[name] = false
   playerTrophyImage[name] = 0
   
@@ -191,9 +197,11 @@ for name, data in pairs(tfm.get.room.playerList) do
   playerBan[name] = false
   playerBanHistory[name] = ""
   showOutOfCourtText[name] = false
+
   tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
-  tfm.exec.chatMessage("<j>#Volley Version: "..gameVersion.."<n>", name)
-  tfm.exec.chatMessage("<ce>Join our #Volley Discord server: https://discord.com/invite/pWNTesmNhu<n>", name)
+  tfm.exec.chatMessage("<n>#Volley Version: <j>"..gameVersion, name)
+  tfm.exec.chatMessage("<n>Join our #Volley Discord server: <ce>https://discord.com/invite/pWNTesmNhu<n><br>", name)
+
   if tfm.get.room.isTribeHouse then
     if tfm.get.room.name:sub(3) == tfm.get.room.playerList[name].tribeName then
       if name == "Tonycoolnees#0000" then
