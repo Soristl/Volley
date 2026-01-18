@@ -723,7 +723,7 @@ local customMapsFourTeamsMode = {
     [6] = '19ad0d36704.png'
   },
   [38] = {
-    [1] = '@7976367',
+    [1] = '@7977045',
     [2] = '@7976368',
     [3] = 'The morning of departure',
     [4] = 'Lacoste#8972',
