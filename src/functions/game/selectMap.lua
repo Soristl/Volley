@@ -25,9 +25,13 @@ function selectMap()
     
     if gameStats.isCustomMap then
       tfm.exec.newGame(customMapsThreeTeamsMode[gameStats.customMapIndex][1])
-      foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.customMapIndex][1], false)
-      foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.customMapIndex][1], false)
-
+      local foundMap = addTimer(function(i)
+        if i == 1 then
+          foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.customMapIndex][1], false)
+          foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.customMapIndex][1], false)
+        end
+      end, 1000)
+      
       return
     end
 
@@ -36,8 +40,12 @@ function selectMap()
     end
     if gameStats.totalVotes >= 2 then
       tfm.exec.newGame(customMapsThreeTeamsMode[gameStats.mapIndexSelected][1])
-      foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][1], false)
-      foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][1], false)
+      local foundMap = addTimer(function(i)
+        if i == 1 then
+          foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][1], false)
+          foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][1], false)
+        end
+      end, 1000)
       tfm.exec.chatMessage("<bv>The "..customMapsThreeTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsThreeTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
       print("<bv>The "..customMapsThreeTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsThreeTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>")
 
@@ -63,8 +71,12 @@ function selectMap()
     end
     if gameStats.isCustomMap then
       tfm.exec.newGame(customMapsFourTeamsMode[gameStats.customMapIndex][1])
-      foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][1], false)
-      foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][1], false)
+      local foundMap = addTimer(function(i)
+        if i == 1 then
+          foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][1], false)
+          foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][1], false)
+        end
+      end, 1000)
 
       return
     end
@@ -73,8 +85,13 @@ function selectMap()
     end
     if gameStats.totalVotes >= 2 then
       tfm.exec.newGame(customMapsFourTeamsMode[gameStats.mapIndexSelected][1])
-      foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
-      foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
+      local foundMap = addTimer(function(i)
+        if i == 1 then
+          foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
+          foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
+        end
+      end, 1000)
+      
       tfm.exec.chatMessage("<bv>The "..customMapsFourTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsFourTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
       print("<bv>The "..customMapsFourTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsFourTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>")
 
@@ -98,9 +115,13 @@ function selectMap()
     end
     if gameStats.isCustomMap then
       tfm.exec.newGame(customMapsFourTeamsMode[gameStats.customMapIndex][1])
-      foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][1], false)
-      foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][1], false)
-
+      local foundMap = addTimer(function(i)
+        if i == 1 then
+          foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][1], false)
+          foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][1], false)
+        end
+      end, 1000)
+      
       return
     end
     if gameStats.totalVotes == 1 then
@@ -108,8 +129,13 @@ function selectMap()
     end
     if gameStats.totalVotes >= 2 then
       tfm.exec.newGame(customMapsFourTeamsMode[gameStats.mapIndexSelected][1])
-      foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
-      foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
+      local foundMap = addTimer(function(i)
+        if i == 1 then
+          foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
+          foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][1], false)
+        end
+      end, 1000)
+      
       tfm.exec.chatMessage("<bv>The "..customMapsFourTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsFourTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
       print("<bv>The "..customMapsFourTeamsMode[gameStats.mapIndexSelected][3].." map (created by "..customMapsFourTeamsMode[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>")
 
@@ -134,16 +160,25 @@ function selectMap()
       end
       if gameStats.isCustomMap then
         tfm.exec.newGame(customMaps[gameStats.customMapIndex][1])
-        foundBallSpawnsOnMap(customMaps[gameStats.customMapIndex][1], false)
-        foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][1], false)
+        local foundMap = addTimer(function(i)
+          if i == 1 then
+            foundBallSpawnsOnMap(customMaps[gameStats.customMapIndex][1], false)
+            foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][1], false)
+          end
+        end, 1000)
       else
         if gameStats.totalVotes == 1 then
           tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
         end
         if gameStats.totalVotes >= 2 then
           tfm.exec.newGame(customMaps[gameStats.mapIndexSelected][1])
-          foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
-          foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
+          local foundMap = addTimer(function(i)
+            if i == 1 then
+              foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
+              foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
+            end
+          end, 1000)
+          
           tfm.exec.chatMessage("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
           print("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>")
         else
@@ -166,16 +201,25 @@ function selectMap()
       end
       if gameStats.isCustomMap then
         tfm.exec.newGame(customMaps[gameStats.customMapIndex][2])
-        foundBallSpawnsOnMap(customMaps[gameStats.customMapIndex][2], true)
-        foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][2], true)
+        local foundMap = addTimer(function(i)
+          if i == 1 then
+            foundBallSpawnsOnMap(customMaps[gameStats.customMapIndex][2], true)
+            foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][2], true)
+          end
+        end, 1000)
       else
         if gameStats.totalVotes == 1 then
           tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
         end
         if gameStats.totalVotes >= 2 then
           tfm.exec.newGame(customMaps[gameStats.mapIndexSelected][2])
-          foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
-          foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
+          local foundMap = addTimer(function(i)
+            if i == 1 then
+              foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
+              foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
+            end
+          end, 1000)
+          
           tfm.exec.chatMessage("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
         else
           tfm.exec.newGame(maps[2])
@@ -200,16 +244,24 @@ function selectMap()
       end
       if gameStats.isCustomMap then
         tfm.exec.newGame(customMaps[gameStats.customMapIndex][1])
-        foundBallSpawnsOnMap(customMaps[gameStats.customMapIndex][1], false)
-        foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][1], false)
+        local foundMap = addTimer(function(i)
+          if i == 1 then
+            foundBallSpawnsOnMap(customMaps[gameStats.customMapIndex][1], false)
+            foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][1], false)
+          end
+        end, 1000)
       else
         if gameStats.totalVotes == 1 then
           tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
         end
         if gameStats.totalVotes >= 2 then
           tfm.exec.newGame(customMaps[gameStats.mapIndexSelected][1])
-          foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
-          foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
+          local foundMap = addTimer(function(i)
+            if i == 1 then
+              foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
+              foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][1], false)
+            end
+          end, 1000)
           tfm.exec.chatMessage("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
         else
           tfm.exec.newGame(maps[1])
@@ -232,16 +284,24 @@ function selectMap()
       
       if gameStats.isCustomMap then
         tfm.exec.newGame(customMaps[gameStats.customMapIndex][2])
-        foundBallSpawnsOnMap(customMaps[gameStats.customMapIndex][2], true)
-        foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][2], true)
+        local foundMap = addTimer(function(i)
+          if i == 1 then
+            foundBallSpawnsOnMap(customMaps[gameStats.customMapIndex][2], true)
+            foundMiceSpawnsOnMap(customMaps[gameStats.customMapIndex][2], true)
+          end
+        end, 1000)
       else
         if gameStats.totalVotes == 1 then
           tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
         end
         if gameStats.totalVotes >= 2 then
           tfm.exec.newGame(customMaps[gameStats.mapIndexSelected][2])
-          foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
-          foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
+          local foundMap = addTimer(function(i)
+            if i == 1 then
+              foundBallSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
+              foundMiceSpawnsOnMap(customMaps[gameStats.mapIndexSelected][2], true)
+            end
+          end, 1000)
           tfm.exec.chatMessage("<bv>The "..customMaps[gameStats.mapIndexSelected][3].." map (created by "..customMaps[gameStats.mapIndexSelected][4]..") was selected ("..tostring(mapsVotes[gameStats.mapIndexSelected]).." votes)<n>", nil)
         else
           tfm.exec.newGame(maps[2])

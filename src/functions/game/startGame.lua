@@ -28,7 +28,7 @@ function startGame()
       teleportPlayers()
       spawnInitialBall()
     end
-  end, 1500)
+  end, 2500)
 
   verifyIsPoint()
   showCrownToAllPlayers()
