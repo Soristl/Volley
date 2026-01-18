@@ -19,16 +19,19 @@ local admins =
 local permanentAdmins = 
 {
   "Refletz#6472",
-  "Soristl1#0000",
   "+Mimounaaa#0000",
-  "Axeldoton#0000",
-  "Nagi#6356",
-  "Wreft#5240",
   "Lylastyla#0000",
   "Ppoppohaejuseyo#2315",
-  "Rowed#4415",
-  "Tanarchosl#4785",
   "Sadzia#0000"
+}
+
+local inactivePermanentAdmins = {
+  "Soristl1#0000",
+  "Nagi#6356",
+  "Wreft#5240",
+  "Tanarchosl#4785",
+  "Axeldoton#0000",
+  "Rowed#4415"
 }
 
 local trad = ""

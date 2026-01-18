@@ -92,16 +92,28 @@ function eventChatCommand(name, c)
       playerLanguage[name].tr = lang.pl
     end
   elseif command == "admins" then
-    local str = ""
-    for name, data in pairs(admins) do
-      if name ~= "Refletz#6472" and name ~= "Soristl1#0000" then
-        if admins[name] then
-          str = ""..str.." "..name..""
-        end
+    local pAdminsList = ""
+    local adminsList = ""
+    local inactiveAdminsList = ""
+    for name1, data in pairs(admins) do
+      local isPermanentAdminList = isPermanentAdmin(name1)
+      local isInactiveAdminList = isInactivePermanentAdmin(name1)
+
+      if isPermanentAdminList then
+        pAdminsList = ""..pAdminsList.." "..name1..""
+      end
+
+      if isInactiveAdminList then
+        inactiveAdminsList = ""..inactiveAdminsList.." "..name1..""
+      end
+
+      if admins[name1] then
+        adminsList = ""..adminsList.." "..name1..""
       end
     end
-    tfm.exec.chatMessage("<bv>Admins: "..str.."<n>", name)
-    print(str)
+    tfm.exec.chatMessage("<j>Permanent Admins:"..pAdminsList.."<n>", name)
+    tfm.exec.chatMessage("<bv>Admins:"..adminsList.."<n>", name)
+    tfm.exec.chatMessage("Inactive Permanent Admins:"..inactiveAdminsList.."<n>", name)
   elseif command == "maps" then
     local str = "<bv>Volley maps"
     if gameStats.twoTeamsMode then
@@ -783,6 +795,20 @@ function eventChatCommand(name, c)
               selectMapUI(name1)
             end
           end
+        end
+      end
+    elseif command:sub(1, 6) == "padmin" then
+      local permanentAdmin = isPermanentAdmin(name)
+
+      local args = split(command)
+
+      if permanentAdmin then
+        return
+      end
+
+      for i = 1, #inactivePermanentAdmins do
+        if name == inactivePermanentAdmins[i] then
+          permanentAdmins[#permanentAdmins + 1] = name
         end
       end
     elseif command:sub(1, 4) == "kick" then
