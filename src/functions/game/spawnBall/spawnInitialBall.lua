@@ -11,9 +11,12 @@ function spawnInitialBall()
     return
   elseif gameStats.threeTeamsMode and gameStats.typeMap == "large3v3" then
     local spawnBalls = { spawnBallArea400, spawnBallArea800 }
+    x = {300, 900}
 
-    x = {300, 600, 900}
-
+    if gameStats.threeBalls then
+      x = {300, 600, 900}
+    end
+    
     spawnBallConfig(spawnBalls, x)
 
     return

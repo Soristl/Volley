@@ -142,7 +142,7 @@ function init()
     tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for "..globalSettings.mode.."<n>", nil)
   end
 
-  if globalSettings.threeBalls then
+  if globalSettings.threeBalls and gameStats.threeTeamsMode then
     gameStats.threeBalls = true
     tfm.exec.chatMessage("<bv>Room Setup: The three-ball mode has been activated", nil)
   end
@@ -183,8 +183,8 @@ function init()
     elseif gameStats.threeTeamsMode then
       indexMap = math.random(1, #customMapsThreeTeamsMode)
       gameStats.customMapIndex = indexMap
-      tfm.exec.chatMessage('<bv>'..customMapsFourTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsFourTeamsMode[gameStats.customMapIndex][4]..') selected randomly<n>', nil)
-      
+      tfm.exec.chatMessage('<bv>'..customMapsThreeTeamsMode[gameStats.customMapIndex][3]..' map (created by '..customMapsThreeTeamsMode[gameStats.customMapIndex][4]..') selected randomly<n>', nil)
+
     elseif not gameStats.realMode then
       indexMap = math.random(1, #customMaps)
       gameStats.customMapIndex = indexMap
@@ -193,7 +193,7 @@ function init()
     end
   end
 
-  if not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realmode then
+  if not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realmode and not gameStats.threeTeamsMode then
     if globalSettings.consumables then
       gameStats.consumables = true
 

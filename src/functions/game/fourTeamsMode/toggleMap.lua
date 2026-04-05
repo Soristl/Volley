@@ -73,6 +73,7 @@ function toggleMap()
       if i == 1 then
         teleportPlayersWithTypeMap(true)
         spawnInitialBall()
+        showTheScore()
       end
     end, 2500)
     

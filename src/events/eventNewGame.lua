@@ -1,5 +1,6 @@
 function eventNewGame()
   if mode == "gameStart" then
+    showTheScore()
     if gameStats.teamsMode or gameStats.twoTeamsMode then
       if gameStats.isCustomMap then
         ui.setMapName("<j>"..customMapsFourTeamsMode[gameStats.customMapIndex][4].."<n>")

@@ -747,7 +747,7 @@ function eventChatCommand(name, c)
           tfm.exec.chatMessage("<bv>Admin selected for "..name1.." command used by "..name.."<n>", nil)
 
           if mode == "startGame" then
-            ui.addWindow(31, "<p align='center'><font size='13px'><a href='event:settings'>Room settings", name, 350, 370, 150, 30, 1, false, false, _)
+            ui.addWindow(31, "<p align='center'><font size='13px'><a href='event:settings'>Room settings", name, 180, 370, 150, 30, 1, false, false, _)
 
             if selectMapOpen[name1] then
               selectMapUI(name1)
@@ -873,12 +873,14 @@ function eventChatCommand(name, c)
       local permanentAdmin = isPermanentAdmin(name)
 
       if not permanentAdmin then
+        print('first condition')
         return
       end
 
       for i = 1, #permanentAdmins do
         local admin = string.lower(permanentAdmins[i])
         if args[2] == admin then
+          print('second condition')
           return
         end
       end
@@ -886,6 +888,7 @@ function eventChatCommand(name, c)
       for name1, data in pairs(tfm.get.room.playerList) do
         if args[2] == string.lower(name1) then
           if args[2] == string.lower(getRoomAdmin) and not permanentAdmin then
+            print('third condition')
             return
           end
           playerBan[name1] = true

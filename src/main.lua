@@ -10,7 +10,6 @@ local admins =
   ["Nagi#6356"] = true,
   ["Wreft#5240"] = true,
   ["Lylastyla#0000"] = true,
-  ["Ppoppohaejuseyo#2315"] = true,
   ["Rowed#4415"] = true,
   ["Tanarchosl#4785"] = true,
   ["Sadzia#0000"] = true
@@ -21,7 +20,6 @@ local permanentAdmins =
   "Refletz#6472",
   "+Mimounaaa#0000",
   "Lylastyla#0000",
-  "Ppoppohaejuseyo#2315",
   "Sadzia#0000"
 }
 
@@ -56,6 +54,8 @@ local getRoomAdmin = string.match(tfm.get.room.name, regex)
 
 if getRoomAdmin ~= nil then
   admins[getRoomAdmin] = true
+else
+  getRoomAdmin = ''
 end
 
 tfm.exec.disableAutoShaman(true)
