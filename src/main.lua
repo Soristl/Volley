@@ -20,7 +20,8 @@ local permanentAdmins =
   "Refletz#6472",
   "+Mimounaaa#0000",
   "Lylastyla#0000",
-  "Sadzia#0000"
+  "Sadzia#0000",
+  "Primo#0830"
 }
 
 local inactivePermanentAdmins = {
