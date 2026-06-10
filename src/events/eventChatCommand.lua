@@ -987,7 +987,7 @@ function eventChatCommand(name, c)
       gameStats.customBallId = indexBall
 
       tfm.exec.chatMessage("<bv>"..balls[gameStats.customBallId].name.." selected by admin "..name.."<n>", nil)
-    elseif command:sub(1, 6) == "lobby" and mode == "gameStart" then
+    elseif command:sub(1, 6) == "lobby" and mode == "gameStart" and gameStats.canTransform then
       ballOnGame = false
       ballOnGame2 = false
       ballOnGame3 = false

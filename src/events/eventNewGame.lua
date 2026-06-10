@@ -1,5 +1,23 @@
 function eventNewGame()
   if mode == "gameStart" then
+    if globalSettings.minimalist and globalSettings.minimalistToggleMap then
+      globalSettings.minimalistToggleMap = false
+
+      tfm.exec.chatMessage("<ch>Minimalist mode is enabled, reloading the map to complete the settings.<n>", nil)
+
+      addTimer(function(i) 
+        tfm.exec.newGame(tfm.get.room.xmlMapInfo.xml)
+
+        tfm.exec.addPhysicObject (99999, 800, 460, 
+        {
+          type = 15,
+          width = 3000,
+          height = 100,
+          miceCollision = false,
+          groundCollision = false   
+        })
+      end, 3000, 1)
+    end
     showTheScore()
     if gameStats.teamsMode or gameStats.twoTeamsMode then
       if gameStats.isCustomMap then

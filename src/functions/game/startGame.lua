@@ -1,7 +1,9 @@
 function startGame()
   gameStats.canTransform = false
-  disablePlayersCanTransform(1500)
-
+  if not globalSettings.minimalist then
+    disablePlayersCanTransform(1500)
+  end
+  
   addMatchesToAllPlayers()
   selectMap()
 
@@ -23,15 +25,27 @@ function startGame()
   removeTextAreasOfLobby()
   showTheScore()
 
+  local delayMS = 2500
+
+  if globalSettings.minimalist then
+    delayMS = 6500
+  end
+
+  globalSettings.minimalistToggleMap = true
+
   delaySpawnBall = addTimer(function(i)
     if i == 1 then
       teleportPlayers()
       spawnInitialBall()
-    end
-  end, 2500)
+      verifyIsPoint()
+      showCrownToAllPlayers()
 
-  verifyIsPoint()
-  showCrownToAllPlayers()
+      if globalSettings.minimalist then
+        gameStats.canTransform = true
+      end
+    end
+  end, delayMS)
+
   mode = "gameStart"
   tfm.exec.chatMessage("<ch>If you don't want to see the ranking crowns, type the command !crown false<n>", nil)
 end

@@ -424,5 +424,13 @@ function eventTextAreaCallback(id, name, c)
     settings[name] = true
 
     updateSettingsUI(name)
+  elseif c == "minimalist" then
+    if globalSettings.minimalist then
+      globalSettings.minimalist = false
+    else
+      globalSettings.minimalist = true
+    end
+
+    updateSettingsUI(name)
   end
 end
