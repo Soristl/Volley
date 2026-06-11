@@ -98,7 +98,7 @@ local mapsVotes = {}
 local canVote = {}
 local playerOutOfCourt = {}
 local showOutOfCourtText = {}
-local globalSettings = { mode = 'Normal mode', twoBalls = false, randomBall = false, randomMap = false, mapType = '', consumables = false, threeBalls = false, minimalist = true, minimalistToggleMap = true }
+local globalSettings = { mode = 'Normal mode', twoBalls = false, randomBall = false, randomMap = false, mapType = '', consumables = false, threeBalls = false, minimalist = false, minimalistToggleMap = true }
 local settings = {}
 local settingsMode = {}
 local playersNormalMode = {}

@@ -207,6 +207,10 @@ function init()
     end
   end
 
+  if globalSettings.minimalist then
+    tfm.exec.chatMessage("<bv>Room Setup: Minimalist mode is enabled for maps (This may cause a slight delay when switching maps)<n>", nil)
+  end
+
   for name, data in pairs(tfm.get.room.playerList) do
     playerLeftRight[name] = 0
     playerConsumableKey[name] = 56
