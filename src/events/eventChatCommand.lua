@@ -21,7 +21,7 @@ function eventChatCommand(name, c)
   local permanentAdmin = isPermanentAdmin(name)
   
 
-  if command == "join" and playerInGame[name] == false and mode == "gameStart" then
+  if command == "join" and playerInGame[name] == false and mode == "gameStart" and not isPlayerDead[name] then
     local isPlayerBanned = messagePlayerIsBanned(name)
     if isPlayerBanned then
       return
@@ -56,7 +56,7 @@ function eventChatCommand(name, c)
       tfm.exec.chatMessage("<bv>The join command is disabled now, please try the same command in few seconds<n>", name)
       return
     end
-  elseif command == "leave" and playerInGame[name] and mode == "gameStart" then
+  elseif command == "leave" and playerInGame[name] and mode == "gameStart" and not isPlayerDead[name] then
     local isPlayerBanned = messagePlayerIsBanned(name)
     if isPlayerBanned then
       return

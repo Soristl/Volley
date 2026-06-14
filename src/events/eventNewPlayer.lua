@@ -46,6 +46,7 @@ function eventNewPlayer(name)
   playerLanguage[name] = {tr = trad, name = name}
   pagesList[name] = {helpPage = 1}
   playersAfk[name] = os.time()
+  playerPressSpace[name] = false
 
   showCrownToAllPlayers()
   if canVote[name] == nil then
@@ -106,6 +107,10 @@ function eventNewPlayer(name)
   if playerBan[name] then
     tfm.exec.chatMessage("<bv>You have been banned from the room by the admin "..playerBanHistory[name].."<n>", name)
     tfm.exec.kickPlayer(name)
+  end
+
+  if isPlayerDead[name] == nil then
+    isPlayerDead[name] = false
   end
 
   ui.addWindow(23, "<p align='center'><font size='13px'><a href='event:menuOpen'>Menu", name, 5, 15, 100, 30, 0.2, false, false, _)

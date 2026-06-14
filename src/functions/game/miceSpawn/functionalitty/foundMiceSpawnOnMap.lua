@@ -32,6 +32,8 @@ function foundMiceSpawnsOnMap(map, isLargeMap)
       setConfigPlayersSpawn(isLargeMap, xNumber, yNumber, tonumber(spawn))
     end
   end
+
+  foundWebSpawnOnMap(map)
   
   foundMicePlayersConfig(map)
   

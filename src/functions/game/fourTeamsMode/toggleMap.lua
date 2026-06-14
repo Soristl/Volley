@@ -1,4 +1,5 @@
 function toggleMap()
+  removeTimer("deadTimer")
   gameStats.canTransform = false
 
   if not gameStats.minimalist then
@@ -89,7 +90,7 @@ function toggleMap()
       end
     end, delayMS)
     
-    tfm.exec.addPhysicObject (99999, 800, 460, {
+    tfm.exec.addPhysicObject (99999, 800, webY, {
       type = 15,
       width = 3000,
       height = 100,
@@ -148,7 +149,7 @@ function toggleMap()
       end
     end, delayMS)
 
-    tfm.exec.addPhysicObject (99999, 800, 460, {
+    tfm.exec.addPhysicObject (99999, 800, webY, {
       type = 15,
       width = 3000,
       height = 100,

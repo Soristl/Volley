@@ -156,8 +156,9 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
         return
       end
     end
-    if key == 32 and gameStats.canTransform and playerCanTransform[name] and not playerOutOfCourt[name] then
+    if key == 32 and gameStats.canTransform and playerCanTransform[name] and not playerOutOfCourt[name] and not isPlayerDead[name] then
       local aditionalForce = 0
+      playerPressSpace[name] = true
 
       if gameStats.realMode then
         local playerCanSpawn = verifyPlayerTeam(name)
@@ -221,6 +222,7 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
         if i == 1 then
           tfm.exec.removePhysicObject(groundId)
           tfm.exec.respawnPlayer(name)
+          playerPressSpace[name] = false
           setCrownToPlayer(name)
           if playerInGame[name] then
             tfm.exec.movePlayer (name, x, y)
