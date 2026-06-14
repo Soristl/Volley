@@ -18,7 +18,13 @@ function foundMiceSpawnsOnMap(map, isLargeMap)
     local y = string.match(tag, 'Y="([^"]+)"')
     local spawn = string.match(tag, 'spawn="([^"]+)"')
     local lobby = string.match(tag, 'lobby="([^"]+)"')
+    local team1 = string.match(tag, 'team1=""')
+    local team2 = string.match(tag, 'team2=""')
+    local team3 = string.match(tag, 'team3=""')
+    local team4 = string.match(tag, 'team4=""')
     
+    local teams = {team1, team2, team3, team4}
+
     local xNumber = tonumber(x)
     local yNumber = tonumber(y)
     
@@ -29,7 +35,7 @@ function foundMiceSpawnsOnMap(map, isLargeMap)
     if lobby ~= nil then
       setConfigLobbySpawn(xNumber, yNumber)
     else
-      setConfigPlayersSpawn(isLargeMap, xNumber, yNumber, tonumber(spawn))
+      setConfigPlayersSpawn(isLargeMap, xNumber, yNumber, tonumber(spawn), teams)
     end
   end
 
