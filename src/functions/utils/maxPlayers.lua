@@ -1,4 +1,3 @@
-
 function maxPlayers()
   local maxPlayers = 0
   if gameStats.gameMode == "3v3" then
@@ -9,5 +8,3 @@ function maxPlayers()
 
   return maxPlayers
 end
-
-

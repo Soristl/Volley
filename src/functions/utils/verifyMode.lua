@@ -1,4 +1,3 @@
-
 function verifyMode()
   if gameStats.teamsMode then
     return "4 teams mode"
@@ -12,5 +11,3 @@ function verifyMode()
     return "Normal mode"
   end
 end
-
-

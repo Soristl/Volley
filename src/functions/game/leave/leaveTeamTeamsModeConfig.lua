@@ -1,23 +1,22 @@
-
 function leaveTeamTeamsModeConfig(name)
   local count = 0
   local index = 1
 
   if gameStats.typeMap == "large4v4" then
     if gameStats.teamsMode then
-      for i= 1, #playersYellow do
+      for i = 1, #playersYellow do
         if playersYellow[i].name == name then
           playersYellow[i].name = ''
           tfm.exec.killPlayer(name)
           removePlayerOnSpawnConfig(name)
-          
+
           local movePlayer = addTimer(function(i)
             tfm.exec.respawnPlayer(name)
-            
+
             teleportPlayersToSpecWithSpecificSpawn(name)
           end, 1000, 1, "movePlayer")
         end
-        
+
         if playersYellow[i].name ~= '' then
           count = count + 1
         end
@@ -39,30 +38,30 @@ function leaveTeamTeamsModeConfig(name)
             toggleMap()
           end
         end, 3000, 1, "delayToToggleMap")
-        
+
         return
       end
     end
-    
+
     count = 0
-    
-    for i= 1, #playersRed do
+
+    for i = 1, #playersRed do
       if playersRed[i].name == name then
         playersRed[i].name = ''
         tfm.exec.killPlayer(name)
         removePlayerOnSpawnConfig(name)
-        
+
         local movePlayer = addTimer(function(i)
           tfm.exec.respawnPlayer(name)
           teleportPlayersToSpecWithSpecificSpawn(name)
         end, 1000, 1, "movePlayer")
       end
-      
+
       if playersRed[i].name ~= '' then
         count = count + 1
       end
     end
-    
+
     if count == 0 then
       ballOnGame = false
       ballOnGame2 = false
@@ -88,26 +87,26 @@ function leaveTeamTeamsModeConfig(name)
       end, 3000, 1, "delayToToggleMap")
       return
     end
-    
+
     count = 0
-    
-    for i= 1, #playersBlue do
+
+    for i = 1, #playersBlue do
       if playersBlue[i].name == name then
         playersBlue[i].name = ''
         tfm.exec.killPlayer(name)
         removePlayerOnSpawnConfig(name)
-        
+
         local movePlayer = addTimer(function(i)
           tfm.exec.respawnPlayer(name)
           teleportPlayersToSpecWithSpecificSpawn(name)
         end, 1000, 1, "movePlayer")
       end
-      
+
       if playersBlue[i].name ~= '' then
         count = count + 1
       end
     end
-    
+
     if count == 0 then
       ballOnGame = false
       ballOnGame2 = false
@@ -134,26 +133,26 @@ function leaveTeamTeamsModeConfig(name)
       end, 3000, 1, "delayToToggleMap")
       return
     end
-    
+
     count = 0
-    
-    for i= 1, #playersGreen do
+
+    for i = 1, #playersGreen do
       if playersGreen[i].name == name then
         playersGreen[i].name = ''
         tfm.exec.killPlayer(name)
         removePlayerOnSpawnConfig(name)
-        
+
         local movePlayer = addTimer(function(i)
           tfm.exec.respawnPlayer(name)
           teleportPlayersToSpecWithSpecificSpawn(name)
         end, 1000, 1, "movePlayer")
       end
-      
+
       if playersGreen[i].name ~= '' then
         count = count + 1
       end
     end
-    
+
     if count == 0 then
       ballOnGame = false
       ballOnGame2 = false
@@ -186,18 +185,18 @@ function leaveTeamTeamsModeConfig(name)
           teamsPlayersOnGame[i][j].name = ''
           tfm.exec.killPlayer(name)
           removePlayerOnSpawnConfig(name)
-          
+
           local movePlayer = addTimer(function(i)
             tfm.exec.respawnPlayer(name)
             teleportPlayersToSpecWithSpecificSpawn(name)
           end, 1000, 1, "movePlayer")
         end
-        
+
         if teamsPlayersOnGame[i][j].name ~= '' then
           count = count + 1
         end
       end
-      
+
       if count == 0 then
         if gameStats.threeTeamsMode then
           tfm.exec.chatMessage(messageTeamsLifes[index], nil)
@@ -214,7 +213,7 @@ function leaveTeamTeamsModeConfig(name)
           updateTwoBallOnGame()
           threeTeamsModeWinner(messageTeamsLifes[1], teamsPlayersOnGame[1])
           updateRankingThreeTeamsMode()
-          tfm.exec.removeObject (ball_id)
+          tfm.exec.removeObject(ball_id)
           mode = "endGame"
           gameTimeEnd = os.time() + 5000
           return
@@ -238,7 +237,7 @@ function leaveTeamTeamsModeConfig(name)
         end, 3000, 1, "delayToToggleMap")
         return
       end
-      
+
       count = 0
       index = index + 1
     end
@@ -249,18 +248,18 @@ function leaveTeamTeamsModeConfig(name)
           teamsPlayersOnGame[i][j].name = ''
           tfm.exec.killPlayer(name)
           removePlayerOnSpawnConfig(name)
-          
+
           local movePlayer = addTimer(function(i)
             tfm.exec.respawnPlayer(name)
             teleportPlayersToSpecWithSpecificSpawn(name)
           end, 1000, 1, "movePlayer")
         end
-        
+
         if teamsPlayersOnGame[i][j].name ~= '' then
           count = count + 1
         end
       end
-      
+
       if count == 0 then
         tfm.exec.chatMessage(messageTeamsLifes[index], nil)
         print(messageTeamsLifes[index])
@@ -274,16 +273,14 @@ function leaveTeamTeamsModeConfig(name)
         updateTwoBallOnGame()
         fourTeamsModeWinner(messageTeamsLifes[1], teamsPlayersOnGame[1])
         updateRankingFourTeamsMode()
-        tfm.exec.removeObject (ball_id)
+        tfm.exec.removeObject(ball_id)
         mode = "endGame"
         gameTimeEnd = os.time() + 5000
         return
       end
-      
+
       count = 0
       index = index + 1
     end
   end
 end
-
-

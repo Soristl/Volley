@@ -1,4 +1,3 @@
-
 function teleportPlayersToSpec()
   for name, data in pairs(tfm.get.room.playerList) do
     if playerInGame[name] == false then
@@ -11,5 +10,3 @@ function teleportPlayersToSpec()
     end
   end
 end
-
-

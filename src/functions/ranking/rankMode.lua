@@ -1,4 +1,3 @@
-
 function rankMode(mode)
   if mode == "Normal mode" then
     return rankNormalMode
@@ -12,5 +11,3 @@ function rankMode(mode)
     return rankRealMode
   end
 end
-
-

@@ -1,7 +1,6 @@
-
 function verifyIsPointThreeTeamsMode()
   local quantityBalls = 1
-  
+
   if gameStats.twoBalls then
     quantityBalls = 2
   end
@@ -9,16 +8,17 @@ function verifyIsPointThreeTeamsMode()
   if gameStats.threeBalls then
     quantityBalls = 3
   end
-  
+
   for j = 1, quantityBalls do
+    if not ball_id or not tfm.get.room.objectList[ball_id] then return end
+
     local onCondition = false
     local lostLife = false
-    
-    print(ballsId[j])
-    print(ballOnGameTwoBalls[j])
-    print('===')
+
     if gameStats.typeMap == "large4v4" and ballOnGameTwoBalls[j] and ballsId[j] ~= nil then
-      if tfm.get.room.objectList[ballsId[j]].x <= gameStats.redX and isBallOnGround(ballsId[j]) and teamsLifes[2].red >= 1 and not onCondition and not lostLife then
+      if tfm.get.room.objectList[ballsId[j]].x <= gameStats.redX
+          and isBallOnGround(ballsId[j]) and teamsLifes[2].red >= 1
+          and not onCondition and not lostLife then
         lostLife = true
         onCondition = true
         teamsLifes[2].red = teamsLifes[2].red - 1
@@ -47,10 +47,12 @@ function verifyIsPointThreeTeamsMode()
         end
         local ballSpawnX = 0
         local ballSpawnY = 0
-        
+
         tfm.exec.chatMessage("<r>Red team lost a life<n>", nil)
-        tfm.exec.chatMessage("<r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
-        print("<r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
+        tfm.exec.chatMessage(
+          "<r>Team Red<n> " ..
+          teamsLifes[2].red .. " | <bv>Team Blue<n> " ..
+          teamsLifes[3].blue .. " | <vp>Team Green<n> " .. teamsLifes[4].green .. "", nil)
         if #spawnBallArea400 ~= 0 then
           randomIndex = math.random(1, #spawnBallArea400)
           ballSpawnX = spawnBallArea400[randomIndex].x
@@ -60,7 +62,8 @@ function verifyIsPointThreeTeamsMode()
           spawnBall(300, j)
         end
         showTheScore()
-      elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.blueX and isBallOnGround(ballsId[j]) and teamsLifes[3].blue >= 1 and not onCondition and not lostLife then
+      elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.blueX
+          and isBallOnGround(ballsId[j]) and teamsLifes[3].blue >= 1 and not onCondition and not lostLife then
         lostLife = true
         onCondition = true
         teamsLifes[3].blue = teamsLifes[3].blue - 1
@@ -88,8 +91,11 @@ function verifyIsPointThreeTeamsMode()
           return
         end
         tfm.exec.chatMessage("<bv>Blue team lost a life<n>", nil)
-        tfm.exec.chatMessage("<r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
-        print("<r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
+        tfm.exec.chatMessage(
+          "<r>Team Red<n> " ..
+          teamsLifes[2].red .. " | <bv>Team Blue<n> " ..
+          teamsLifes[3].blue .. " | <vp>Team Green<n> " .. teamsLifes[4].green .. "", nil)
+       
         local ballSpawnX = 0
         local ballSpawnY = 0
         if #spawnBallArea800 ~= 0 then
@@ -100,9 +106,11 @@ function verifyIsPointThreeTeamsMode()
         else
           spawnBall(900, j)
         end
-        
+
         showTheScore()
-      elseif tfm.get.room.objectList[ballsId[j]].x >= gameStats.greenX and isBallOnGround(ballsId[j]) and teamsLifes[4].green >= 1 and not onCondition and not lostLife then
+      elseif tfm.get.room.objectList[ballsId[j]].x >= gameStats.greenX
+          and isBallOnGround(ballsId[j]) and teamsLifes[4].green >= 1
+          and not onCondition and not lostLife then
         lostLife = true
         onCondition = true
         teamsLifes[4].green = teamsLifes[4].green - 1
@@ -131,10 +139,13 @@ function verifyIsPointThreeTeamsMode()
         end
         local ballSpawnX = 0
         local ballSpawnY = 0
-        
+
         tfm.exec.chatMessage("<vp>Green team lost a life<n>", nil)
-        tfm.exec.chatMessage("<r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
-        print("<r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
+        tfm.exec.chatMessage(
+          "<r>Team Red<n> " ..
+          teamsLifes[2].red .. " | <bv>Team Blue<n> " ..
+          teamsLifes[3].blue .. " | <vp>Team Green<n> " .. teamsLifes[4].green .. "", nil)
+        
         if #spawnBallArea1200 ~= 0 then
           randomIndex = math.random(1, #spawnBallArea1200)
           ballSpawnX = spawnBallArea1200[randomIndex].x
@@ -147,7 +158,8 @@ function verifyIsPointThreeTeamsMode()
       end
     elseif gameStats.typeMap == "large3v3" and ballOnGameTwoBalls[j] and ballsId[j] ~= nil then
       for i = 1, #getTeamsLifes do
-        if tfm.get.room.objectList[ballsId[j]].x <= gameStats.redX and isBallOnGround(ballsId[j]) and getTeamsLifes[1] >= 1 and i == 1 and not lostLife then
+        if tfm.get.room.objectList[ballsId[j]].x <= gameStats.redX
+            and isBallOnGround(ballsId[j]) and getTeamsLifes[1] >= 1 and i == 1 and not lostLife then
           lostLife = true
           getTeamsLifes[1] = getTeamsLifes[1] - 1
           if getTeamsLifes[1] == 0 then
@@ -157,8 +169,6 @@ function verifyIsPointThreeTeamsMode()
               playerInGame[teamsPlayersOnGame[i][j].name] = false
               teamsPlayersOnGame[i][j].name = ''
             end
-            print(teamsPlayersOnGame)
-            print(messageTeamsLifes[1])
             tfm.exec.chatMessage(messageTeamsLifes[1], nil)
             showTheScore()
             updateTeamsColors(1)
@@ -169,20 +179,21 @@ function verifyIsPointThreeTeamsMode()
             threeTeamsModeWinner(messageTeamsLifes[1], teamsPlayersOnGame[1])
             updateRankingThreeTeamsMode()
             updateTwoBallOnGame()
-            
-            tfm.exec.removeObject (ballsId[j])
+
+            tfm.exec.removeObject(ballsId[j])
             mode = "endGame"
             gameTimeEnd = os.time() + 5000
             return
           end
           tfm.exec.chatMessage(messageTeamsLostOneLife[1], nil)
-          print(messageTeamsLostOneLife[1])
-          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."", nil)
-          print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."")
           
+          tfm.exec.chatMessage(
+            "" ..
+            messageTeamsLifesTextChat[1] ..
+            " " .. getTeamsLifes[1] .. " | " .. messageTeamsLifesTextChat[2] .. " " .. getTeamsLifes[2] .. "", nil)
           local ballSpawnX = 0
           local ballSpawnY = 0
-          
+
           if #spawnBallArea400 ~= 0 then
             randomIndex = math.random(1, #spawnBallArea400)
             ballSpawnX = spawnBallArea400[randomIndex].x
@@ -192,7 +203,8 @@ function verifyIsPointThreeTeamsMode()
             spawnBall(300, j)
           end
           showTheScore()
-        elseif tfm.get.room.objectList[ballsId[j]].x >= gameStats.blueX and isBallOnGround(ballsId[j]) and getTeamsLifes[2] >= 1 and i == 2 and not lostLife then
+        elseif tfm.get.room.objectList[ballsId[j]].x >= gameStats.blueX and isBallOnGround(ballsId[j])
+            and getTeamsLifes[2] >= 1 and i == 2 and not lostLife then
           lostLife = true
           getTeamsLifes[2] = getTeamsLifes[2] - 1
           if getTeamsLifes[2] == 0 then
@@ -203,7 +215,6 @@ function verifyIsPointThreeTeamsMode()
               teamsPlayersOnGame[i][j].name = ''
             end
             tfm.exec.chatMessage(messageTeamsLifes[2], nil)
-            print(messageTeamsLifes[2])
             showTheScore()
             updateTeamsColors(2)
             showMessageWinner()
@@ -213,19 +224,21 @@ function verifyIsPointThreeTeamsMode()
             threeTeamsModeWinner(messageTeamsLifes[1], teamsPlayersOnGame[1])
             updateRankingThreeTeamsMode()
             updateTwoBallOnGame()
-            tfm.exec.removeObject (ballsId[j])
+            tfm.exec.removeObject(ballsId[j])
             mode = "endGame"
             gameTimeEnd = os.time() + 5000
             return
           end
           tfm.exec.chatMessage(messageTeamsLostOneLife[2], nil)
-          print(messageTeamsLostOneLife[2])
-          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."", nil)
-          print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."")
+          
+          tfm.exec.chatMessage(
+            "" ..
+            messageTeamsLifesTextChat[1] ..
+            " " .. getTeamsLifes[1] .. " | " .. messageTeamsLifesTextChat[2] .. " " .. getTeamsLifes[2] .. "", nil)
           
           local ballSpawnX = 0
           local ballSpawnY = 0
-          
+
           if #spawnBallArea800 ~= 0 then
             randomIndex = math.random(1, #spawnBallArea800)
             ballSpawnX = spawnBallArea800[randomIndex].x
@@ -240,5 +253,3 @@ function verifyIsPointThreeTeamsMode()
     end
   end
 end
-
-

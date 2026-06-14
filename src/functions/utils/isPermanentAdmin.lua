@@ -1,4 +1,3 @@
-
 function isPermanentAdmin(name)
   for i = 1, #permanentAdmins do
     local admin = permanentAdmins[i]
@@ -9,5 +8,3 @@ function isPermanentAdmin(name)
 
   return false
 end
-
-

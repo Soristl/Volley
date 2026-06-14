@@ -1,9 +1,8 @@
-
 function resetPlayerConfigs()
   for name, data in pairs(tfm.get.room.playerList) do
     playerCanTransform[name] = true
     playerInGame[name] = false
-    playerCoordinates[name] = {x = 0, y = 0}
+    playerCoordinates[name] = { x = 0, y = 0 }
     playerPhysicId[name] = 0
     system.bindKeyboard(name, 32, true, true)
     system.bindKeyboard(name, 0, true, true)
@@ -20,5 +19,3 @@ function resetPlayerConfigs()
     canVote[name] = true
   end
 end
-
-

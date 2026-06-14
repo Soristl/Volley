@@ -1,6 +1,5 @@
-
 function getQuantityPlayersOnPosition(team)
-  local quantity = {middle = 0, back = 0}
+  local quantity = { middle = 0, back = 0 }
 
   if team == "red" then
     for i = 1, #playersRed do
@@ -12,7 +11,7 @@ function getQuantityPlayersOnPosition(team)
         end
       end
     end
-    
+
     return quantity
   end
 
@@ -28,5 +27,3 @@ function getQuantityPlayersOnPosition(team)
 
   return quantity
 end
-
-

@@ -1,4 +1,3 @@
-
 function teamServe(team)
   gameStats.redQuantitySpawn = 0
   gameStats.blueQuantitySpawn = 0
@@ -13,5 +12,3 @@ function teamServe(team)
   gameStats.blueLimitSpawn = 1
   showTheScore()
 end
-
-

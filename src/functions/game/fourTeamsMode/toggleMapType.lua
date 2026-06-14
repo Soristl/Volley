@@ -1,4 +1,3 @@
-
 function toggleMapType()
   if gameStats.typeMap == "large4v4" then
     gameStats.typeMap = "large3v3"
@@ -6,5 +5,3 @@ function toggleMapType()
     gameStats.typeMap = "small"
   end
 end
-
-

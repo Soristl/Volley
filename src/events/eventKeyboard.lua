@@ -1,28 +1,19 @@
---[[
-  Lookup tables
-  should all be into one single file
-  to avoid redundancy
-  -- Vit0rg
-  ]]
-local OFFSETS = { x = 15, y = 5 }
-
 local KEYS = {
-  LEFT       = 0,
-  UP         = 1,
-  RIGHT      = 2,
-  DOWN       = 3,
-  -- Z = 90
-  -- X = 88
-  -- C = 67
-  -- V = 86
-  AFK        = { [0] = true, [1] = true, [2] = true, [3] = true },
-  PROFILE    = 80,
-  RANK       = 76,
-  SPACE      = 32,
-  LEFT_RIGHT = { [0] = true, [2] = true },
-  EMOTE      = { [55] = true, [56] = true, [57] = true, [48] = true },
-  FORCE      = { [49] = true, [50] = true, [51] = true, [52] = true },
-  SPAWN_ITEM = 77
+  LEFT        = 0,
+  UP          = 1,
+  RIGHT       = 2,
+  DOWN        = 3,
+  -- Z        = 90
+  -- X        = 88
+  -- C        = 67
+  -- V        = 86
+  -- AFK      = { [0] = true, [1] = true, [2] = true, [3] = true },
+  PROFILE     = 80,
+  RANK        = 76,
+  TRANSFORM   = 32,
+  CONSUMABLES = { [55] = true, [56] = true, [57] = true, [48] = true },
+  FORCE       = { [49] = true, [50] = true, [51] = true, [52] = true },
+  SPAWN_ITEM  = 77
 }
 
 local CONSUMABLES = {
@@ -57,13 +48,12 @@ end
 
 local function handleConsumables(name, key, x, y, offsetX)
   -- 1. Selection via emote keys
-  if KEYS.EMOTE[key] then
+  if KEYS.CONSUMABLES[key] then
     local cons = CONSUMABLES[key]
     playerConsumableKey[name] = key
     playerConsumableItem[name] = cons.id
     local msg = "<bv>You chose the consumable " .. cons.name .. "<n>"
     tfm.exec.chatMessage(msg, name)
-    print(msg)
   end
 
   -- 2. Spawning logic
@@ -117,7 +107,7 @@ local function handleRealMode(name, key, x)
     if not playerOutOfCourt[name] and not showOutOfCourtText[name] then
       showOutOfCourtText[name] = true
       local warning =
-      "<bv>you are outside the court you have 7 seconds to make an action, otherwise you will not be able to use the space key outside the court<n>"
+      "<bv>you are outside the court you have 7 seconds to make an action, otherwise you will not be able to use the TRANSFORM key outside the court<n>"
       tfm.exec.chatMessage(warning, name)
     end
     addTimer(function() playerOutOfCourt[name] = true end, 7000, 1, "delay_" .. name)
@@ -204,12 +194,12 @@ local function handlePlayerTransform(name, x, y)
   local groundId = playerPhysicId[name]
 
   -- 3. Schedule cleanup & respawn sequence (ping-compensated)
-  local ping = tfm.get.room.playerList[name].ping or 0
+  local ping = tfm.get.room.playerList[name].ping or 10
   -- Compensate for input latency: subtract ~1x ping from the base duration
   -- so high-ping clients perceive the same ~2s window as low-ping clients.
   -- Clamped to prevent timers from firing before network packets arrive.
-  local transformDuration = math.max(2000, 2000 - ping)
-  local transformCooldown = math.max(100, 500 - (ping / 2))
+  local transformDuration = players[name].transformDuration * 1000
+  local transformCooldown = math.max(100, 400 - (ping / 2))
 
   addTimer(function()
     tfm.exec.removePhysicObject(groundId)
@@ -246,13 +236,15 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
   if not player then return end
 
   -- 1. Movement & Offset Calculation
-  local offsetX = (xv < 0 and -OFFSETS.x) or (xv > 0 and OFFSETS.x) or 0
-  local offsetY = (yv < 0 and -OFFSETS.y) or (yv > 0 and OFFSETS.y) or 0
-  player.x = x + xv + offsetX
-  player.y = y + yv + offsetY
+  local _offsets = { x = players[name].offsets.x, y = players[name].offsets.y }
+  local offsetX = (xv < 0 and -_offsets.x) or (xv > 0 and _offsets.x) or 0
+  local offsetY = (yv < 0 and -_offsets.y) or (yv > 0 and _offsets.y) or 0
+
+  player.x = offsetX + x
+  player.y = offsetY + y
 
   -- 2. AFK Reset
-  if KEYS.AFK[key] then
+  if KEYS[key] then
     playersAfk[name] = os.time()
     -- Why this UI cleanup is here?
     removePlayerTrophy(name)
@@ -297,7 +289,7 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
     handleSkills(name, key, x, y)
   end
 
-  if KEYS.LEFT_RIGHT[key] then
+  if KEYS.LEFT == key or KEYS.RIGHT == key then
     playerLeftRight[name] = key
   end
 
@@ -309,10 +301,7 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
     handleRealMode(name, key, x)
   end
 
-  if key == KEYS.SPACE and gameStats.canTransform and playerCanTransform[name] and not playerOutOfCourt[name] then
+  if key == KEYS.TRANSFORM and gameStats.canTransform and playerCanTransform[name] and not playerOutOfCourt[name] then
     handlePlayerTransform(name, player.x, player.y)
   end
 end
-
-
-

@@ -1,18 +1,14 @@
-
 function setLostLife()
   local quantityBalls = 1
-  
+
   if gameStats.twoBalls then
     quantityBalls = 2
   end
-  
+
   for j = 1, quantityBalls do
     local onCondition = false
     local lostLife = false
-    
-    print(ballsId[j])
-    print(ballOnGameTwoBalls[j])
-    print('===')
+
     if gameStats.typeMap == "large4v4" and ballOnGameTwoBalls[j] and ballsId[j] ~= nil then
       if tfm.get.room.objectList[ballsId[j]].x <= gameStats.yellowX and isBallOnGround(ballsId[j]) and teamsLifes[1].yellow >= 1 and not lostLife then
         lostLife = true
@@ -22,7 +18,7 @@ function setLostLife()
           ballOnGame = false
           ballOnGame2 = false
           updateTwoBallOnGame()
-          
+
           for i = 1, #playersYellow do
             tfm.exec.setNameColor(playersYellow[i].name, 0xD1D5DB)
             tfm.exec.movePlayer(playersYellow[i].name, 391, 74)
@@ -39,15 +35,24 @@ function setLostLife()
               toggleMap()
             end
           end, 3000, 1, "delayToToggleMap")
-          
+
           return
         end
         tfm.exec.chatMessage("<j>Yellow team lost a life<n>", nil)
-        tfm.exec.chatMessage("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
-        print("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
+        tfm.exec.chatMessage(
+          "<j>Team Yellow<n> " ..
+          teamsLifes[1].yellow ..
+          " | <r>Team Red<n> " ..
+          teamsLifes[2].red .. " | <bv>Team Blue<n> " ..
+          teamsLifes[3].blue .. " | <vp>Team Green<n> " .. teamsLifes[4].green .. "", nil)
+        print("<j>Team Yellow<n> " ..
+          teamsLifes[1].yellow ..
+          " | <r>Team Red<n> " ..
+          teamsLifes[2].red .. " | <bv>Team Blue<n> " ..
+          teamsLifes[3].blue .. " | <vp>Team Green<n> " .. teamsLifes[4].green .. "")
         local ballSpawnX = 0
         local ballSpawnY = 0
-        
+
         if #spawnBallArea400 ~= 0 then
           randomIndex = math.random(1, #spawnBallArea400)
           ballSpawnX = spawnBallArea400[randomIndex].x
@@ -56,7 +61,7 @@ function setLostLife()
         else
           spawnBall(200, j)
         end
-        
+
         showTheScore()
       elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.redX and isBallOnGround(ballsId[j]) and teamsLifes[2].red >= 1 and not onCondition and not lostLife then
         lostLife = true
@@ -86,10 +91,19 @@ function setLostLife()
         end
         local ballSpawnX = 0
         local ballSpawnY = 0
-        
+
         tfm.exec.chatMessage("<r>Red team lost a life<n>", nil)
-        tfm.exec.chatMessage("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
-        print("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
+        tfm.exec.chatMessage(
+          "<j>Team Yellow<n> " ..
+          teamsLifes[1].yellow ..
+          " | <r>Team Red<n> " ..
+          teamsLifes[2].red .. " | <bv>Team Blue<n> " ..
+          teamsLifes[3].blue .. " | <vp>Team Green<n> " .. teamsLifes[4].green .. "", nil)
+        print("<j>Team Yellow<n> " ..
+          teamsLifes[1].yellow ..
+          " | <r>Team Red<n> " ..
+          teamsLifes[2].red .. " | <bv>Team Blue<n> " ..
+          teamsLifes[3].blue .. " | <vp>Team Green<n> " .. teamsLifes[4].green .. "")
         if #spawnBallArea800 ~= 0 then
           randomIndex = math.random(1, #spawnBallArea800)
           ballSpawnX = spawnBallArea800[randomIndex].x
@@ -126,8 +140,17 @@ function setLostLife()
           return
         end
         tfm.exec.chatMessage("<bv>Blue team lost a life<n>", nil)
-        tfm.exec.chatMessage("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
-        print("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
+        tfm.exec.chatMessage(
+          "<j>Team Yellow<n> " ..
+          teamsLifes[1].yellow ..
+          " | <r>Team Red<n> " ..
+          teamsLifes[2].red .. " | <bv>Team Blue<n> " ..
+          teamsLifes[3].blue .. " | <vp>Team Green<n> " .. teamsLifes[4].green .. "", nil)
+        print("<j>Team Yellow<n> " ..
+          teamsLifes[1].yellow ..
+          " | <r>Team Red<n> " ..
+          teamsLifes[2].red .. " | <bv>Team Blue<n> " ..
+          teamsLifes[3].blue .. " | <vp>Team Green<n> " .. teamsLifes[4].green .. "")
         local ballSpawnX = 0
         local ballSpawnY = 0
         if #spawnBallArea1200 ~= 0 then
@@ -138,7 +161,7 @@ function setLostLife()
         else
           spawnBall(1000, j)
         end
-        
+
         showTheScore()
       elseif tfm.get.room.objectList[ballsId[j]].x >= gameStats.greenX and isBallOnGround(ballsId[j]) and teamsLifes[4].green >= 1 and not onCondition and not lostLife then
         lostLife = true
@@ -168,10 +191,19 @@ function setLostLife()
         end
         local ballSpawnX = 0
         local ballSpawnY = 0
-        
+
         tfm.exec.chatMessage("<vp>Green team lost a life<n>", nil)
-        tfm.exec.chatMessage("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."", nil)
-        print("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
+        tfm.exec.chatMessage(
+          "<j>Team Yellow<n> " ..
+          teamsLifes[1].yellow ..
+          " | <r>Team Red<n> " ..
+          teamsLifes[2].red .. " | <bv>Team Blue<n> " ..
+          teamsLifes[3].blue .. " | <vp>Team Green<n> " .. teamsLifes[4].green .. "", nil)
+        print("<j>Team Yellow<n> " ..
+          teamsLifes[1].yellow ..
+          " | <r>Team Red<n> " ..
+          teamsLifes[2].red .. " | <bv>Team Blue<n> " ..
+          teamsLifes[3].blue .. " | <vp>Team Green<n> " .. teamsLifes[4].green .. "")
         if #spawnBallArea1600 ~= 0 then
           randomIndex = math.random(1, #spawnBallArea1600)
           ballSpawnX = spawnBallArea1600[randomIndex].x
@@ -212,12 +244,25 @@ function setLostLife()
           end
           tfm.exec.chatMessage(messageTeamsLostOneLife[1], nil)
           print(messageTeamsLostOneLife[1])
-          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."", nil)
-          print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."")
-          
+          tfm.exec.chatMessage(
+            "" ..
+            messageTeamsLifesTextChat[1] ..
+            " " ..
+            getTeamsLifes[1] ..
+            " | " ..
+            messageTeamsLifesTextChat[2] ..
+            " " .. getTeamsLifes[2] .. " | " .. messageTeamsLifesTextChat[3] .. " " .. getTeamsLifes[3] .. "", nil)
+          print("" ..
+            messageTeamsLifesTextChat[1] ..
+            " " ..
+            getTeamsLifes[1] ..
+            " | " ..
+            messageTeamsLifesTextChat[2] ..
+            " " .. getTeamsLifes[2] .. " | " .. messageTeamsLifesTextChat[3] .. " " .. getTeamsLifes[3] .. "")
+
           local ballSpawnX = 0
           local ballSpawnY = 0
-          
+
           if #spawnBallArea400 ~= 0 then
             randomIndex = math.random(1, #spawnBallArea400)
             ballSpawnX = spawnBallArea400[randomIndex].x
@@ -255,12 +300,25 @@ function setLostLife()
           end
           tfm.exec.chatMessage(messageTeamsLostOneLife[2], nil)
           print(messageTeamsLostOneLife[2])
-          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."", nil)
-          print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."")
-          
+          tfm.exec.chatMessage(
+            "" ..
+            messageTeamsLifesTextChat[1] ..
+            " " ..
+            getTeamsLifes[1] ..
+            " | " ..
+            messageTeamsLifesTextChat[2] ..
+            " " .. getTeamsLifes[2] .. " | " .. messageTeamsLifesTextChat[3] .. " " .. getTeamsLifes[3] .. "", nil)
+          print("" ..
+            messageTeamsLifesTextChat[1] ..
+            " " ..
+            getTeamsLifes[1] ..
+            " | " ..
+            messageTeamsLifesTextChat[2] ..
+            " " .. getTeamsLifes[2] .. " | " .. messageTeamsLifesTextChat[3] .. " " .. getTeamsLifes[3] .. "")
+
           local ballSpawnX = 0
           local ballSpawnY = 0
-          
+
           if #spawnBallArea800 ~= 0 then
             randomIndex = math.random(1, #spawnBallArea800)
             ballSpawnX = spawnBallArea800[randomIndex].x
@@ -296,14 +354,27 @@ function setLostLife()
             end, 3000, 1, "delayToToggleMap")
             return
           end
-          
+
           tfm.exec.chatMessage(messageTeamsLostOneLife[3], nil)
           print(messageTeamsLostOneLife[3])
-          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."", nil)
-          print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].." | "..messageTeamsLifesTextChat[3].." "..getTeamsLifes[3].."")
+          tfm.exec.chatMessage(
+            "" ..
+            messageTeamsLifesTextChat[1] ..
+            " " ..
+            getTeamsLifes[1] ..
+            " | " ..
+            messageTeamsLifesTextChat[2] ..
+            " " .. getTeamsLifes[2] .. " | " .. messageTeamsLifesTextChat[3] .. " " .. getTeamsLifes[3] .. "", nil)
+          print("" ..
+            messageTeamsLifesTextChat[1] ..
+            " " ..
+            getTeamsLifes[1] ..
+            " | " ..
+            messageTeamsLifesTextChat[2] ..
+            " " .. getTeamsLifes[2] .. " | " .. messageTeamsLifesTextChat[3] .. " " .. getTeamsLifes[3] .. "")
           local ballSpawnX = 0
           local ballSpawnY = 0
-          
+
           if #spawnBallArea1200 ~= 0 then
             randomIndex = math.random(1, #spawnBallArea1200)
             ballSpawnX = spawnBallArea1200[randomIndex].x
@@ -338,19 +409,24 @@ function setLostLife()
             fourTeamsModeWinner(messageTeamsLifes[1], teamsPlayersOnGame[1])
             updateRankingFourTeamsMode()
             updateTwoBallOnGame()
-            
-            tfm.exec.removeObject (ballsId[j])
+
+            tfm.exec.removeObject(ballsId[j])
             mode = "endGame"
             gameTimeEnd = os.time() + 5000
             return
           end
           tfm.exec.chatMessage(messageTeamsLostOneLife[1], nil)
           print(messageTeamsLostOneLife[1])
-          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."", nil)
-          print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."")
+          tfm.exec.chatMessage(
+            "" ..
+            messageTeamsLifesTextChat[1] ..
+            " " .. getTeamsLifes[1] .. " | " .. messageTeamsLifesTextChat[2] .. " " .. getTeamsLifes[2] .. "", nil)
+          print("" ..
+            messageTeamsLifesTextChat[1] ..
+            " " .. getTeamsLifes[1] .. " | " .. messageTeamsLifesTextChat[2] .. " " .. getTeamsLifes[2] .. "")
           local ballSpawnX = 0
           local ballSpawnY = 0
-          
+
           if #spawnBallArea400 ~= 0 then
             randomIndex = math.random(1, #spawnBallArea400)
             ballSpawnX = spawnBallArea400[randomIndex].x
@@ -380,18 +456,23 @@ function setLostLife()
             fourTeamsModeWinner(messageTeamsLifes[1], teamsPlayersOnGame[1])
             updateRankingFourTeamsMode()
             updateTwoBallOnGame()
-            tfm.exec.removeObject (ballsId[j])
+            tfm.exec.removeObject(ballsId[j])
             mode = "endGame"
             gameTimeEnd = os.time() + 5000
             return
           end
           tfm.exec.chatMessage(messageTeamsLostOneLife[2], nil)
           print(messageTeamsLostOneLife[2])
-          tfm.exec.chatMessage(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."", nil)
-          print(""..messageTeamsLifesTextChat[1].." "..getTeamsLifes[1].." | "..messageTeamsLifesTextChat[2].." "..getTeamsLifes[2].."")
+          tfm.exec.chatMessage(
+            "" ..
+            messageTeamsLifesTextChat[1] ..
+            " " .. getTeamsLifes[1] .. " | " .. messageTeamsLifesTextChat[2] .. " " .. getTeamsLifes[2] .. "", nil)
+          print("" ..
+            messageTeamsLifesTextChat[1] ..
+            " " .. getTeamsLifes[1] .. " | " .. messageTeamsLifesTextChat[2] .. " " .. getTeamsLifes[2] .. "")
           local ballSpawnX = 0
           local ballSpawnY = 0
-          
+
           if #spawnBallArea800 ~= 0 then
             randomIndex = math.random(1, #spawnBallArea800)
             ballSpawnX = spawnBallArea800[randomIndex].x
@@ -406,5 +487,3 @@ function setLostLife()
     end
   end
 end
-
-

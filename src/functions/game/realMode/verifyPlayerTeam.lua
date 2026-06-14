@@ -1,4 +1,3 @@
-
 function verifyPlayerTeam(name)
   if playerOutOfCourt[name] then
     return
@@ -16,7 +15,7 @@ function verifyPlayerTeam(name)
         gameStats.redQuantitySpawn = gameStats.redQuantitySpawn + 1
         gameStats.lastPlayerRed = name
         showTheScore()
-        
+
         return true
       end
     end
@@ -27,20 +26,18 @@ function verifyPlayerTeam(name)
       if gameStats.blueQuantitySpawn == gameStats.blueLimitSpawn then
         return false
       end
-      
+
       if gameStats.blueQuantitySpawn < gameStats.blueLimitSpawn then
         if gameStats.blueLimitSpawn == 1 and name ~= gameStats.bluePlayerServe and gameStats.lastPlayerBlue == name then
           return false
         end
-        
+
         gameStats.blueQuantitySpawn = gameStats.blueQuantitySpawn + 1
         gameStats.lastPlayerBlue = name
         showTheScore()
-        
+
         return true
       end
     end
   end
 end
-
-

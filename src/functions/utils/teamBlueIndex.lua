@@ -1,4 +1,3 @@
-
 function teamBlueIndex(index)
   if gameStats.threeTeamsMode then
     return index
@@ -6,6 +5,3 @@ function teamBlueIndex(index)
 
   return index - 3
 end
-
-
-

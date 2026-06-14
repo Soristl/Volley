@@ -1,4 +1,3 @@
-
 function winRatioPercentage(wins, matches)
   if matches == 0 then
     return 0
@@ -6,5 +5,3 @@ function winRatioPercentage(wins, matches)
 
   return (wins / matches) * 100
 end
-
-

@@ -1,4 +1,3 @@
-
 function teleportPlayersToSpecWithSpecificSpawn(name)
   if #lobbySpawn > 0 then
     local index = math.random(1, #lobbySpawn)
@@ -16,5 +15,3 @@ function teleportPlayersToSpecWithSpecificSpawn(name)
     end
   end
 end
-
-

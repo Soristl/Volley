@@ -1,4 +1,3 @@
-
 function leaveTeam(name)
   playerInGame[name] = false
   tfm.exec.setNameColor(name, 0xD1D5DB)
@@ -12,10 +11,10 @@ function leaveTeam(name)
         tfm.exec.killPlayer(name)
       else
         tfm.exec.killPlayer(name)
-        
+
         local movePlayer = addTimer(function(i)
           tfm.exec.respawnPlayer(name)
-          
+
           teleportPlayersToSpecWithSpecificSpawn(name)
         end, 1000, 1, "movePlayer")
       end
@@ -29,15 +28,13 @@ function leaveTeam(name)
         tfm.exec.killPlayer(name)
       else
         tfm.exec.killPlayer(name)
-        
+
         local movePlayer = addTimer(function(i)
           tfm.exec.respawnPlayer(name)
-          
+
           teleportPlayersToSpecWithSpecificSpawn(name)
         end, 1000, 1, "movePlayer")
       end
     end
   end
 end
-
-

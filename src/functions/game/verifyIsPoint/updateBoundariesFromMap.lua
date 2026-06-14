@@ -1,4 +1,3 @@
-
 function updateBoundariesFromMap()
   if gameStats.realMode then return end
   local xmlInfo = tfm.get.room.xmlMapInfo
@@ -7,7 +6,7 @@ function updateBoundariesFromMap()
 
   local mapWidth = tonumber(xml:match('<P[^>]*L="(%d+)"')) or 800
 
-  print("[updateBoundaries] GROUND_LINE_Y="..GROUND_LINE_Y..", mapWidth="..mapWidth)
+  -- print("[updateBoundaries] GROUND_LINE_Y=" .. GROUND_LINE_Y .. ", mapWidth=" .. mapWidth)
 
   if gameStats.typeMap == "large4v4" then
     if gameStats.teamsMode then
@@ -49,4 +48,3 @@ function updateBoundariesFromMap()
     gameStats.blueX = half + 1
   end
 end
-

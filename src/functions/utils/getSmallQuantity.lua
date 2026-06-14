@@ -1,9 +1,8 @@
-
 function getSmallQuantity(quantity)
-  local quantityNumbers = {quantity.yellow, quantity.red, quantity.blue, quantity.green}
+  local quantityNumbers = { quantity.yellow, quantity.red, quantity.blue, quantity.green }
 
   if gameStats.threeTeamsMode then
-    quantityNumbers = {quantity.red, quantity.blue, quantity.green}
+    quantityNumbers = { quantity.red, quantity.blue, quantity.green }
   end
 
   local smallNumber = 9999
@@ -15,8 +14,6 @@ function getSmallQuantity(quantity)
     end
   end
 
-  local smallQuantity = {[1] = smallNumber, [2] = index}
+  local smallQuantity = { [1] = smallNumber, [2] = index }
   return smallQuantity
 end
-
-

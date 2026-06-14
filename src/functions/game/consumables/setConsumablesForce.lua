@@ -1,4 +1,3 @@
-
 function setConsumablesForce(key, playerMove)
   local speedX = 0
   local speedY = 0
@@ -14,7 +13,7 @@ function setConsumablesForce(key, playerMove)
   elseif key == 57 then
     yCoord = -65
     speedY = -5
-    
+
     if playerMove == 0 then
       speedX = -5
     elseif playerMove == 2 then
@@ -23,5 +22,3 @@ function setConsumablesForce(key, playerMove)
   end
   return { speedX, speedY, yCoord }
 end
-
-
