@@ -491,6 +491,20 @@ function eventTextAreaCallback(id, name, c)
     settings[name] = true
 
     updateSettingsUI(name)
+  elseif c == "minimalist" then
+    if globalSettings.minimalist then
+      globalSettings.minimalist = false
+
+      tfm.exec.chatMessage('<bv>Minimalist mode for maps disabled by admin '..name..'<n>', nil)
+      print('<bv>Minimalist mode for maps disabled by admin '..name..'<n>')
+    else
+      globalSettings.minimalist = true
+
+      tfm.exec.chatMessage('<bv>Minimalist mode for maps enabled by admin '..name..'<n>', nil)
+      print('<bv>Minimalist mode for maps enabled by admin '..name..'<n>')
+    end
+
+    updateSettingsUI(name)
   elseif string.sub(c, 1, 10) == "setkeybind" then
     local key = string.sub(c, 12, 13)
     local bind = string.sub(c, 14)

@@ -1,7 +1,13 @@
 function toggleMap()
   gameStats.canTransform = false
-  disablePlayersCanTransform(1500)
+
+  if not gameStats.minimalist then
+    disablePlayersCanTransform(1500)
+  end
+
   ballOnGame = false
+
+  globalSettings.minimalistToggleMap = true
 
   if gameStats.typeMap == "large3v3" then
     ui.removeTextArea(8998991)
@@ -67,6 +73,12 @@ function toggleMap()
         end
       end
     end
+    
+    local delayMS = 2500
+
+    if globalSettings.minimalist then
+      delayMS = 6500
+    end
 
     showTheScore()
     delaySpawnBall = addTimer(function(i)
@@ -76,9 +88,9 @@ function toggleMap()
         spawnInitialBall()
         showTheScore()
       end
-    end, 2500)
-
-    tfm.exec.addPhysicObject(99999, 800, 460, {
+    end, delayMS)
+    
+    tfm.exec.addPhysicObject (99999, 800, 460, {
       type = 15,
       width = 3000,
       height = 100,
@@ -124,13 +136,19 @@ function toggleMap()
 
     showTheScore()
 
+    local delayMS = 2500
+
+    if globalSettings.minimalist then
+      delayMS = 6500
+    end
+    
     delaySpawnBall = addTimer(function(i)
       if i == 1 then
         updateBoundariesFromMap()
         spawnInitialBall()
         teleportPlayersWithTypeMap(false)
       end
-    end, 2500)
+    end, delayMS)
 
     tfm.exec.addPhysicObject(99999, 800, 460, {
       type = 15,

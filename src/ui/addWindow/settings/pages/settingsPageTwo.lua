@@ -35,4 +35,10 @@ function settingsPageTwo(name)
     ui.addWindow(44, "<p align='center'><font size='11px'><a href='event:threeballs'>Disabled</a>", name, 665, 200, 100,
       30, 1, false, false)
   end
+
+  if globalSettings.minimalist then
+    ui.addWindow(22, "<p align='center'><font size='11px'><a href='event:minimalist'>Enabled</a>", name, 665, 250, 100, 30, 1, false, false)
+  else
+    ui.addWindow(22, "<p align='center'><font size='11px'><a href='event:minimalist'>Disabled</a>", name, 665, 250, 100, 30, 1, false, false)
+  end
 end

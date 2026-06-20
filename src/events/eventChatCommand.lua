@@ -474,7 +474,7 @@ end
 local function cmdLobby(args)
   local name = args[1]
 
-  if mode ~= "gameStart" then return end
+  if mode ~= "gameStart" or gameStats.canTransform then return end
 
   ballOnGame = false
   ballOnGame2 = false
