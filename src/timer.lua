@@ -1,38 +1,38 @@
 local List = {}
-function List.new ()
-  return {first = 0, last = -1}
+function List.new()
+  return { first = 0, last = -1 }
 end
 
-function List.pushleft (list, value)
+function List.pushleft(list, value)
   local first = list.first - 1
   list.first = first
   list[first] = value
 end
 
-function List.pushright (list, value)
+function List.pushright(list, value)
   local last = list.last + 1
   list.last = last
   list[last] = value
 end
 
-function List.popleft (list)
+function List.popleft(list)
   local first = list.first
   if first > list.last then
     return nil
   end
   local value = list[first]
-  list[first] = nil        -- to allow garbage collection
+  list[first] = nil -- to allow garbage collection
   list.first = first + 1
   return value
 end
 
-function List.popright (list)
+function List.popright(list)
   local last = list.last
   if list.first > last then
     return nil
   end
   local value = list[last]
-  list[last] = nil         -- to allow garbage collection
+  list[last] = nil -- to allow garbage collection
   list.last = last - 1
   return value
 end
@@ -47,7 +47,7 @@ function addTimer(callback, ms, loops, label, ...)
     local timer = timerList[id]
     timer.callback = callback
     timer.label = label
-    timer.arguments = {...}
+    timer.arguments = { ... }
     timer.time = ms
     timer.currentTime = 0
     timer.currentLoop = 0
@@ -56,11 +56,11 @@ function addTimer(callback, ms, loops, label, ...)
     timer.isPaused = false
     timer.isEnabled = true
   else
-    id = #timerList+1
+    id = #timerList + 1
     timerList[id] = {
       callback = callback,
       label = label,
-      arguments = {...},
+      arguments = { ... },
       time = ms,
       currentTime = 0,
       currentLoop = 0,

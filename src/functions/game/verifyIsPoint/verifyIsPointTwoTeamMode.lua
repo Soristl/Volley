@@ -1,18 +1,18 @@
 function verifyIsPointTwoTeamsMode()
-  
   local quantityBalls = 1
-  
+
   if gameStats.twoBalls then
     quantityBalls = 2
   end
-  
+
   for j = 1, quantityBalls do
     if ballOnGameTwoBalls[j] and ballsId[j] ~= nil then
-      if tfm.get.room.objectList[ballsId[j]].x <= gameStats.blueX and tfm.get.room.objectList[ballsId[j]].y >= 368 then
-        score_red = score_red + 1
+      if tfm.get.room.objectList[ballsId[j]].x <= gameStats.blueX and isBallOnGround(ballsId[j]) then
+        teamsScores['red'] = teamsScores['red'] + 1
         tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
-        tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
-        if score_red >= gameStats.winscore then
+        tfm.exec.chatMessage("<r>Team Red<n> " .. teamsScores['red'] .. " X " .. teamsScores['blue'] ..
+          " <bv>Team Blue<n>", nil)
+        if teamsScores['red'] >= gameStats.winscore then
           showTheScore()
           showMessageWinner()
           ballOnGame = false
@@ -20,7 +20,7 @@ function verifyIsPointTwoTeamsMode()
           updateTwoBallOnGame()
           twoTeamsModeWinner("red")
           updateRankingTwoTeamsMode()
-          tfm.exec.removeObject (ballsId[j])
+          tfm.exec.removeObject(ballsId[j])
           mode = "endGame"
           gameTimeEnd = os.time() + 5000
         else
@@ -34,17 +34,18 @@ function verifyIsPointTwoTeamsMode()
           end
         end
         showTheScore()
-      elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.redX and tfm.get.room.objectList[ballsId[j]].y >= 368 then
-        score_blue = score_blue + 1
+      elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.redX and isBallOnGround(ballsId[j]) then
+        teamsScores['blue'] = teamsScores['blue'] + 1
         tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
-        tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
-        if score_blue >= gameStats.winscore then
+        tfm.exec.chatMessage("<r>Team Red<n> " .. teamsScores['red'] .. " X " .. teamsScores['blue'] ..
+          " <bv>Team Blue<n>", nil)
+        if teamsScores['blue'] >= gameStats.winscore then
           ballOnGame = false
           ballOnGame2 = false
           updateTwoBallOnGame()
           twoTeamsModeWinner("blue")
           updateRankingTwoTeamsMode()
-          tfm.exec.removeObject (ballsId[j])
+          tfm.exec.removeObject(ballsId[j])
           showTheScore()
           showMessageWinner()
           mode = "endGame"
@@ -60,11 +61,12 @@ function verifyIsPointTwoTeamsMode()
           end
         end
         showTheScore()
-      elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.blueX2 and tfm.get.room.objectList[ballsId[j]].y >= 368 then
-        score_red = score_red + 1
+      elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.blueX2 and isBallOnGround(ballsId[j]) then
+        teamsScores['red'] = teamsScores['red'] + 1
         tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
-        tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
-        if score_red >= gameStats.winscore then
+        tfm.exec.chatMessage("<r>Team Red<n> " .. teamsScores['red'] .. " X " .. teamsScores['blue'] ..
+          " <bv>Team Blue<n>", nil)
+        if teamsScores['red'] >= gameStats.winscore then
           showTheScore()
           showMessageWinner()
           ballOnGame = false
@@ -72,7 +74,7 @@ function verifyIsPointTwoTeamsMode()
           updateTwoBallOnGame()
           twoTeamsModeWinner("red")
           updateRankingTwoTeamsMode()
-          tfm.exec.removeObject (ballsId[j])
+          tfm.exec.removeObject(ballsId[j])
           mode = "endGame"
           gameTimeEnd = os.time() + 5000
         else
@@ -86,17 +88,18 @@ function verifyIsPointTwoTeamsMode()
           end
         end
         showTheScore()
-      elseif tfm.get.room.objectList[ballsId[j]].x >= gameStats.redX2 and tfm.get.room.objectList[ballsId[j]].y >= 368 then
-        score_blue = score_blue + 1
+      elseif tfm.get.room.objectList[ballsId[j]].x >= gameStats.redX2 and isBallOnGround(ballsId[j]) then
+        teamsScores['blue'] = teamsScores['blue'] + 1
         tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
-        tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
-        if score_blue >= gameStats.winscore then
+        tfm.exec.chatMessage("<r>Team Red<n> " .. teamsScores['red'] .. " X " .. teamsScores['blue'] ..
+          " <bv>Team Blue<n>", nil)
+        if teamsScores['blue'] >= gameStats.winscore then
           ballOnGame = false
           ballOnGame2 = false
           updateTwoBallOnGame()
           twoTeamsModeWinner("blue")
           updateRankingTwoTeamsMode()
-          tfm.exec.removeObject (ballsId[j])
+          tfm.exec.removeObject(ballsId[j])
           showTheScore()
           showMessageWinner()
           mode = "endGame"

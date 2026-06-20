@@ -3,7 +3,15 @@ function updateRankingTwoTeamsMode()
 
   for name, stats in pairs(playersTwoTeamsMode) do
     if stats.matches > 0 then
-      rank_list[#rank_list + 1] = {name = name, matches = stats.matches, wins = stats.wins, winRatio = stats.winRatio, winsRed = stats.winsRed, winsBlue = stats.winsBlue}
+      rank_list[#rank_list + 1] = {
+        name = name,
+        matches = stats.matches,
+        wins = stats.wins,
+        winRatio = stats.winRatio,
+        winsRed =
+            stats.winsRed,
+        winsBlue = stats.winsBlue
+      }
     end
   end
 

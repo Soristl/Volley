@@ -7,24 +7,25 @@ function startGame()
 
   duration = os.time() + durationTimerPause * 1000
 
-  local timer = math.ceil((duration - os.time())/1000)
+  local _timer = math.ceil((duration - os.time()) / 1000)
 
-  tfm.exec.setGameTime(timer, true)
+  tfm.exec.setGameTime(_timer, true)
 
-  tfm.exec.addPhysicObject (99999, 800, 460, 
-  {
-    type = 15,
-    width = 3000,
-    height = 100,
-    miceCollision = false,
-    groundCollision = false   
-  })
+  tfm.exec.addPhysicObject(99999, 800, 460,
+    {
+      type = 15,
+      width = 3000,
+      height = 100,
+      miceCollision = false,
+      groundCollision = false
+    })
 
   removeTextAreasOfLobby()
   showTheScore()
 
   delaySpawnBall = addTimer(function(i)
     if i == 1 then
+      updateBoundariesFromMap()
       teleportPlayers()
       spawnInitialBall()
     end

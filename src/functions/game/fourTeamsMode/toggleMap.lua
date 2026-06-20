@@ -55,38 +55,39 @@ function toggleMap()
             end
           end, 1000)
         elseif gameStats.totalVotes >= 2 then
-            tfm.exec.newGame(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2])
-            local foundMap = addTimer(function(i)
-              if i == 1 then
-                foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2], false)
-                foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2], false)
-              end
-            end, 1000)
+          tfm.exec.newGame(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2])
+          local foundMap = addTimer(function(i)
+            if i == 1 then
+              foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2], false)
+              foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2], false)
+            end
+          end, 1000)
         else
           tfm.exec.newGame(customMaps[6][2])
         end
       end
     end
-    
+
     showTheScore()
     delaySpawnBall = addTimer(function(i)
       if i == 1 then
+        updateBoundariesFromMap()
         teleportPlayersWithTypeMap(true)
         spawnInitialBall()
         showTheScore()
       end
     end, 2500)
-    
-    tfm.exec.addPhysicObject (99999, 800, 460, {
+
+    tfm.exec.addPhysicObject(99999, 800, 460, {
       type = 15,
       width = 3000,
       height = 100,
       miceCollision = false,
       groundCollision = false
     })
-    
+
     showCrownToAllPlayers()
-    
+
     return
   elseif gameStats.typeMap == "small" then
     ui.removeTextArea(8998991)
@@ -120,24 +121,25 @@ function toggleMap()
         tfm.exec.newGame(customMaps[6][1])
       end
     end
-    
+
     showTheScore()
-    
+
     delaySpawnBall = addTimer(function(i)
       if i == 1 then
+        updateBoundariesFromMap()
         spawnInitialBall()
         teleportPlayersWithTypeMap(false)
       end
     end, 2500)
 
-    tfm.exec.addPhysicObject (99999, 800, 460, {
+    tfm.exec.addPhysicObject(99999, 800, 460, {
       type = 15,
       width = 3000,
       height = 100,
       miceCollision = false,
       groundCollision = false
     })
-    
+
     showCrownToAllPlayers()
   end
 end

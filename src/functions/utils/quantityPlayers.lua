@@ -1,11 +1,11 @@
 function quantityPlayers()
-  local quantity = {red = 0, blue = 0}
+  local quantity = { red = 0, blue = 0 }
   if gameStats.teamsMode then
-    quantity = {red = 0, blue = 0, yellow = 0, green = 0}
+    quantity = { red = 0, blue = 0, yellow = 0, green = 0 }
   end
 
   if gameStats.threeTeamsMode then
-    quantity = {red = 0, blue = 0, yellow = 0, green = 0}
+    quantity = { red = 0, blue = 0, yellow = 0, green = 0 }
   end
 
   for i = 1, #playersRed do

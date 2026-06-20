@@ -1,6 +1,6 @@
 function teleportPlayer(name, mode)
-  local xRed = {[1] = 101}
-  local xBlue = {[1] = 700}
+  local xRed = { [1] = 101 }
+  local xBlue = { [1] = 700 }
 
   if gameStats.teamsMode then
     print("b")
@@ -9,11 +9,11 @@ function teleportPlayer(name, mode)
   end
 
   if mode == "4v4" then
-    xRed = {[1] = 301}
-    xBlue = {[1] = 900}
+    xRed = { [1] = 301 }
+    xBlue = { [1] = 900 }
   elseif mode == "6v6" then
-    xRed = {[1] = 401}
-    xBlue = {[1] = 1500}
+    xRed = { [1] = 401 }
+    xBlue = { [1] = 1500 }
   end
   for i = 1, #playersRed do
     if playersRed[i].name == name then

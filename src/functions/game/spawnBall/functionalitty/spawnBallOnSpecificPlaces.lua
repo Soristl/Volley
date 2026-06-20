@@ -1,9 +1,9 @@
 function spawnBallsOnSpecificPlaces(spawnBallsTable, defaultSpawnBallTable)
   local spawnBalls = spawnBallsTable
   local defaultSpawnBall = defaultSpawnBallTable
-  
+
   local randomIndex = 0
-  local spawnPlaces = {[1] = {x = 0, y = 50}, [2] = {x = 0, y = 50}, [3] = {x = 0, y = 50}}
+  local spawnPlaces = { [1] = { x = 0, y = 50 }, [2] = { x = 0, y = 50 }, [3] = { x = 0, y = 50 } }
   local maxIndex = 2
 
   if gameStats.threeTeamsMode then
@@ -23,6 +23,6 @@ function spawnBallsOnSpecificPlaces(spawnBallsTable, defaultSpawnBallTable)
       table.remove(defaultSpawnBall, randomIndex)
     end
   end
-  
+
   return spawnPlaces
 end

@@ -7,17 +7,17 @@ function choosePlayerServe(team)
 
   if gameStats.aceRed then
     tfm.exec.movePlayer(gameStats.redPlayerServe, 700, 334)
-    tfm.exec.chatMessage("<bv>"..gameStats.redPlayerServe.." will serve the ball<n>", nil)
+    tfm.exec.chatMessage("<bv>" .. gameStats.redPlayerServe .. " will serve the ball<n>", nil)
     print("red condition ace")
-    print("<bv>"..gameStats.redPlayerServe.." will serve the ball<n>")
+    print("<bv>" .. gameStats.redPlayerServe .. " will serve the ball<n>")
     return chooseTeam
   end
 
   if gameStats.aceBlue then
     tfm.exec.movePlayer(gameStats.bluePlayerServe, 1900, 334)
-    tfm.exec.chatMessage("<bv>"..gameStats.bluePlayerServe.." will serve the ball<n>", nil)
+    tfm.exec.chatMessage("<bv>" .. gameStats.bluePlayerServe .. " will serve the ball<n>", nil)
     print("blue condition ace")
-    print("<bv>"..gameStats.bluePlayerServe.." will serve the ball<n>")
+    print("<bv>" .. gameStats.bluePlayerServe .. " will serve the ball<n>")
     return chooseTeam
   end
 
@@ -31,8 +31,8 @@ function choosePlayerServe(team)
           gameStats.redServe = true
           gameStats.aceRed = true
           tfm.exec.movePlayer(playersRed[i].name, 700, 334)
-          tfm.exec.chatMessage("<bv>"..playersRed[i].name.." will serve the ball<n>", nil)
-          print("<bv>"..playersRed[i].name.." will serve the ball<n>")
+          tfm.exec.chatMessage("<bv>" .. playersRed[i].name .. " will serve the ball<n>", nil)
+          print("<bv>" .. playersRed[i].name .. " will serve the ball<n>")
           return chooseTeam
         end
       end
@@ -44,8 +44,8 @@ function choosePlayerServe(team)
           gameStats.redServe = true
           gameStats.aceRed = true
           tfm.exec.movePlayer(playersRed[i].name, 700, 334)
-          tfm.exec.chatMessage("<bv>"..playersRed[i].name.." will serve the ball<n>", nil)
-          print("<bv>"..playersRed[i].name.." will serve the ball<n>")
+          tfm.exec.chatMessage("<bv>" .. playersRed[i].name .. " will serve the ball<n>", nil)
+          print("<bv>" .. playersRed[i].name .. " will serve the ball<n>")
           return chooseTeam
         end
       end
@@ -57,8 +57,8 @@ function choosePlayerServe(team)
           gameStats.redServe = true
           gameStats.aceRed = true
           tfm.exec.movePlayer(playersRed[i].name, 700, 334)
-          tfm.exec.chatMessage("<bv>"..playersRed[i].name.." will serve the ball<n>", nil)
-          print("<bv>"..playersRed[i].name.." will serve the ball<n>")
+          tfm.exec.chatMessage("<bv>" .. playersRed[i].name .. " will serve the ball<n>", nil)
+          print("<bv>" .. playersRed[i].name .. " will serve the ball<n>")
           return chooseTeam
         end
       end
@@ -74,8 +74,8 @@ function choosePlayerServe(team)
           gameStats.blueServe = true
           gameStats.aceBlue = true
           tfm.exec.movePlayer(playersBlue[i].name, 1900, 334)
-          tfm.exec.chatMessage("<bv>"..playersBlue[i].name.." will serve the ball<n>", nil)
-          print("<bv>"..playersBlue[i].name.." will serve the ball<n>")
+          tfm.exec.chatMessage("<bv>" .. playersBlue[i].name .. " will serve the ball<n>", nil)
+          print("<bv>" .. playersBlue[i].name .. " will serve the ball<n>")
           return chooseTeam
         end
       end
@@ -87,8 +87,8 @@ function choosePlayerServe(team)
           gameStats.blueServe = true
           gameStats.aceBlue = true
           tfm.exec.movePlayer(playersBlue[i].name, 1900, 334)
-          tfm.exec.chatMessage("<bv>"..playersBlue[i].name.." will serve the ball<n>", nil)
-          print("<bv>"..playersBlue[i].name.." will serve the ball<n>")
+          tfm.exec.chatMessage("<bv>" .. playersBlue[i].name .. " will serve the ball<n>", nil)
+          print("<bv>" .. playersBlue[i].name .. " will serve the ball<n>")
           return chooseTeam
         end
       end
@@ -100,8 +100,8 @@ function choosePlayerServe(team)
           gameStats.blueServe = true
           gameStats.aceBlue = true
           tfm.exec.movePlayer(playersBlue[i].name, 1900, 334)
-          tfm.exec.chatMessage("<bv>"..playersBlue[i].name.." will serve the ball<n>", nil)
-          print("<bv>"..playersBlue[i].name.." will serve the ball<n>")
+          tfm.exec.chatMessage("<bv>" .. playersBlue[i].name .. " will serve the ball<n>", nil)
+          print("<bv>" .. playersBlue[i].name .. " will serve the ball<n>")
           return chooseTeam
         end
       end
