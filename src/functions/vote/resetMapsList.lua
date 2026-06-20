@@ -4,7 +4,7 @@ function resetMapsList()
 
   for name, data in pairs(tfm.get.room.playerList) do
     canVote[name] = true
-    
+
     if selectMapOpen[name] then
       selectMapPage[name] = 1
       selectMapUI(name)

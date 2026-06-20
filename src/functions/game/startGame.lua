@@ -9,9 +9,9 @@ function startGame()
 
   duration = os.time() + durationTimerPause * 1000
 
-  local timer = math.ceil((duration - os.time())/1000)
+  local _timer = math.ceil((duration - os.time()) / 1000)
 
-  tfm.exec.setGameTime(timer, true)
+  tfm.exec.setGameTime(_timer, true)
 
   removeTextAreasOfLobby()
   showTheScore()
@@ -26,6 +26,7 @@ function startGame()
 
   delaySpawnBall = addTimer(function(i)
     if i == 1 then
+      updateBoundariesFromMap()
       teleportPlayers()
       spawnInitialBall()
       verifyIsPoint()

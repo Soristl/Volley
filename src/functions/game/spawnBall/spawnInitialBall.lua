@@ -4,19 +4,19 @@ function spawnInitialBall()
   if gameStats.threeTeamsMode and gameStats.typeMap == "large4v4" then
     local spawnBalls = { spawnBallArea400, spawnBallArea800, spawnBallArea1200 }
 
-    x = {300, 900, 1500}
+    x = { 300, 900, 1500 }
 
     spawnBallConfig(spawnBalls, x)
 
     return
   elseif gameStats.threeTeamsMode and gameStats.typeMap == "large3v3" then
     local spawnBalls = { spawnBallArea400, spawnBallArea800 }
-    x = {300, 900}
+    x = { 300, 900 }
 
     if gameStats.threeBalls then
-      x = {300, 600, 900}
+      x = { 300, 600, 900 }
     end
-    
+
     spawnBallConfig(spawnBalls, x)
 
     return
@@ -25,20 +25,20 @@ function spawnInitialBall()
   if gameStats.teamsMode and gameStats.typeMap == "large4v4" or gameStats.twoTeamsMode then
     local spawnBalls = { spawnBallArea400, spawnBallArea800, spawnBallArea1200, spawnBallArea1600 }
 
-    x = {200, 600, 1000, 1400}
+    x = { 200, 600, 1000, 1400 }
 
     spawnBallConfig(spawnBalls, x)
 
     return
   elseif gameStats.teamsMode and gameStats.typeMap == "large3v3" then
-    x = {200, 600, 1000}
+    x = { 200, 600, 1000 }
     local spawnBalls = { spawnBallArea400, spawnBallArea800, spawnBallArea1200 }
 
     spawnBallConfig(spawnBalls, x)
 
     return
   elseif gameStats.teamsMode and gameStats.typeMap == "small" then
-    x = {200, 600}
+    x = { 200, 600 }
     local spawnBalls = { spawnBallArea400, spawnBallArea800 }
 
     spawnBallConfig(spawnBalls, x)
@@ -60,7 +60,7 @@ function spawnInitialBall()
           if gameStats.customBall then
             ball_id = tfm.exec.addShamanObject(balls[gameStats.customBallId].id, 700, 50, 0, 0, -5, true)
             if balls[gameStats.customBallId].isImage then
-              tfm.exec.addImage(balls[gameStats.customBallId].image, "#"..ball_id, -15, -15, nil, 1, 1, _, 10)
+              tfm.exec.addImage(balls[gameStats.customBallId].image, "#" .. ball_id, -15, -15, nil, 1, 1, _, 10)
             end
           else
             ball_id = tfm.exec.addShamanObject(6, 700, 50, 0, 0, -5, true)
@@ -75,7 +75,7 @@ function spawnInitialBall()
           if gameStats.customBall then
             ball_id = tfm.exec.addShamanObject(balls[gameStats.customBallId].id, 1900, 50, 0, 0, -5, true)
             if balls[gameStats.customBallId].isImage then
-              tfm.exec.addImage(balls[gameStats.customBallId].image, "#"..ball_id, -15, -15, nil, 1, 1, _, 10)
+              tfm.exec.addImage(balls[gameStats.customBallId].image, "#" .. ball_id, -15, -15, nil, 1, 1, _, 10)
             end
           else
             ball_id = tfm.exec.addShamanObject(6, 1900, 50, 0, 0, -5, true)
@@ -90,20 +90,20 @@ function spawnInitialBall()
       if i == 1 then
         ballOnGame = true
       end
-    end, 2000, 1, "delayToVerifyBall")
+    end, 5000, 1, "delayToVerifyBall")
     return
   end
 
   local spawnBalls = {}
   if gameStats.gameMode == "3v3" then
-    x = {200, 600}
-    spawnBalls = {spawnBallArea400, spawnBallArea800}
+    x = { 200, 600 }
+    spawnBalls = { spawnBallArea400, spawnBallArea800 }
   elseif gameStats.gameMode == "4v4" then
-    x = {400, 800}
-    spawnBalls = {spawnBallArea800, spawnBallArea1600}
+    x = { 400, 800 }
+    spawnBalls = { spawnBallArea800, spawnBallArea1600 }
   else
-    gameStats.psyhicObjectForce = 1.2
-    x = {400, 1400}
+    gameStats.physicObjectForce = 1.2
+    x = { 400, 1400 }
   end
 
   --print(x)

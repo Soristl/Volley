@@ -3,10 +3,10 @@ function playerNearOfTheBall(name, x, y)
     resetQuantityTeams()
     local ballX = tfm.get.room.objectList[ball_id].x + tfm.get.room.objectList[ball_id].vx
     local ballY = tfm.get.room.objectList[ball_id].y + tfm.get.room.objectList[ball_id].vy
-    
+
     if (ballX + 15) >= 1250 and (ballX - 15) <= 1350 and x >= 1250 and x <= 1350 and ballY <= 297 then
       local team = searchPlayerTeam(name)
-      
+
       if team == "red" then
         gameStats.lastPlayerRed = name
         gameStats.blueQuantitySpawn = 0
@@ -25,7 +25,7 @@ function playerNearOfTheBall(name, x, y)
         end
       end
     end
-    
+
     showTheScore()
   end
 end

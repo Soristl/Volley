@@ -1,25 +1,27 @@
 function verifyIsPointRealMode()
+  if not ball_id or not tfm.get.room.objectList[ball_id] then return end
   local ballX = tfm.get.room.objectList[ball_id].x
   local ballY = tfm.get.room.objectList[ball_id].y
-  
+
   resetQuantityTeams()
-  
-  if ballX <= 599 and ballY >= 368 then
+
+  if ballX <= 599 and isBallOnGround(ball_id) then
     if gameStats.redQuantitySpawn > 0 or gameStats.redServe then
       gameStats.aceRed = false
-      score_blue = score_blue + 1
+      teamsScores['blue'] = teamsScores['blue'] + 1
       tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
     else
       gameStats.aceBlue = false
-      score_red = score_red + 1
+      teamsScores['red'] = teamsScores['red'] + 1
       tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
     end
-    tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
-    if score_red >= gameStats.winscore or score_blue >= gameStats.winscore then
+    tfm.exec.chatMessage("<r>Team Red<n> " .. teamsScores['red'] .. " X " .. teamsScores['blue'] .. " <bv>Team Blue<n>",
+      nil)
+    if teamsScores['red'] >= gameStats.winscore or teamsScores['blue'] >= gameStats.winscore then
       showTheScore()
       showMessageWinner()
       ballOnGame = false
-      tfm.exec.removeObject (ball_id)
+      tfm.exec.removeObject(ball_id)
       if gameStats.redQuantitySpawn > 0 or gameStats.redServe then
         realModeWinner("blue")
       else
@@ -38,7 +40,7 @@ function verifyIsPointRealMode()
             teamServe("blue")
           end
         end, 4000, 1, "delayTeleport")
-        
+
         local delaySpawnBall = addTimer(function(i)
           if i == 1 then
             spawnBallRealMode("blue")
@@ -52,7 +54,7 @@ function verifyIsPointRealMode()
             teamServe("red")
           end
         end, 4000, 1, "delayTeleport")
-        
+
         local delaySpawnBall = addTimer(function(i)
           if i == 1 then
             spawnBallRealMode("red")
@@ -62,14 +64,15 @@ function verifyIsPointRealMode()
     end
     showTheScore()
     return
-  elseif ballX >= gameStats.redX and ballX <= 1299 and ballY >= 368 then
-    score_blue = score_blue + 1
+  elseif ballX >= gameStats.redX and ballX <= 1299 and isBallOnGround(ball_id) then
+    teamsScores['blue'] = teamsScores['blue'] + 1
     gameStats.aceRed = false
     tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
-    tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
-    if score_blue >= gameStats.winscore then
+    tfm.exec.chatMessage("<r>Team Red<n> " .. teamsScores['red'] .. " X " .. teamsScores['blue'] .. " <bv>Team Blue<n>",
+      nil)
+    if teamsScores['blue'] >= gameStats.winscore then
       ballOnGame = false
-      tfm.exec.removeObject (ball_id)
+      tfm.exec.removeObject(ball_id)
       showTheScore()
       showMessageWinner()
       realModeWinner("blue")
@@ -85,7 +88,7 @@ function verifyIsPointRealMode()
           teamServe("blue")
         end
       end, 4000, 1, "delayTeleport")
-      
+
       local delaySpawnBall = addTimer(function(i)
         if i == 1 then
           spawnBallRealMode("blue")
@@ -94,18 +97,19 @@ function verifyIsPointRealMode()
     end
     showTheScore()
     return
-  elseif ballX >= 1301 and ballX <= gameStats.blueX and ballY >= 368 then
-    score_red = score_red + 1
+  elseif ballX >= 1301 and ballX <= gameStats.blueX and isBallOnGround(ball_id) then
+    teamsScores['red'] = teamsScores['red'] + 1
     gameStats.aceBlue = false
     tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
-    tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
-    if score_red >= gameStats.winscore then
+    tfm.exec.chatMessage("<r>Team Red<n> " .. teamsScores['red'] .. " X " .. teamsScores['blue'] .. " <bv>Team Blue<n>",
+      nil)
+    if teamsScores['red'] >= gameStats.winscore then
       showTheScore()
       showMessageWinner()
       realModeWinner("red")
       updateRankingRealMode()
       ballOnGame = false
-      tfm.exec.removeObject (ball_id)
+      tfm.exec.removeObject(ball_id)
       mode = "endGame"
       gameTimeEnd = os.time() + 5000
     else
@@ -117,7 +121,7 @@ function verifyIsPointRealMode()
           teamServe("red")
         end
       end, 4000, 1, "delayTeleport")
-      
+
       local delaySpawnBall = addTimer(function(i)
         if i == 1 then
           spawnBallRealMode("red")
@@ -126,21 +130,22 @@ function verifyIsPointRealMode()
     end
     showTheScore()
     return
-  elseif ballX >= 2001 and ballY >= 368 then
+  elseif ballX >= 2001 and isBallOnGround(ball_id) then
     if gameStats.blueQuantitySpawn > 0 or gameStats.blueServe then
       gameStats.aceBlue = false
-      score_red = score_red + 1
+      teamsScores['red'] = teamsScores['red'] + 1
       tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
     else
       gameStats.aceRed = false
-      score_blue = score_blue + 1
+      teamsScores['blue'] = teamsScores['blue'] + 1
       tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
     end
-    
-    tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
-    if score_blue >= gameStats.winscore or score_red >= gameStats.winscore then
+
+    tfm.exec.chatMessage("<r>Team Red<n> " .. teamsScores['red'] .. " X " .. teamsScores['blue'] .. " <bv>Team Blue<n>",
+      nil)
+    if teamsScores['blue'] >= gameStats.winscore or teamsScores['red'] >= gameStats.winscore then
       ballOnGame = false
-      tfm.exec.removeObject (ball_id)
+      tfm.exec.removeObject(ball_id)
       showTheScore()
       showMessageWinner()
       if gameStats.blueQuantitySpawn > 0 or gameStats.blueServe then
@@ -161,7 +166,7 @@ function verifyIsPointRealMode()
             teamServe("red")
           end
         end, 4000, 1, "delayTeleport")
-        
+
         local delaySpawnBall = addTimer(function(i)
           if i == 1 then
             spawnBallRealMode("red")
@@ -175,7 +180,7 @@ function verifyIsPointRealMode()
             teamServe("blue")
           end
         end, 4000, 1, "delayTeleport")
-        
+
         local delaySpawnBall = addTimer(function(i)
           if i == 1 then
             spawnBallRealMode("blue")

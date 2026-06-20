@@ -1,4 +1,3 @@
-
 function teleportPlayerWithSpecificSpawn(playersSpawn, name)
   local lowestPlayersQuantity
   local availableIndexesToSpawn = {}
@@ -11,7 +10,7 @@ function teleportPlayerWithSpecificSpawn(playersSpawn, name)
         availableIndexesToSpawn[#availableIndexesToSpawn + 1] = i
       elseif #playersSpawn[i].players < lowestPlayersQuantity then
         lowestPlayersQuantity = #playersSpawn[i].players
-        availableIndexesToSpawn = {[1] = i}
+        availableIndexesToSpawn = { [1] = i }
       end
     end
   end
@@ -20,7 +19,7 @@ function teleportPlayerWithSpecificSpawn(playersSpawn, name)
     local index = availableIndexesToSpawn[1]
     playersSpawn[index].players[#playersSpawn[index].players + 1] = name
     tfm.exec.movePlayer(name, playersSpawn[index].x, playersSpawn[index].y)
-    
+
     return
   end
 
@@ -29,7 +28,7 @@ function teleportPlayerWithSpecificSpawn(playersSpawn, name)
   local foundDifference = false
   for i = 1, #availableIndexesToSpawn do
     local index = availableIndexesToSpawn[i]
-    
+
     if lowestSpawnPriority == nil then
       lowestSpawnPriority = playersSpawn[index].spawnPriority
       indexSelected = index
@@ -37,7 +36,7 @@ function teleportPlayerWithSpecificSpawn(playersSpawn, name)
       if lowestSpawnPriority ~= playersSpawn[index].spawnPriority then
         foundDifference = true
       end
-      
+
       if playersSpawn[index].spawnPriority < lowestSpawnPriority then
         lowestSpawnPriority = playersSpawn[index].spawnPriority
         indexSelected = index
@@ -48,7 +47,7 @@ function teleportPlayerWithSpecificSpawn(playersSpawn, name)
   if foundDifference then
     playersSpawn[indexSelected].players[#playersSpawn[indexSelected].players + 1] = name
     tfm.exec.movePlayer(name, playersSpawn[indexSelected].x, playersSpawn[indexSelected].y)
-    
+
     return
   end
 
