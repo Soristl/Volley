@@ -13,15 +13,6 @@ function startGame()
 
   tfm.exec.setGameTime(_timer, true)
 
-  tfm.exec.addPhysicObject(99999, 800, 460,
-    {
-      type = 15,
-      width = 3000,
-      height = 100,
-      miceCollision = false,
-      groundCollision = false
-    })
-
   removeTextAreasOfLobby()
   showTheScore()
 
@@ -40,6 +31,15 @@ function startGame()
       spawnInitialBall()
       verifyIsPoint()
       showCrownToAllPlayers()
+
+      tfm.exec.addPhysicObject (99999, 800, webY, 
+      {
+        type = 15,
+        width = 3000,
+        height = 100,
+        miceCollision = false,
+        groundCollision = false   
+      })
 
       if globalSettings.minimalist then
         gameStats.canTransform = true

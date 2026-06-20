@@ -128,6 +128,7 @@ end
 
 local function handlePlayerTransform(name, x, y)
   local additionalForce = 0
+  playerPressSpace[name] = true
 
   -- 1. Calculate launch force based on real-mode state
   -- NOTE: Conditions are evaluated top-down. Later matches override earlier ones.
@@ -203,6 +204,7 @@ local function handlePlayerTransform(name, x, y)
 
   addTimer(function()
     tfm.exec.removePhysicObject(groundId)
+    playerPressSpace[name] = false
     tfm.exec.respawnPlayer(name)
     setCrownToPlayer(name)
 
@@ -301,7 +303,7 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
     handleRealMode(name, key, x)
   end
 
-  if key == KEYS.TRANSFORM and gameStats.canTransform and playerCanTransform[name] and not playerOutOfCourt[name] then
+  if key == KEYS.TRANSFORM and gameStats.canTransform and playerCanTransform[name] and not playerOutOfCourt[name] and not isPlayerDead[name] then
     handlePlayerTransform(name, player.x, player.y)
   end
 end

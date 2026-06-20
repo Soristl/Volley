@@ -134,6 +134,7 @@ function init()
   }
 
   playerCoordinates = {}
+  webY = 460
   countId = 1
   playerPhysicId = {}
   teamsScores['red'] = 0
@@ -254,6 +255,7 @@ function init()
   if globalSettings.minimalist then
     tfm.exec.chatMessage("<bv>Room Setup: Minimalist mode is enabled for maps (This may cause a slight delay when switching maps)<n>", nil)
   end
+  
 
   for name, data in pairs(tfm.get.room.playerList) do
     playerLeftRight[name] = 0
@@ -266,6 +268,8 @@ function init()
     playerCoordinates[name] = { x = 0, y = 0 }
     playerPhysicId[name] = 0
     playersOnGameHistoric[name] = { teams = {} }
+    isPlayerDead[name] = false
+    playerPressSpace[name] = false
 
     --[[
     for i = 1, #keys do

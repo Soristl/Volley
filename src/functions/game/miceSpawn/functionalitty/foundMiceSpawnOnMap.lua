@@ -33,6 +33,8 @@ function foundMiceSpawnsOnMap(map, isLargeMap)
     end
   end
 
+  foundWebSpawnOnMap(map)
+  
   foundMicePlayersConfig(map)
 
   print('400: ' .. #playersSpawn400 .. '')

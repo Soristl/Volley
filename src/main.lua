@@ -178,7 +178,10 @@ local playersSpawn1600 = {}
 local playersAfk = {}
 local pagePlayerSettings = {}
 local maxPageSettings = 2
-local threeTeamsMode = { id = { 1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13 }, x = { 100, 280, 460, 640, 100, 280, 460, 640, 100, 280, 460, 640 }, y = { 100, 100, 100, 100, 160, 160, 160, 160, 220, 220, 220, 220 } }
+local threeTeamsMode = {id = {1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13}, x = {100, 280, 460, 640, 100, 280, 460, 640, 100, 280, 460, 640}, y = {100, 100, 100, 100, 160, 160, 160, 160, 220, 220, 220, 220}}
+local isPlayerDead = {}
+local playerPressSpace = {}
+local webY = 460
 
 local gameTimeEnd = os.time() + 5000
 
@@ -285,6 +288,8 @@ for name, data in pairs(tfm.get.room.playerList) do
   playerBan[name] = false
   playerBanHistory[name] = ""
   showOutOfCourtText[name] = false
+  isPlayerDead[name] = false
+  playerPressSpace[name] = false
 
   tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
   tfm.exec.chatMessage("<n>#Volley Version: <j>" .. gameVersion, name)

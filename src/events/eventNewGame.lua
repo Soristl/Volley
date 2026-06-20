@@ -15,7 +15,7 @@ function eventNewGame()
       addTimer(function(i) 
         tfm.exec.newGame(tfm.get.room.xmlMapInfo.xml)
 
-        tfm.exec.addPhysicObject (99999, 800, 460, 
+        tfm.exec.addPhysicObject (99999, 800, webY, 
         {
           type = 15,
           width = 3000,
