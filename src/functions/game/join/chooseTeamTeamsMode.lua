@@ -8,14 +8,14 @@ function chooseTeamTeamsMode(name)
   end
   if gameStats.typeMap == "large4v4" then
     if smallQuantity[2] == 1 and quantity.yellow < 3 then
-      for i= 1, #playersYellow do
+      for i = 1, #playersYellow do
         if playersYellow[i].name == '' then
           local isNewTeam = playerHistoryOnMatch("yellow", name)
-          
+
           if isNewTeam then
             local playerTeams = playersOnGameHistoric[name].teams
             playersOnGameHistoric[name].teams[#playerTeams + 1] = "yellow"
-            
+
             addMatchToPlayerFourTeamsMode(name)
           end
           playersYellow[i].name = name
@@ -26,21 +26,21 @@ function chooseTeamTeamsMode(name)
           else
             tfm.exec.movePlayer(name, 200, 334)
           end
-          
+
           disablePlayerCanTransform(name)
-          
+
           return
         end
       end
     elseif smallQuantity[2] == 2 and quantity.red < 3 then
-      for i= 1, #playersRed do
+      for i = 1, #playersRed do
         if playersRed[i].name == '' then
           local isNewTeam = playerHistoryOnMatch("red", name)
-          
+
           if isNewTeam then
             local playerTeams = playersOnGameHistoric[name].teams
             playersOnGameHistoric[name].teams[#playerTeams + 1] = "red"
-            
+
             addMatchToPlayerFourTeamsMode(name)
           end
           playersRed[i].name = name
@@ -51,21 +51,21 @@ function chooseTeamTeamsMode(name)
           else
             tfm.exec.movePlayer(name, 600, 334)
           end
-          
+
           disablePlayerCanTransform(name)
-          
+
           return
         end
       end
     elseif smallQuantity[2] == 3 and quantity.blue < 3 then
-      for i= 1, #playersBlue do
+      for i = 1, #playersBlue do
         if playersBlue[i].name == '' then
           local isNewTeam = playerHistoryOnMatch("blue", name)
-          
+
           if isNewTeam then
             local playerTeams = playersOnGameHistoric[name].teams
             playersOnGameHistoric[name].teams[#playerTeams + 1] = "blue"
-            
+
             addMatchToPlayerFourTeamsMode(name)
           end
           playersBlue[i].name = name
@@ -76,22 +76,21 @@ function chooseTeamTeamsMode(name)
           else
             tfm.exec.movePlayer(name, 1000, 334)
           end
-          
+
           disablePlayerCanTransform(name)
-          
+
           return
         end
       end
-      
     elseif smallQuantity[2] == 4 and quantity.green < 3 then
-      for i= 1, #playersGreen do
+      for i = 1, #playersGreen do
         if playersGreen[i].name == '' then
           local isNewTeam = playerHistoryOnMatch("green", name)
-          
+
           if isNewTeam then
             local playerTeams = playersOnGameHistoric[name].teams
             playersOnGameHistoric[name].teams[#playerTeams + 1] = "green"
-            
+
             addMatchToPlayerFourTeamsMode(name)
           end
           playersGreen[i].name = name
@@ -102,9 +101,9 @@ function chooseTeamTeamsMode(name)
           else
             tfm.exec.movePlayer(name, 1400, 334)
           end
-          
+
           disablePlayerCanTransform(name)
-          
+
           return
         end
       end
@@ -112,7 +111,7 @@ function chooseTeamTeamsMode(name)
       tfm.exec.chatMessage("<bv>The teams are full<n>", name)
     end
   elseif gameStats.typeMap == "large3v3" or gameStats.typeMap == "small" then
-    local x = {200, 600, 1000}
+    local x = { 200, 600, 1000 }
     local playersSpawn = { playersSpawn400, playersSpawn800, playersSpawn1200 }
     print("a")
     print(smallQuantity[2])
@@ -121,41 +120,41 @@ function chooseTeamTeamsMode(name)
         for j = 1, #teamsPlayersOnGame[smallQuantity[2]] do
           if teamsPlayersOnGame[smallQuantity[2]][j].name == '' then
             local team = getTeamName(messageTeamsLifes[smallQuantity[2]])
-            
+
             if team == "Yellow" then
               local isNewTeam = playerHistoryOnMatch("yellow", name)
-              
+
               if isNewTeam then
                 local playerTeams = playersOnGameHistoric[name].teams
                 playersOnGameHistoric[name].teams[#playerTeams + 1] = "yellow"
-                
+
                 addMatchToPlayerFourTeamsMode(name)
               end
             elseif team == "Red" then
               local isNewTeam = playerHistoryOnMatch("red", name)
-              
+
               if isNewTeam then
                 local playerTeams = playersOnGameHistoric[name].teams
                 playersOnGameHistoric[name].teams[#playerTeams + 1] = "red"
-                
+
                 addMatchToPlayerFourTeamsMode(name)
               end
             elseif team == "Blue" then
               local isNewTeam = playerHistoryOnMatch("blue", name)
-              
+
               if isNewTeam then
                 local playerTeams = playersOnGameHistoric[name].teams
                 playersOnGameHistoric[name].teams[#playerTeams + 1] = "blue"
-                
+
                 addMatchToPlayerFourTeamsMode(name)
               end
             elseif team == "Green" then
               local isNewTeam = playerHistoryOnMatch("green", name)
-              
+
               if isNewTeam then
                 local playerTeams = playersOnGameHistoric[name].teams
                 playersOnGameHistoric[name].teams[#playerTeams + 1] = "green"
-                
+
                 addMatchToPlayerFourTeamsMode(name)
               end
             end
@@ -167,9 +166,9 @@ function chooseTeamTeamsMode(name)
             else
               tfm.exec.movePlayer(name, x[smallQuantity[2]], 334)
             end
-            
+
             disablePlayerCanTransform(name)
-            
+
             return
           end
         end

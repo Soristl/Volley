@@ -1,5 +1,5 @@
 function getMapTypesText()
-  local modes = {"Small", "Large", "Extra-Large"}
+  local modes = { "Small", "Large", "Extra-Large" }
 
   return modes
 end

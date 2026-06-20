@@ -7,7 +7,8 @@ function threeTeamsModeWinner(teamText, playersOnTeam)
 
       if player ~= 'a' and player ~= '' then
         playersThreeTeamsMode[player].wins = playersThreeTeamsMode[player].wins + 1
-        playersThreeTeamsMode[player].winRatio = winRatioPercentage(playersThreeTeamsMode[player].wins, playersThreeTeamsMode[player].matches)
+        playersThreeTeamsMode[player].winRatio = winRatioPercentage(playersThreeTeamsMode[player].wins,
+          playersThreeTeamsMode[player].matches)
         playersThreeTeamsMode[player].winsRed = playersThreeTeamsMode[player].winsRed + 1
       end
     end
@@ -19,7 +20,8 @@ function threeTeamsModeWinner(teamText, playersOnTeam)
 
       if player ~= 'a' and player ~= '' then
         playersThreeTeamsMode[player].wins = playersThreeTeamsMode[player].wins + 1
-        playersThreeTeamsMode[player].winRatio = winRatioPercentage(playersThreeTeamsMode[player].wins, playersThreeTeamsMode[player].matches)
+        playersThreeTeamsMode[player].winRatio = winRatioPercentage(playersThreeTeamsMode[player].wins,
+          playersThreeTeamsMode[player].matches)
         playersThreeTeamsMode[player].winsBlue = playersThreeTeamsMode[player].winsBlue + 1
       end
     end
@@ -31,7 +33,8 @@ function threeTeamsModeWinner(teamText, playersOnTeam)
 
       if player ~= 'a' and player ~= '' then
         playersThreeTeamsMode[player].wins = playersThreeTeamsMode[player].wins + 1
-        playersThreeTeamsMode[player].winRatio = winRatioPercentage(playersThreeTeamsMode[player].wins, playersThreeTeamsMode[player].matches)
+        playersThreeTeamsMode[player].winRatio = winRatioPercentage(playersThreeTeamsMode[player].wins,
+          playersThreeTeamsMode[player].matches)
         playersThreeTeamsMode[player].winsGreen = playersThreeTeamsMode[player].winsGreen + 1
       end
     end
