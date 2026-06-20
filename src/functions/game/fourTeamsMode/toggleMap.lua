@@ -88,6 +88,14 @@ function toggleMap()
         teleportPlayersWithTypeMap(true)
         spawnInitialBall()
         showTheScore()
+
+        tfm.exec.addPhysicObject (99999, 800, webY, {
+          type = 15,
+          width = 3000,
+          height = 100,
+          miceCollision = false,
+          groundCollision = false
+        })
       end
     end, delayMS)
     
@@ -148,6 +156,14 @@ function toggleMap()
         updateBoundariesFromMap()
         spawnInitialBall()
         teleportPlayersWithTypeMap(false)
+
+        tfm.exec.addPhysicObject (99999, 800, webY, {
+          type = 15,
+          width = 3000,
+          height = 100,
+          miceCollision = false,
+          groundCollision = false
+        })
       end
     end, delayMS)
 
