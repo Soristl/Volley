@@ -4,13 +4,14 @@ function eventLoop(elapsedTime, remainingTime)
   end
 
   if mode == "startGame" then
-    local x = math.ceil((initGame - os.time())/1000)
+    local x = math.ceil((initGame - os.time()) / 1000)
     local c = string.format("%d", x)
+
     if not gameStats.stopTimer then
       gameStats.initTimer = x
-      ui.addTextArea(7, "<p align='center'>"..c.."", nil, 375, 50, 30, 20, 0x161616, 0x161616, 1, false)
+      ui.addTextArea(7, "<p align='center'>" .. c .. "", nil, 375, 50, 30, 20, 0x161616, 0x161616, 1, false)
     end
-    
+
     if x == 0 and not gameStats.stopTimer then
       local playersOnGame = quantityPlayers()
 
@@ -19,8 +20,9 @@ function eventLoop(elapsedTime, remainingTime)
           rankCrown = rankRealMode
           rulesTimer = os.time() + 10000
           mode = "showRules"
-          for name, data in pairs(tfm.get.room.playerList) do
-            ui.addWindow(266, ""..playerLanguage[name].tr.realModeRules.."", name, 125, 60, 650, 300, 1, false, true, playerLanguage[name].tr.closeUIText)
+          for name, _ in pairs(tfm.get.room.playerList) do
+            ui.addWindow(266, "" .. playerLanguage[name].tr.realModeRules .. "", name,
+              125, 60, 650, 300, 1, false, true, playerLanguage[name].tr.closeUIText)
           end
           removeWindowsOnBottom()
 
@@ -118,7 +120,7 @@ function eventLoop(elapsedTime, remainingTime)
       end
     end
   elseif mode == "showRules" then
-    local x = math.ceil((rulesTimer - os.time())/1000)
+    local x = math.ceil((rulesTimer - os.time()) / 1000)
     local c = string.format("%d", x)
 
     if x == 0 then
@@ -129,8 +131,9 @@ function eventLoop(elapsedTime, remainingTime)
       startGame()
     end
   elseif mode == "endGame" then
-    local x = math.ceil((gameTimeEnd - os.time())/1000)
+    local x = math.ceil((gameTimeEnd - os.time()) / 1000)
     local c = string.format("%d", x)
+
     if x == 0 then
       countMatches = countMatches + 1
       ui.removeTextArea(899899)
@@ -139,5 +142,6 @@ function eventLoop(elapsedTime, remainingTime)
       init()
     end
   end
+
   timersLoop()
 end

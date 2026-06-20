@@ -6,5 +6,5 @@ function removePlayerTrophyImage(name)
         playerTrophyImage[name] = 0
       end
     end
-  end, 10000, 1, "trophy"..name.."")
+  end, 10000, 1, "trophy" .. name .. "")
 end
