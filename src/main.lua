@@ -226,7 +226,7 @@ local function setPlayerData(name)
 
     -- utils
     offsets = { x = 15, y = 1 },
-    transformDuration = 5
+    transformDuration = 3
   }
 
   bindKeys(name)

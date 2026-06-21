@@ -416,7 +416,6 @@ local function cmdNP(args)
         customMapsFourTeamsMode[34][2]) or
       customMaps[6][1]
 
-  local mapsToTest = {}
   mapsToTest[1] = (validateMap({ name, args[2], 1 }) and args[2]) or defaultMap
 
   mapsToTest[2] = validateMap({ name, args[3], 2 }) or defaultMap

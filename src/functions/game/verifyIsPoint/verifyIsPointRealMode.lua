@@ -1,5 +1,5 @@
 function verifyIsPointRealMode()
-  if not ball_id or not tfm.get.room.objectList[ball_id] then return end
+  if not ball_id or not tfm.get.room.objectList[ball_id] or not ballOnGame then return end
   local ballX = tfm.get.room.objectList[ball_id].x
   local ballY = tfm.get.room.objectList[ball_id].y
 

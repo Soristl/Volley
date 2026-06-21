@@ -1,21 +1,21 @@
 function verifyIsPoint()
   verifyBallCoordinates = addTimer(function(i)
-    if gameStats.teamsMode and ballOnGame then
+    if gameStats.teamsMode then
       setLostLife()
       return
     end
 
-    if gameStats.threeTeamsMode and ballOnGame then
+    if gameStats.threeTeamsMode then
       verifyIsPointThreeTeamsMode()
       return
     end
 
-    if gameStats.twoTeamsMode and ballOnGame then
+    if gameStats.twoTeamsMode then
       verifyIsPointTwoTeamsMode()
       return
     end
 
-    if gameStats.realMode and ballOnGame then
+    if gameStats.realMode then
       verifyIsPointRealMode()
       return
     end
@@ -27,7 +27,7 @@ function verifyIsPoint()
     end
 
     for j = 1, quantityBalls do
-      if ballOnGameTwoBalls[j] and ballsId[j] ~= nil then
+      if ballOnGameTwoBalls[j] and ballsId[j] ~= nil and ballOnGame then
         if #teamPointsArea1 > 0 or #teamPointsArea2 > 0 then
           pointsNormalMode(tfm.get.room.objectList[ballsId[j]].x, tfm.get.room.objectList[ballsId[j]].y, j)
         else
