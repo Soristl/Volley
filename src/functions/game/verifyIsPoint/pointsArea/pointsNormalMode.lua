@@ -7,10 +7,10 @@ function pointsNormalMode(ballX, ballY, index)
 
     if x1 ~= nil and x2 ~= nil and y1 ~= nil and y2 ~= nil then
       if ballX >= x1 and ballX <= x2 and ballY >= y1 and ballY <= y2 then
-        score_blue = score_blue + 1
+        teamsScores['blue'] = teamsScores['blue'] + 1
         tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
-        tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
-        if score_blue >= gameStats.winscore then
+        tfm.exec.chatMessage("<r>Team Red<n> "..teamsScores['red'].." X "..teamsScores['blue'].." <bv>Team Blue<n>", nil)
+        if teamsScores['blue'] >= gameStats.winscore then
           ballOnGame = false
           ballOnGame2 = false
           updateTwoBallOnGame()
@@ -56,10 +56,10 @@ function pointsNormalMode(ballX, ballY, index)
 
     if x1 ~= nil and x2 ~= nil and y1 ~= nil and y2 ~= nil then
       if ballX >= x1 and ballX <= x2 and ballY >= y1 and ballY <= y2 then
-        score_red = score_red + 1
+        teamsScores['red'] = teamsScores['red'] + 1
         tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
-        tfm.exec.chatMessage("<r>Team Red<n> "..score_red.." X "..score_blue.." <bv>Team Blue<n>", nil)
-        if score_red >= gameStats.winscore then
+        tfm.exec.chatMessage("<r>Team Red<n> "..teamsScores['red'].." X "..teamsScores['blue'].." <bv>Team Blue<n>", nil)
+        if teamsScores['red'] >= gameStats.winscore then
           showTheScore()
           showMessageWinner()
           ballOnGame = false
