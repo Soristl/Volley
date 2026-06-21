@@ -374,7 +374,7 @@ local function cmdDiscord(args)
 
   local msg = "Official Volley Discord:" ..
       "<vp>https://discord.com/invite/pWNTesmNhu"
-  if USER_PERMISSIONS[name] > 2 then
+  if USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 2 then
     tfm.exec.chatMessage(msg, nil)
   else
     tfm.exec.chatMessage(msg, name)
@@ -416,7 +416,6 @@ local function cmdNP(args)
         customMapsFourTeamsMode[34][2]) or
       customMaps[6][1]
 
-  local mapsToTest = {}
   mapsToTest[1] = (validateMap({ name, args[2], 1 }) and args[2]) or defaultMap
 
   mapsToTest[2] = validateMap({ name, args[3], 2 }) or defaultMap
@@ -720,7 +719,7 @@ local function cmdPassword(args)
 
   tfm.exec.setRoomPassword(password)
 
-  if isSecret and USER_PERMISSIONS[name] > 3 then
+  if isSecret and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 3 then
     tfm.exec.chatMessage(" <bv>" .. name .. "set a secret password.", nil)
     return
   end
@@ -1139,7 +1138,7 @@ local function cmdBroadcast(args)
 
   local message = "<vi>[Announcement]\n" .. args[2]
 
-  if USER_PERMISSIONS[name] > 2 then
+  if USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 2 then
     tfm.exec.chatMessage(message, nil)
   end
 end

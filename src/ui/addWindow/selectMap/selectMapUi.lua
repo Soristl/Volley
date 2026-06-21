@@ -3,6 +3,7 @@ function selectMapUI(name)
   local maps = configSelectMap()
   local maxPage = getMaxPageMap(maps)
   local page = selectMapPage[name]
+  local userLevel = USER_PERMISSIONS[name] or 1
 
   for i = 1, 5 do
     local index = i + ((page - 1) * 5)
@@ -13,7 +14,7 @@ function selectMapUI(name)
 
       if index == gameStats.customMapIndex then
         textSelect = "<j>Selected map<n>"
-      elseif not USER_PERMISSIONS[name] > 1 then
+      elseif userLevel > 1 then
         textSelect = "<n2>Select map<n>"
       end
 

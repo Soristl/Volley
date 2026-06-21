@@ -7,6 +7,7 @@ function foundWebSpawnOnMap(map)
     mapXML = tfm.get.room.xmlMapInfo.xml
   end
 
+  webY = 460
   local webYText = mapXML:match('<C>%s*<P[^>]-WEBY="([^"]+)"')
 
   print('=== WEB Y ===')

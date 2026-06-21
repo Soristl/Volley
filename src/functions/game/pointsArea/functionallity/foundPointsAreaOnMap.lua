@@ -7,6 +7,11 @@ function foundPointsAreaOnMap(map)
     mapXML = tfm.get.room.xmlMapInfo.xml
   end
 
+  teamPointsArea1 = {}
+  teamPointsArea2 = {}
+  teamPointsArea3 = {}
+  teamPointsArea4 = {}
+
   local team1Text = mapXML:match('<C>%s*<P[^>]-team1="([^"]+)"')
 
   if team1Text ~= nil then
