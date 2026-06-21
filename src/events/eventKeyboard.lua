@@ -202,6 +202,8 @@ local function handlePlayerTransform(name, x, y)
   local transformDuration = players[name].transformDuration * 1000
   local transformCooldown = math.max(100, 400 - (ping / 2))
 
+  print(transformDuration)
+
   addTimer(function()
     tfm.exec.removePhysicObject(groundId)
     playerPressSpace[name] = false

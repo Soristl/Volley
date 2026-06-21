@@ -7,6 +7,8 @@ function eventNewPlayer(name)
     return
   end
 
+  setPlayerData(name)
+
   if tfm.get.room.isTribeHouse then
     if tfm.get.room.name:sub(3) == tfm.get.room.playerList[name].tribeName then
       USER_PERMISSIONS[name] = 2
@@ -139,7 +141,7 @@ function eventNewPlayer(name)
     ui.addWindow(30, "<p align='center'><font size='13px'><a href='event:selectMap'>Select a map", name, 10, 370, 150, 30,
       1, false, false, _)
 
-    if USER_PERMISSIONS[name] > 1 then
+    if USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
       ui.addWindow(31, "<p align='center'><font size='13px'><a href='event:settings'>Room settings", name, 180, 370, 150,
         30, 1, false, false, _)
     end

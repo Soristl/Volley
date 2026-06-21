@@ -236,7 +236,7 @@ function eventTextAreaCallback(id, name, c)
       tfm.exec.setPlayerSync(playerSync)
       tfm.exec.chatMessage("<bv>Set new player sync: " .. playerSync .. "<n>", nil)
     end
-  elseif c == "openMode" and USER_PERMISSIONS[name] > 1 then
+  elseif c == "openMode" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
     settingsMode[name] = true
     local modes = getActionsModes()
     local str = ''
@@ -256,7 +256,7 @@ function eventTextAreaCallback(id, name, c)
     settingsMode[name] = false
     ui.addWindow(25, "<p align='center'><font size='11px'><a href='event:openMode'>Select a mode</a>", name, 665, 100,
       100, 30, 1, false, false)
-  elseif c == "twoballs" and USER_PERMISSIONS[name] > 1 then
+  elseif c == "twoballs" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
     if globalSettings.twoBalls then
       globalSettings.twoBalls = false
       messageLog("<bv>The two balls command was disabled globally in the room, selected by the admin " .. name .. "<n>")
@@ -266,7 +266,7 @@ function eventTextAreaCallback(id, name, c)
       print("<bv>The two balls command was enabled globally in the room, selected by the admin " .. name .. "<n>")
     end
     updateSettingsUI()
-  elseif c == "threeballs" and USER_PERMISSIONS[name] > 1 then
+  elseif c == "threeballs" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
     if globalSettings.threeBalls then
       globalSettings.threeBalls = false
       messageLog("<bv>The three balls on 3 teams mode command was disabled globally in the room, selected by the admin " ..
@@ -279,7 +279,7 @@ function eventTextAreaCallback(id, name, c)
         name .. "<n>")
     end
     updateSettingsUI()
-  elseif c == "randomball" and USER_PERMISSIONS[name] > 1 then
+  elseif c == "randomball" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
     if globalSettings.randomBall then
       globalSettings.randomBall = false
       messageLog("<bv>The random ball command was disabled globally in the room, selected by the admin " .. name .. "<n>")
@@ -289,7 +289,7 @@ function eventTextAreaCallback(id, name, c)
       messageLog("<bv>The random ball command was enabled globally in the room, selected by the admin " .. name .. "<n>")
     end
     updateSettingsUI()
-  elseif c == "openMapType" and USER_PERMISSIONS[name] > 1 then
+  elseif c == "openMapType" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
     settingsMode[name] = true
     local modes = getMapTypesActions()
     local str = ''
@@ -433,7 +433,7 @@ function eventTextAreaCallback(id, name, c)
       " map (" ..
       tostring(mapsVotes[index]) .. " votes), type !maps to see the maps list and to vote !votemap (number)<n>",
       nil)
-  elseif string.sub(c, 1, 9) == "randommap" and not gameStats.realMode and USER_PERMISSIONS[name] > 1 then
+  elseif string.sub(c, 1, 9) == "randommap" and not gameStats.realMode and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
     if globalSettings.randomMap then
       globalSettings.randomMap = false
       print("<bv>The random map command was disabled globally in the room, selected by the admin " .. name .. "<n>")
@@ -457,7 +457,7 @@ function eventTextAreaCallback(id, name, c)
     end
 
     updateSettingsUI()
-  elseif string.sub(c, 1, 6) == "setmap" and customMapCommand[name] and not gameStats.realMode and mode == "startGame" and USER_PERMISSIONS[name] > 1 then
+  elseif string.sub(c, 1, 6) == "setmap" and customMapCommand[name] and not gameStats.realMode and mode == "startGame" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
     local index = tonumber(string.sub(c, 7))
     local maps = configSelectMap()
 
@@ -485,7 +485,7 @@ function eventTextAreaCallback(id, name, c)
         selectMapUI(name1)
       end
     end
-  elseif c == "settings" and USER_PERMISSIONS[name] > 1 then
+  elseif c == "settings" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
     closeRankingUI(name)
     removeUITrophies(name)
     settings[name] = true
