@@ -7,7 +7,8 @@ function fourTeamsModeWinner(teamText, playersOnTeam)
 
       if player ~= 'a' and player ~= '' then
         playersFourTeamsMode[player].wins = playersFourTeamsMode[player].wins + 1
-        playersFourTeamsMode[player].winRatio = winRatioPercentage(playersFourTeamsMode[player].wins, playersFourTeamsMode[player].matches)
+        playersFourTeamsMode[player].winRatio = winRatioPercentage(playersFourTeamsMode[player].wins,
+          playersFourTeamsMode[player].matches)
         playersFourTeamsMode[player].winsYellow = playersFourTeamsMode[player].winsYellow + 1
       end
     end
@@ -19,7 +20,8 @@ function fourTeamsModeWinner(teamText, playersOnTeam)
 
       if player ~= 'a' and player ~= '' then
         playersFourTeamsMode[player].wins = playersFourTeamsMode[player].wins + 1
-        playersFourTeamsMode[player].winRatio = winRatioPercentage(playersFourTeamsMode[player].wins, playersFourTeamsMode[player].matches)
+        playersFourTeamsMode[player].winRatio = winRatioPercentage(playersFourTeamsMode[player].wins,
+          playersFourTeamsMode[player].matches)
         playersFourTeamsMode[player].winsRed = playersFourTeamsMode[player].winsRed + 1
       end
     end
@@ -31,7 +33,8 @@ function fourTeamsModeWinner(teamText, playersOnTeam)
 
       if player ~= 'a' and player ~= '' then
         playersFourTeamsMode[player].wins = playersFourTeamsMode[player].wins + 1
-        playersFourTeamsMode[player].winRatio = winRatioPercentage(playersFourTeamsMode[player].wins, playersFourTeamsMode[player].matches)
+        playersFourTeamsMode[player].winRatio = winRatioPercentage(playersFourTeamsMode[player].wins,
+          playersFourTeamsMode[player].matches)
         playersFourTeamsMode[player].winsBlue = playersFourTeamsMode[player].winsBlue + 1
       end
     end
@@ -43,7 +46,8 @@ function fourTeamsModeWinner(teamText, playersOnTeam)
 
       if player ~= 'a' and player ~= '' then
         playersFourTeamsMode[player].wins = playersFourTeamsMode[player].wins + 1
-        playersFourTeamsMode[player].winRatio = winRatioPercentage(playersFourTeamsMode[player].wins, playersFourTeamsMode[player].matches)
+        playersFourTeamsMode[player].winRatio = winRatioPercentage(playersFourTeamsMode[player].wins,
+          playersFourTeamsMode[player].matches)
         playersFourTeamsMode[player].winsGreen = playersFourTeamsMode[player].winsGreen + 1
       end
     end

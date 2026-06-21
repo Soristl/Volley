@@ -1,4 +1,4 @@
-function afkSystem() 
+function afkSystem()
   local timestampNow = os.time()
   local playersAfkList = {}
   local countPlayers = 0
@@ -47,7 +47,8 @@ function afkSystem()
       for i = 1, countDifference do
         if playersAfkList[i] ~= nil then
           print('<bv>You have been kicked out of the room for being inactive for too long.<n>')
-          tfm.exec.chatMessage('<bv>You have been kicked out of the room for being inactive for too long.<n>', playersAfkList[i].name)
+          tfm.exec.chatMessage('<bv>You have been kicked out of the room for being inactive for too long.<n>',
+            playersAfkList[i].name)
           tfm.exec.kickPlayer(playersAfkList[i].name)
         end
       end
@@ -60,7 +61,8 @@ function afkSystem()
     for i = 1, countDifference do
       if playersAfkList[i] ~= nil then
         print('<bv>You have been kicked out of the room for being inactive for too long.<n>')
-        tfm.exec.chatMessage('<bv>You have been kicked out of the room for being inactive for too long.<n>', playersAfkList[i].name)
+        tfm.exec.chatMessage('<bv>You have been kicked out of the room for being inactive for too long.<n>',
+          playersAfkList[i].name)
         tfm.exec.kickPlayer(playersAfkList[i].name)
       end
     end

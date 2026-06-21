@@ -1,22 +1,19 @@
 function setLostLife()
   local quantityBalls = 1
-  
+
   if gameStats.twoBalls then
     quantityBalls = 2
   end
-  
+
   for j = 1, quantityBalls do
     local onCondition = false
     local lostLife = false
-    
-    print(ballsId[j])
-    print(ballOnGameTwoBalls[j])
-    print('===')
+
     if gameStats.typeMap == "large4v4" and ballOnGameTwoBalls[j] and ballsId[j] ~= nil then
       if #teamPointsArea1 > 0 or #teamPointsArea2 > 0 or #teamPointsArea3 > 0 or #teamPointsArea4 > 0 then
         pointsFourTeamsMode(tfm.get.room.objectList[ballsId[j]].x, tfm.get.room.objectList[ballsId[j]].y, j, "large4v4", nil)
       else
-        if tfm.get.room.objectList[ballsId[j]].x <= gameStats.yellowX and tfm.get.room.objectList[ballsId[j]].y >= 368 and teamsLifes[1].yellow >= 1 and not lostLife then
+        if tfm.get.room.objectList[ballsId[j]].x <= gameStats.yellowX and tfm.get.room.objectList[ballsId[j]].y >= isBallOnGround(ballsId[j]) and teamsLifes[1].yellow >= 1 and not lostLife then
           lostLife = true
           onCondition = true
           teamsLifes[1].yellow = teamsLifes[1].yellow - 1
@@ -49,7 +46,7 @@ function setLostLife()
           print("<j>Team Yellow<n> "..teamsLifes[1].yellow.." | <r>Team Red<n> "..teamsLifes[2].red.." | <bv>Team Blue<n> "..teamsLifes[3].blue.." | <vp>Team Green<n> "..teamsLifes[4].green.."")
           local ballSpawnX = 0
           local ballSpawnY = 0
-          
+
           if #spawnBallArea400 ~= 0 then
             randomIndex = math.random(1, #spawnBallArea400)
             ballSpawnX = spawnBallArea400[randomIndex].x
@@ -60,7 +57,7 @@ function setLostLife()
           end
           
           showTheScore()
-        elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.redX and tfm.get.room.objectList[ballsId[j]].y >= 368 and teamsLifes[2].red >= 1 and not onCondition and not lostLife then
+        elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.redX and tfm.get.room.objectList[ballsId[j]].y >= isBallOnGround(ballsId[j]) and teamsLifes[2].red >= 1 and not onCondition and not lostLife then
           lostLife = true
           onCondition = true
           teamsLifes[2].red = teamsLifes[2].red - 1
@@ -101,7 +98,7 @@ function setLostLife()
             spawnBall(600, j)
           end
           showTheScore()
-        elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.blueX and tfm.get.room.objectList[ballsId[j]].y >= 368 and teamsLifes[3].blue >= 1 and not onCondition and not lostLife then
+        elseif tfm.get.room.objectList[ballsId[j]].x <= gameStats.blueX and tfm.get.room.objectList[ballsId[j]].y >= isBallOnGround(ballsId[j]) and teamsLifes[3].blue >= 1 and not onCondition and not lostLife then
           lostLife = true
           onCondition = true
           teamsLifes[3].blue = teamsLifes[3].blue - 1
@@ -142,7 +139,7 @@ function setLostLife()
           end
           
           showTheScore()
-        elseif tfm.get.room.objectList[ballsId[j]].x >= gameStats.greenX and tfm.get.room.objectList[ballsId[j]].y >= 368 and teamsLifes[4].green >= 1 and not onCondition and not lostLife then
+        elseif tfm.get.room.objectList[ballsId[j]].x >= gameStats.greenX and tfm.get.room.objectList[ballsId[j]].y >= isBallOnGround(ballsId[j]) and teamsLifes[4].green >= 1 and not onCondition and not lostLife then
           lostLife = true
           onCondition = true
           teamsLifes[4].green = teamsLifes[4].green - 1
@@ -190,7 +187,7 @@ function setLostLife()
         if #teamPointsArea1 > 0 or #teamPointsArea2 > 0 or #teamPointsArea3 > 0 then
           pointsFourTeamsMode(tfm.get.room.objectList[ballsId[j]].x, tfm.get.room.objectList[ballsId[j]].y, j, "large3v3", i)
         else
-          if tfm.get.room.objectList[ballsId[j]].x <= 399 and tfm.get.room.objectList[ballsId[j]].y >= 368 and getTeamsLifes[1] >= 1 and i == 1 and not lostLife then
+          if tfm.get.room.objectList[ballsId[j]].x <= 399 and tfm.get.room.objectList[ballsId[j]].y >= isBallOnGround(ballsId[j]) and getTeamsLifes[1] >= 1 and i == 1 and not lostLife then
             lostLife = true
             getTeamsLifes[1] = getTeamsLifes[1] - 1
             if getTeamsLifes[1] == 0 then
@@ -233,7 +230,7 @@ function setLostLife()
               spawnBall(200, j)
             end
             showTheScore()
-          elseif tfm.get.room.objectList[ballsId[j]].x <= 799 and tfm.get.room.objectList[ballsId[j]].y >= 368 and getTeamsLifes[2] >= 1 and i == 2 and not lostLife then
+          elseif tfm.get.room.objectList[ballsId[j]].x <= 799 and tfm.get.room.objectList[ballsId[j]].y >= isBallOnGround(ballsId[j]) and getTeamsLifes[2] >= 1 and i == 2 and not lostLife then
             lostLife = true
             getTeamsLifes[2] = getTeamsLifes[2] - 1
             if getTeamsLifes[2] == 0 then
@@ -276,7 +273,7 @@ function setLostLife()
               spawnBall(600, j)
             end
             showTheScore()
-          elseif tfm.get.room.objectList[ballsId[j]].x >= 801 and tfm.get.room.objectList[ballsId[j]].y >= 368 and getTeamsLifes[3] >= 1 and i == 3 and not lostLife then
+          elseif tfm.get.room.objectList[ballsId[j]].x >= 801 and tfm.get.room.objectList[ballsId[j]].y >= isBallOnGround(ballsId[j]) and getTeamsLifes[3] >= 1 and i == 3 and not lostLife then
             lostLife = true
             getTeamsLifes[3] = getTeamsLifes[3] - 1
             if getTeamsLifes[3] == 0 then
@@ -327,7 +324,7 @@ function setLostLife()
         if #teamPointsArea1 > 0 or #teamPointsArea2 > 0 then
           pointsFourTeamsMode(tfm.get.room.objectList[ballsId[j]].x, tfm.get.room.objectList[ballsId[j]].y, j, "small", i)
         else
-          if tfm.get.room.objectList[ballsId[j]].x <= 399 and tfm.get.room.objectList[ballsId[j]].y >= 368 and getTeamsLifes[1] >= 1 and i == 1 and not lostLife then
+          if tfm.get.room.objectList[ballsId[j]].x <= 399 and tfm.get.room.objectList[ballsId[j]].y >= isBallOnGround(ballsId[j]) and getTeamsLifes[1] >= 1 and i == 1 and not lostLife then
             lostLife = true
             getTeamsLifes[1] = getTeamsLifes[1] - 1
             if getTeamsLifes[1] == 0 then
@@ -370,7 +367,7 @@ function setLostLife()
               spawnBall(200, j)
             end
             showTheScore()
-          elseif tfm.get.room.objectList[ballsId[j]].x >= 401 and tfm.get.room.objectList[ballsId[j]].y >= 368 and getTeamsLifes[2] >= 1 and i == 2 and not lostLife then
+          elseif tfm.get.room.objectList[ballsId[j]].x >= 401 and tfm.get.room.objectList[ballsId[j]].y >= isBallOnGround(ballsId[j]) and getTeamsLifes[2] >= 1 and i == 2 and not lostLife then
             lostLife = true
             getTeamsLifes[2] = getTeamsLifes[2] - 1
             if getTeamsLifes[2] == 0 then

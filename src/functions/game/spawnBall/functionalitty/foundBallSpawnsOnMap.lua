@@ -4,19 +4,19 @@ function foundBallSpawnsOnMap(map, isLargeMap)
   spawnBallArea800 = {}
   spawnBallArea1200 = {}
   spawnBallArea1600 = {}
-  
+
   local mapXML = ""
-  
+
   if #map > 10 then
     mapXML = map
   else
     mapXML = tfm.get.room.xmlMapInfo.xml
   end
-  
+
   for tag in string.gmatch(mapXML, '<P[^>]*T="131"[^>]*/?>') do
     table.insert(tags_T131, tag)
   end
-  
+
   for _, tag in ipairs(tags_T131) do
     local xString = tag:match('X="(%d+)"')
     local yString = tag:match('Y="(%d+)"')
