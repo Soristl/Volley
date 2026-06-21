@@ -182,6 +182,10 @@ local threeTeamsMode = {id = {1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13}, x = {100,
 local isPlayerDead = {}
 local playerPressSpace = {}
 local webY = 460
+local teamPointsArea1 = {}
+local teamPointsArea2 = {}
+local teamPointsArea3 = {}
+local teamPointsArea4 = {}
 
 local gameTimeEnd = os.time() + 5000
 

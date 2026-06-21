@@ -40,6 +40,7 @@ function foundMiceSpawnsOnMap(map, isLargeMap)
   end
 
   foundWebSpawnOnMap(map)
+  foundPointsAreaOnMap(map)
   
   foundMicePlayersConfig(map)
 

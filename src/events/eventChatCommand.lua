@@ -133,7 +133,7 @@ end
 local function cmdJoin(args)
   local name = args[1]
 
-  if playerInGame[name] or mode ~= "gameStart" or not isPlayerDead[name] then return end
+  if playerInGame[name] or mode ~= "gameStart" or isPlayerDead[name] then return end
   if messagePlayerIsBanned(name) then return end
 
   local player = tfm.get.room.playerList[name]
@@ -161,7 +161,7 @@ end
 
 local function cmdLeave(args)
   local name = args[1]
-  if not playerInGame[name] or mode ~= "gameStart" or not isPlayerDead[name] then return end
+  if not playerInGame[name] or mode ~= "gameStart" or isPlayerDead[name] then return end
   if messagePlayerIsBanned(name) then return end
 
   if (gameStats.threeTeamsMode or gameStats.teamsMode) and
@@ -391,6 +391,8 @@ local function cmdTest(args)
 
   playersRed[1].name = "a"
   playersBlue[1].name = "a"
+  playersRed[2].name = "a"
+  playersBlue[2].name = "a"
   playersGreen[1].name = "a"
 
   -- Maybe this will break, but the table initialization
@@ -474,7 +476,7 @@ end
 local function cmdLobby(args)
   local name = args[1]
 
-  if mode ~= "gameStart" or gameStats.canTransform then return end
+  if mode ~= "gameStart" or not gameStats.canTransform then return end
 
   ballOnGame = false
   ballOnGame2 = false
