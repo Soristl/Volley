@@ -448,7 +448,7 @@ local function cmdSync(args)
   local name = args[1]
 
   -- Auto-sync to lowest latency
-  if #args == 1 then
+  if #args == 2 then
     tfm.exec.chatMessage('<j> Sync set by:'..name, nil)
     refletzSyncSystem()
     return
@@ -674,24 +674,14 @@ end
 
 local function cmdSetLifes(args)
   local name = args[1]
-  if mode == "startGame" 
+
+  if mode ~= "startGame" 
       or USER_PERMISSIONS[name] < 3
       or (not gameStats.teamsMode and not gameStats.threeTeamsMode) then
     return
   end
 
-  local target = args[2]
-  local lifes = tonumber(args[3])
-
-  if not target then return end
-
-  -- Team Score
-  local targets = {
-    ['red'] = {'<r>', 2},
-    ['blue'] = {'<bv>', 3},
-    ['green'] = {'<vp>', 4},
-    ['yellow'] = {'<j>', 1}
-  }
+  local lifes = tonumber(args[2])
 
   local maxLifes = 10
   if not lifes or lifes >= maxLifes then
@@ -699,11 +689,7 @@ local function cmdSetLifes(args)
     return
   end
 
-  if targets[target] then
-    teamsLifes[targets[target][2]][target] = lifes
-    tfm.exec.chatMessage(targets[target][1] .. target .. " lifes set to " .. lifes .."<n2> by " .. name .. " <n> ", nil)
-    showTheScore()
-  end
+  teamsLifes = { [1] = { yellow = lifes }, [2] = { red = lifes }, [3] = { blue = lifes }, [4] = { green = lifes } }
 end
 
 local function cmdPassword(args)
@@ -733,7 +719,9 @@ local function cmdAdmin(args)
   local name = args[1]
   local target = args[2]
 
-  if not target or USER_PERMISSIONS[target] > 1 then return end
+  local permission = USER_PERMISSIONS[target] or 1
+
+  if not target or permission > 1 then return end
 
   -- This loop approach will be outdated when
   -- we are sure that the playerList is
@@ -1162,7 +1150,7 @@ local function cmdKick(args)
 
   if not target then return end
 
-  if USER_PERMISSIONS[target] > 3 then return end
+  if USER_PERMISSIONS[target] ~= nil and USER_PERMISSIONS[target] > 3 then return end
 
   tfm.exec.kickPlayer(target)
   tfm.exec.chatMessage("<vi>" .. name .. " kicked " .. target .. " <n> ", nil)
@@ -1179,7 +1167,7 @@ local function cmdForceLeave(args)
   local name = args[1]
   local target = args[2]
 
-  if mode ~= "gameStart" or not target or USER_PERMISSIONS[target] == 5 then
+  if mode ~= "gameStart" or not target or (USER_PERMISSIONS[target] or 1) == 5 then
     return
   end
 
@@ -1205,7 +1193,7 @@ local function cmdBan(args)
   local target = args[2]
 
   if not gameStats.banCommandIsEnabled or not target or
-      USER_PERMISSIONS[target] > 3 then
+      (USER_PERMISSIONS[target] or 1) > 3 then
     return
   end
 

@@ -27,11 +27,13 @@ function verifyIsPoint()
     end
 
     for j = 1, quantityBalls do
+      local ballStats = tfm.get.room.objectList[ballsId[j]]
+
       if ballOnGameTwoBalls[j] and ballsId[j] ~= nil and ballOnGame then
         if #teamPointsArea1 > 0 or #teamPointsArea2 > 0 then
-          pointsNormalMode(tfm.get.room.objectList[ballsId[j]].x, tfm.get.room.objectList[ballsId[j]].y, j)
+          pointsNormalMode(ballStats.x, ballStats.y, j)
         else
-          if tfm.get.room.objectList[ballsId[j]].x <= gameStats.redX and isBallOnGround(ballsId[j]) then
+          if ballStats.x <= gameStats.redX and isBallOnGround(ballsId[j]) then
             teamsScores['blue'] = teamsScores['blue'] + 1
             tfm.exec.chatMessage("<bv>Team Blue scored!<n>", nil)
             tfm.exec.chatMessage("<r>Team Red<n> "..teamsScores['red'].." X "..teamsScores['blue'].." <bv>Team Blue<n>", nil)
@@ -69,7 +71,7 @@ function verifyIsPoint()
                 spawnBall(1400, j)
               end
             end
-          elseif tfm.get.room.objectList[ballsId[j]].x >= gameStats.blueX and isBallOnGround(ballsId[j]) then
+          elseif ballStats.x >= gameStats.blueX and isBallOnGround(ballsId[j]) then
             teamsScores['red'] = teamsScores['red'] + 1
             tfm.exec.chatMessage("<r>Team Red scored!<n>", nil)
             tfm.exec.chatMessage("<r>Team Red<n> "..teamsScores['red'].." X "..teamsScores['blue'].." <bv>Team Blue<n>", nil)

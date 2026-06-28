@@ -1,5 +1,5 @@
 -- from https://www.lua.org/pil/11.4.html
-local branch = "test"
+local branch = "production"
 --[[
 
 local admins =
@@ -56,7 +56,10 @@ local USER_PERMISSIONS = {
 ]]
 USER_PERMISSIONS = {}
 
-tfm.exec.chatMessage = print
+if branch == "test" then
+  tfm.exec.chatMessage = print
+end
+
 local trad = ""
 
 if tfm.get.room.language == "br" then

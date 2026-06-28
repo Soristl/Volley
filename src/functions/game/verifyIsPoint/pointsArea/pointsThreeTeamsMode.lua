@@ -246,7 +246,7 @@ function pointsThreeTeamsMode(ballX, ballY, index, typeMap, teamIndex)
             threeTeamsModeWinner(messageTeamsLifes[1], teamsPlayersOnGame[1])
             updateRankingThreeTeamsMode()
             updateTwoBallOnGame()
-            tfm.exec.removeObject (ballsId[j])
+            tfm.exec.removeObject (ballsId[index])
             mode = "endGame"
             gameTimeEnd = os.time() + 5000
             return
@@ -263,9 +263,9 @@ function pointsThreeTeamsMode(ballX, ballY, index, typeMap, teamIndex)
             randomIndex = math.random(1, #spawnBallArea800)
             ballSpawnX = spawnBallArea800[randomIndex].x
             ballSpawnY = spawnBallArea800[randomIndex].y
-            spawnBall(ballSpawnX, j, ballSpawnY)
+            spawnBall(ballSpawnX, index, ballSpawnY)
           else
-            spawnBall(900, j)
+            spawnBall(900, index)
           end
           showTheScore()
         end
