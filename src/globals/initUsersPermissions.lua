@@ -11,8 +11,6 @@ function initUsersPermissions()
     level = tonumber(level)
 
     if user and level then
-      print(user)
-      print(level)
       USER_PERMISSIONS[user] = level
     end
   end

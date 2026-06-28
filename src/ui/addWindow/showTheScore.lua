@@ -1,10 +1,4 @@
 function showTheScore()
-  
-  -- It is unexpectedly ther best place to put it.
-  if autosync then
-    refletzSyncSystem()
-  end
-
   if gameStats.realMode then
     ui.addTextArea(0, "<p align='center'><font size='40px'><r>" .. teamsScores['red'] .. "<n>", nil, 1150, 20, 100, 100,
       0x161616, 0x161616, 0, false)
