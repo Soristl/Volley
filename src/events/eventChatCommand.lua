@@ -491,9 +491,11 @@ local function cmdLobby(args)
   ballOnGame2 = false
   ballOnGame3 = false
 
-  tfm.exec.removeObject(ball_id)
-  tfm.exec.removeObject(ball_id2)
-  tfm.exec.removeObject(ball_id3)
+  -- A match can have fewer than three balls; never pass a missing ID.
+  if ball_id then tfm.exec.removeObject(ball_id) end
+  if ball_id2 then tfm.exec.removeObject(ball_id2) end
+  if ball_id3 then tfm.exec.removeObject(ball_id3) end
+  ball_id, ball_id2, ball_id3 = nil, nil, nil
 
   removeTimer('verifyBallCoordinates')
 

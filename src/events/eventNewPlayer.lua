@@ -1,4 +1,7 @@
 function eventNewPlayer(name)
+  -- Client images and textareas are lost on disconnect: discard cached handles.
+  clubhouse.clearPlayer(name)
+  clubhouse.ballSkins.clearPlayer(name)
   if string.match(name, "%*") then
     tfm.exec.chatMessage("<bv>This room does not allow guest accounts to enter. Create an account to enter the room.<n>",
       name)
@@ -166,6 +169,7 @@ function eventNewPlayer(name)
     tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage2, name)
     canVote[name] = true
   end
+  clubhouse.ballSkins.show(name)
   tfm.exec.chatMessage("<j>#Volley Version: " .. gameVersion .. "<n>", name)
   tfm.exec.chatMessage("<ce>Join our #Volley Discord server: https://discord.com/invite/pWNTesmNhu<n>", name)
 end

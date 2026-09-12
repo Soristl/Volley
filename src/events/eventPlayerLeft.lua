@@ -1,4 +1,5 @@
 function eventPlayerLeft(name)
+  clubhouse.ballSkins.clearPlayer(name)
   clubhouse.clearPlayer(name)
   removeUITrophies(name)
   closeRankingUI(name)
@@ -8,6 +9,8 @@ function eventPlayerLeft(name)
   playerInGame[name] = false
   if mode == "startGame" then
     updateLobbyTexts(name)
+    -- The departing player can still be in playerList during the broadcast.
+    clubhouse.clearPlayer(name)
 
     return
   elseif mode ~= "startGame" then

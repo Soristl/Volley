@@ -251,13 +251,11 @@ function eventTextAreaCallback(id, name, c)
   elseif string.sub(c, 1, 4) == "sync" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 2 then
     local playerSync = string.sub(c, 5)
 
-    print(playerLeft[name])
-
     if not tfm.get.room.playerList[playerSync] or playerSync:find("*",1,true) then
       tfm.exec.chatMessage("<bv>" .. clubhouse.escape(clubhouse.text(name,"sync.missing")) .. "<n>", name)
       windowUISync({ name })
     else
-      closeWindow(24, name)
+      closeAllWindows(name)
       tfm.exec.setPlayerSync(playerSync)
       tfm.exec.chatMessage("<bv>Set new player sync: " .. playerSync .. " selected by admin "..name.."<n>", nil)
     end

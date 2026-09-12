@@ -230,9 +230,9 @@ clubhouse.closeIcons = {
   profile = {x=617, y=15, width=24, height=22, font_size=14, align="center"},
   ranking = {x=697, y=15, width=24, height=22, font_size=14, align="center"},
   help = {x=607, y=15, width=24, height=22, font_size=14, align="center"},
-  credits = {x=607, y=16, width=24, height=22, font_size=14, align="center"},
-  real_rules = {x=607, y=16, width=24, height=22, font_size=14, align="center"},
-  sync = {x=357, y=16, width=24, height=22, font_size=14, align="center"}
+  credits = {x=607, y=15, width=24, height=22, font_size=14, align="center"},
+  real_rules = {x=607, y=15, width=24, height=22, font_size=14, align="center"},
+  sync = {x=357, y=15, width=24, height=22, font_size=14, align="center"}
 }
 
 function clubhouse.label(name, key, region, text, event, color)
@@ -726,9 +726,9 @@ function clubhouse.selector(name, isBall)
         local vote=canVote[name] and mode=="startGame" and not gameStats.realMode
         clubhouse.label(name,key,"vote_"..i,clubhouse.text(name,"action.vote",{count=showMapVotes(items,index)}),vote and "votemap"..index or nil,vote and "#E3ECE7" or "#718B83")
       end
-      local r=s.regions["preview_"..i];local image=isBall and item.image or item[6]
+      local r=s.regions["preview_"..i];local image=isBall and (item.previewImage or item.image) or item[6]
       if image and image~="" then
-        local w=isBall and (item.size or 40) or 100;local h=isBall and w or 43
+        local w=isBall and (item.previewSize or item.size or 40) or 100;local h=isBall and w or 43
         local view=clubhouse.state(name,key)
         -- Keep previews above the opaque frame and owned by this panel across map changes.
         clubhouse.imageId(name,key,image,s.x+r.x+math.floor((r.width-w)/2),s.y+r.y+math.floor((r.height-h)/2),"preview_"..i,"~"..view.ids["name_"..i])

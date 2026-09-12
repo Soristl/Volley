@@ -1,4 +1,5 @@
 function eventNewGame()
+  clubhouse.ballSkins.reset()
   clubhouse.newGame()
   if firstRun then
     print('first run')
