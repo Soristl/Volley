@@ -1,35 +1,15 @@
-function lobbyMapConfig()
-  local mapXML = tfm.get.room.xmlMapInfo.xml
-  print(#mapXML)
-
-  local pTag = string.match(mapXML, '<C><P%s+([^>]+)/')
-  local users = string.match(pTag, 'BAN="([^"]+)"')
-
-  timestamp = tonumber(string.match(pTag, 'TIMESTAMP="([^"]+)"'))
-
-  print(timestamp)
-
-  -- USER_PERMISSIONS = {}
-  for entry in users:gmatch("[^,]+") do
-    local user = entry
-
-    if user then
-      playerBanHistory[user] = "VOLLEY SYSTEM"
-      playerBan[user] = true
-    end
+function lobbyMapConfig(config)
+  config = config or readLobbyConfig()
+  if not config then return false end
+  timestamp = config.timestamp
+  for user in pairs(config.bans) do
+    playerBanHistory[user] = "VOLLEY SYSTEM"
+    playerBan[user] = true
   end
-
   for name, data in pairs(tfm.get.room.playerList) do
-    if playerBan[name] then
-      print("kick "..name.."")
+    if playerBan[name] or (timestamp ~= 0 and (data.registrationDate or 0) > timestamp) then
       tfm.exec.kickPlayer(name)
     end
-
-    if not playerBan[name] and timestamp ~= 0 then
-      if tfm.get.room.playerList[name].registrationDate > timestamp then
-        print("kick "..name.."")
-        tfm.exec.kickPlayer(name)
-      end
-    end
   end
+  return true
 end

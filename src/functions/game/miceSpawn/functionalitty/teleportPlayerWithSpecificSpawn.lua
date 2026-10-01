@@ -1,4 +1,21 @@
 function teleportPlayerWithSpecificSpawn(playersSpawn, name)
+  if not name or name == '' or not playersSpawn or #playersSpawn == 0 then return false end
+  if not tfm.get.room.playerList[name] then
+    removePlayerOnSpawnConfig(name, playersSpawn)
+    return false
+  end
+  local previous
+  for _, marker in ipairs(playersSpawn) do
+    for _, occupant in ipairs(marker.players) do
+      if occupant == name then previous = previous or marker end
+    end
+  end
+  removePlayerOnSpawnConfig(name, playersSpawn)
+  if previous then
+    previous.players[#previous.players+1] = name
+    tfm.exec.movePlayer(name, previous.x, previous.y)
+    return true
+  end
   local lowestPlayersQuantity
   local availableIndexesToSpawn = {}
   for i = 1, #playersSpawn do
@@ -20,7 +37,7 @@ function teleportPlayerWithSpecificSpawn(playersSpawn, name)
     playersSpawn[index].players[#playersSpawn[index].players + 1] = name
     tfm.exec.movePlayer(name, playersSpawn[index].x, playersSpawn[index].y)
 
-    return
+    return true
   end
 
   local lowestSpawnPriority
@@ -48,10 +65,11 @@ function teleportPlayerWithSpecificSpawn(playersSpawn, name)
     playersSpawn[indexSelected].players[#playersSpawn[indexSelected].players + 1] = name
     tfm.exec.movePlayer(name, playersSpawn[indexSelected].x, playersSpawn[indexSelected].y)
 
-    return
+    return true
   end
 
   local index = availableIndexesToSpawn[math.random(1, #availableIndexesToSpawn)]
   playersSpawn[index].players[#playersSpawn[index].players + 1] = name
   tfm.exec.movePlayer(name, playersSpawn[index].x, playersSpawn[index].y)
+  return true
 end

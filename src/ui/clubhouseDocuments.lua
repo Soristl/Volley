@@ -73,7 +73,7 @@ documentStrings("docs.aliases", "Alias : {aliases}", "Aliases: {aliases}", "Atal
 clubhouse.documentAliases = {
   lang={"la"}, join={"j"}, leave={"l"}, profile={"pr"}, maps={"m"}, balls={"b"},
   votemap={"vm"}, crown={"cr"}, settings={"se"}, password={"pw"}, winscore={"w"}, setmaxplayers={"smp"},
-  resettimer={"re"}, stoptimer={"stop"}, skiptimer={"skip"}, lobby={"lo"},
+  resettimer={"re"}, stoptimer={"stop"}, skiptimer={"s","skip"}, lobby={"lo"},
   setmap={"sm"}, custommap={"cm"}, customball={"cb"}, setscore={"ssc"},
   ["2teamsmode"]={"twm","twoteamsmode"}, ["3teamsmode"]={"thm","threeteamsmode"},
   ["4teamsmode"]={"fom","fourteamsmode"}, realmode={"rm"}, twoballs={"twb"},

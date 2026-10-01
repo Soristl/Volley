@@ -1,23 +1,4 @@
 function foundWebSpawnOnMap(map)
-  local mapXML = ""
-  
-  if #map > 10 then
-    mapXML = map
-  else
-    mapXML = tfm.get.room.xmlMapInfo.xml
-  end
-
-  webY = 460
-  local webYText = mapXML:match('<C>%s*<P[^>]-WEBY="([^"]+)"')
-
-  print('=== WEB Y ===')
-  print(webYText)
-
-  if webYText then
-    webY = tonumber(webYText)
-  end
-
-  print(webY)
-
-  print('===')
+  local properties = mapXml.source(map):match('<P%s+[^>]*>') or ''
+  webY = mapXml.number(mapXml.attribute(properties, 'WEBY')) or 460
 end

@@ -1,10 +1,10 @@
 function resetQuantityTeams()
-  if ballOnGame then
-    local ballX = tfm.get.room.objectList[ball_id].x + tfm.get.room.objectList[ball_id].vx
-    print("<br>normal:" .. ballX .. "<br><r>red:" .. (ballX + 300) .. "<n><br><bv>blue:" .. (ballX - 300) .. "<n>")
+  local ball = gameState.balls[1].id and tfm.get.room.objectList[gameState.balls[1].id]
+  if not ball then return end
+  if gameState.balls[1].active then
+    local ballX = ball.x + ball.vx
 
     if (ballX + 100) >= 1299 then
-      print("caiu no red")
       gameStats.redQuantitySpawn = 0
       gameStats.lastPlayerRed = ""
       if gameStats.redServe then
@@ -14,7 +14,6 @@ function resetQuantityTeams()
       end
     end
     if (ballX - 100) <= 1301 then
-      print("caiu no blue")
       gameStats.lastPlayerBlue = ""
       gameStats.blueQuantitySpawn = 0
       if gameStats.blueServe then

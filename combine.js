@@ -1,73 +1,48 @@
 const fs = require("fs")
-const watch = require("watch")
+const path = require("path")
+const crypto = require("crypto")
 
-// Recursively get all files, sorted alphabetically for deterministic output
-function getAllFiles(dir) {
-	const entries = fs.readdirSync(dir, { withFileTypes: true })
-	// Sort ensures consistent order across all OS/filesystems
-	entries.sort((a, b) => a.name.localeCompare(b.name))
-
-	let files = []
-	for (let entry of entries) {
-		const fullPath = `${dir}/${entry.name}`
-		if (entry.isDirectory()) {
-			files = files.concat(getAllFiles(fullPath))
-		} else if (entry.isFile()) {
-			files.push(fullPath)
-		}
-	}
-	return files
+function filesAt(input) {
+	const stat = fs.statSync(input)
+	if (stat.isFile()) return [input]
+	if (!stat.isDirectory()) throw new Error(`Unsupported input: ${input}`)
+	return fs.readdirSync(input)
+		.sort((a, b) => a.localeCompare(b, "en") || (a < b ? -1 : a > b ? 1 : 0))
+		.flatMap(name => filesAt(path.join(input, name)))
 }
 
-var self = (module.exports = function (input, outputPath, options) {
-	var inputAllFiles = []
-	if (typeof options === "undefined") {
-		options = {}
+function assemble(input, options = {}) {
+	const files = input.flatMap(filesAt)
+	if (!files.length) throw new Error("No source files")
+	return files.map((file, index) => {
+		const source = fs.readFileSync(file, "utf8")
+		const before = options.delimeterBefore || ""
+		const after = options.delimeterAfter || ""
+		const heading = before || after
+			? `${index ? "\n\n" : ""}${before}${file.replace(/\\/g, "/")}${after}\n\n`
+			: ""
+		return heading + source + "\n"
+	}).join("")
+}
+
+// Publish only complete, validated content. A failed build leaves the old output intact.
+function publish(output, source) {
+	if (!source.trim()) throw new Error("Empty build output")
+	const temporary = `${output}.${process.pid}.${crypto.randomBytes(6).toString("hex")}.tmp`
+	try {
+		fs.writeFileSync(temporary, source, { flag: "wx" })
+		fs.renameSync(temporary, output)
+	} finally {
+		if (fs.existsSync(temporary)) fs.unlinkSync(temporary)
 	}
-	options.delimeterBefore = options.delimeterBefore || ""
-	options.delimeterAfter = options.delimeterAfter || ""
-	options.watchDir = options.watchDir || "src"
+}
 
-	if (process.argv[2] === "watch" && typeof currentlyWatching === "undefined") {
-		console.log("\x1b[32m%s\x1b[0m", "Watching for changes...")
-		currentlyWatching = true
-		return watch.watchTree(options.watchDir, function () {
-			self(input, outputPath, options)
-		})
-	}
-
-	console.log("\x1b[32m%s\x1b[0m", "Combining files...")
-
-	fs.writeFileSync(outputPath, "")
-	const outputFile = fs.createWriteStream(outputPath, { flags: "a" })
-
-	input.forEach(function (inputPath) {
-		if (fs.lstatSync(inputPath).isDirectory()) {
-			inputAllFiles = inputAllFiles.concat(getAllFiles(inputPath))
-		} else if (fs.lstatSync(inputPath).isFile()) {
-			inputAllFiles.push(inputPath)
-		}
-	})
-
-	inputAllFiles.forEach(function (inputPath, index) {
-		if (
-			options.delimeterBefore.length > 0 ||
-			options.delimeterAfter.length > 0
-		) {
-			outputFile.write(
-				(index === 0 ? "" : "\n\n") +
-					options.delimeterBefore +
-					inputPath +
-					options.delimeterAfter +
-					"\n\n"
-			)
-		}
-
-		const fileContents = fs.readFileSync(inputPath, "utf8")
-		outputFile.write(fileContents + "\n")
-		console.log("\tAdded " + inputPath)
-	})
-
-	outputFile.end()
-	console.log("\x1b[32m%s\x1b[0m", "Finished combining!")
-})
+module.exports = function combine(input, output, options = {}) {
+	let source = assemble(input, options)
+	if (options.transform) source = options.transform(source)
+	if (options.validate) options.validate(source)
+	publish(output, source)
+	return source
+}
+module.exports.assemble = assemble
+module.exports.publish = publish

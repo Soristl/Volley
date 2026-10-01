@@ -3,8 +3,8 @@ function verifyPlayerTeam(name)
     return
   end
 
-  for i = 1, #playersRed do
-    if playersRed[i].name == name then
+  for i = 1, #gameState.teams.red do
+    if gameState.teams.red[i].name == name then
       if gameStats.redQuantitySpawn == gameStats.redLimitSpawn then
         return false
       end
@@ -21,8 +21,8 @@ function verifyPlayerTeam(name)
     end
   end
 
-  for i = 1, #playersBlue do
-    if playersBlue[i].name == name then
+  for i = 1, #gameState.teams.blue do
+    if gameState.teams.blue[i].name == name then
       if gameStats.blueQuantitySpawn == gameStats.blueLimitSpawn then
         return false
       end

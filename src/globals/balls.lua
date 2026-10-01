@@ -16,7 +16,17 @@ local balls = {
   [15] = { id = 6, isImage = true, image = '1a08716e59a.png', name = 'Uruguay ball', category = 'worldcup', size = 40, skinScale = 1, previewImage = 'img@1a08020e8dd', previewSize = 30 },
   [16] = { id = 6, isImage = true, image = '1a08716fd0d.png', name = 'Lagon Volley ball', category = 'collection', size = 40, skinScale = 1, previewImage = 'img@1a0802163d6', previewSize = 30 },
   [17] = { id = 6, isImage = true, image = '1a08717147e.png', name = 'Corail Volley ball', category = 'collection', size = 40, skinScale = 1, previewImage = 'img@1a080213157', previewSize = 30 },
-  [18] = { id = 6, isImage = true, image = '1a087172bf0.png', name = 'Royal Volley ball', category = 'collection', size = 40, skinScale = 1, previewImage = 'img@1a08021a21f', previewSize = 30 }
+  [18] = { id = 6, isImage = true, image = '1a087172bf0.png', name = 'Royal Volley ball', category = 'collection', size = 40, skinScale = 1, previewImage = 'img@1a08021a21f', previewSize = 30 },
+  [19] = { id = 6, isImage = true, image = '1a0dc9b128b.png', name = 'Emerald ball', category = 'collection', size = 40, skinScale = 1, previewImage = '1a0dc9b128b.png', previewSize = 40 },
+  [20] = { id = 6, isImage = true, image = '1a0dc9b29fc.png', name = 'Sakura ball', category = 'collection', size = 40, skinScale = 1, previewImage = '1a0dc9b29fc.png', previewSize = 40 },
+  [21] = { id = 6, isImage = true, image = '1a0dc9b416c.png', name = 'Glacier ball', category = 'collection', size = 40, skinScale = 1, previewImage = '1a0dc9b416c.png', previewSize = 40 },
+  [22] = { id = 6, isImage = true, image = '1a0dc9b58df.png', name = 'Sunset ball', category = 'collection', size = 40, skinScale = 1, previewImage = '1a0dc9b58df.png', previewSize = 40 },
+  [23] = { id = 6, isImage = true, image = '1a0dc9b7055.png', name = 'Eclipse ball', category = 'collection', size = 40, skinScale = 1, previewImage = '1a0dc9b7055.png', previewSize = 40 },
+  [24] = { id = 6, isImage = true, image = '1a0dc9b87c3.png', name = 'Singularity ball', category = 'special', size = 40, skinScale = 1, previewImage = '1a0dc9b87c3.png', previewSize = 40 },
+  [25] = { id = 6, isImage = true, image = '1a0dc9b9f33.png', name = 'Watcher ball', category = 'special', size = 40, skinScale = 1, previewImage = '1a0dc9b9f33.png', previewSize = 40 },
+  [26] = { id = 6, isImage = true, image = '1a0dc9bb6a4.png', name = 'Plasma Core ball', category = 'special', size = 40, skinScale = 1, previewImage = '1a0dc9bb6a4.png', previewSize = 40 },
+  [27] = { id = 6, isImage = true, image = '1a0dc9bce14.png', name = 'Slime ball', category = 'special', size = 40, skinScale = 1, previewImage = '1a0dc9bce14.png', previewSize = 40 },
+  [28] = { id = 6, isImage = true, image = '1a0dc9be586.png', name = 'Clockwork ball', category = 'special', size = 40, skinScale = 1, previewImage = '1a0dc9be586.png', previewSize = 40 }
   -- [99] = {
   --   id = 6,
   --   isImage = no,

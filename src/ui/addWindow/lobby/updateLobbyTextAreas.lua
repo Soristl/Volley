@@ -1,166 +1,43 @@
-function updateLobbyTextAreas()
-  resetPlayerConfigs()
-  initGame = os.time() + 25000
-
-  if gameStats.teamsMode then
-    resetTeams = addTimer(function(i)
-      if i == 1 then
-        playersRed = {
-          [1] = { name = '' },
-          [2] = { name = '' },
-          [3] = { name = '' },
-        }
-        playersBlue = {
-          [1] = { name = '' },
-          [2] = { name = '' },
-          [3] = { name = '' },
-        }
-        playersYellow = {
-          [1] = { name = '' },
-          [2] = { name = '' },
-          [3] = { name = '' }
-        }
-
-        playersGreen = {
-          [1] = { name = '' },
-          [2] = { name = '' },
-          [3] = { name = '' }
-        }
-      end
-    end, 1000, 1, "resetTeams")
-    toggleTeams = addTimer(function(i)
-      if i == 1 then
-        for i = 1, 3 do
-          clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamRed" .. i .. "'>Join", nil, x[i],
-            y[i], 150, 40, 0xE14747, 0xE14747, 1, false)
-        end
-
-        for i = 4, 6 do
-          clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamBlue" .. i .. "'>Join", nil, x
-            [i], y[i], 150, 40, 0x184F81, 0x184F81, 1, false)
-        end
-
-        for i = 8, 10 do
-          clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamYellow" .. (i - 7) .. "'>Join",
-            nil, x[i - 1], y[i - 1], 150, 40, 0xF59E0B, 0xF59E0B, 1, false)
-        end
-
-        for i = 11, 13 do
-          clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamGreen" .. (i - 10) .. "'>Join",
-            nil, x[i - 1], y[i - 1], 150, 40, 0x109267, 0x109267, 1, false)
-        end
-      end
-    end, 1500, 1, "toggleTeams")
-    canJoin = addTimer(function(i)
-      if i == 1 then
-        gameStats.canJoin = true
-      end
-    end, 2500, 1, "canJoin")
-
-    return
+function updateLobbyTextAreas(playersAlreadyReset, preferredPlayer)
+  removeTimer('resetTeams')
+  removeTimer('toggleTeams')
+  removeTimer('canJoin')
+  if not playersAlreadyReset then resetPlayerConfigs() end
+  gameState.lobbyDeadline = os.time() + 25000
+  gameStats.canJoin = false
+  local three, four = gameStats.threeTeamsMode, gameStats.teamsMode
+  local function resetRosters()
+    gameTeams.resetRoster('red', three and 4 or four and 3 or 6)
+    gameTeams.resetRoster('blue', three and 4 or four and 3 or 6)
+    if four then gameTeams.resetRoster('yellow',3) end
+    if three or four then gameTeams.resetRoster('green',three and 4 or 3) end
   end
 
-  if gameStats.threeTeamsMode then
-    resetTeams = addTimer(function(i)
-      if i == 1 then
-        playersRed = {
-          [1] = { name = '' },
-          [2] = { name = '' },
-          [3] = { name = '' },
-          [4] = { name = '' },
-        }
-        playersBlue = {
-          [1] = { name = '' },
-          [2] = { name = '' },
-          [3] = { name = '' },
-          [4] = { name = '' },
-        }
-        playersGreen = {
-          [1] = { name = '' },
-          [2] = { name = '' },
-          [3] = { name = '' },
-          [4] = { name = '' }
-        }
-      end
-    end, 1000, 1, "resetTeams")
-    toggleTeams = addTimer(function(i)
-      if i == 1 then
-        for i = 1, 4 do
-          clubhouse.joinArea(threeTeamsMode.id[i],
-            "<p align='center'><font size='14px'><a href='event:joinTeamRed" .. i .. "'>Join", nil, threeTeamsMode.x[i],
-            threeTeamsMode.y[i], 150, 40, 0xE14747, 0xE14747, 1, false)
-        end
-
-        for i = 5, 8 do
-          clubhouse.joinArea(threeTeamsMode.id[i],
-            "<p align='center'><font size='14px'><a href='event:joinTeamBlue" .. (i - 4) .. "'>Join", nil,
-            threeTeamsMode.x[i], threeTeamsMode.y[i], 150, 40, 0x184F81, 0x184F81, 1, false)
-        end
-
-        for i = 9, 12 do
-          clubhouse.joinArea(threeTeamsMode.id[i],
-            "<p align='center'><font size='14px'><a href='event:joinTeamGreen" .. (i - 8) .. "'>Join", nil,
-            threeTeamsMode.x[i], threeTeamsMode.y[i], 150, 40, 0x109267, 0x109267, 1, false)
-        end
-      end
-    end, 1500, 1, "toggleTeams")
-    canJoin = addTimer(function(i)
-      if i == 1 then
-        gameStats.canJoin = true
-      end
-    end, 2500, 1, "canJoin")
-
-    return
+  -- Draw every team seat immediately for all viewers.
+  local function drawSeat(tick)
+    local seat=tick-2
+    if seat<1 or gameState.phase~='startGame' then return end
+    local id, team, slot, px, py, color
+    if three then
+      local group=math.floor((seat-1)/4)+1
+      team=({'Red','Blue','Green'})[group]
+      slot=(seat-1)%4+1
+      id,px,py=threeTeamsMode.id[seat],threeTeamsMode.x[seat],threeTeamsMode.y[seat]
+      color=({0xE14747,0x184F81,0x109267})[group]
+    else
+      local group=math.floor((seat-1)/3)+1
+      team=({'Red','Blue',four and 'Yellow' or 'Red',four and 'Green' or 'Blue'})[group]
+      slot=(seat-1)%3+1
+      if group==2 then slot=slot+3 end
+      if group>=3 and not four then slot=slot+(group==3 and 3 or 6) end
+      id=seat>6 and seat+1 or seat
+      px,py=x[seat],y[seat]
+      color=({0xE14747,0x184F81,four and 0xF59E0B or 0xE14747,four and 0x109267 or 0x184F81})[group]
+    end
+    clubhouse.joinArea(id,"<p align='center'><font size='14px'><a href='event:joinTeam"..team..slot.."'>Join",
+      nil,px,py,150,40,color,color,1,false)
+    if seat==12 then gameStats.canJoin=true end
   end
-
-  resetTeams = addTimer(function(i)
-    if i == 1 then
-      playersRed = {
-        [1] = { name = '' },
-        [2] = { name = '' },
-        [3] = { name = '' },
-        [4] = { name = '' },
-        [5] = { name = '' },
-        [6] = { name = '' }
-      }
-      playersBlue = {
-        [1] = { name = '' },
-        [2] = { name = '' },
-        [3] = { name = '' },
-        [4] = { name = '' },
-        [5] = { name = '' },
-        [6] = { name = '' }
-      }
-    end
-  end, 1000, 1, "resetTeams")
-
-  toggleTeams = addTimer(function(i)
-    if i == 1 then
-      for i = 1, 3 do
-        clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamRed" .. i .. "'>Join", nil, x[i],
-          y[i], 150, 40, 0xE14747, 0xE14747, 1, false)
-      end
-
-      for i = 4, 6 do
-        clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamBlue" .. i .. "'>Join", nil, x[i],
-          y[i], 150, 40, 0x184F81, 0x184F81, 1, false)
-      end
-
-      for i = 8, 10 do
-        clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamRed" .. (i - 4) .. "'>Join", nil,
-          x[i - 1], y[i - 1], 150, 40, 0xE14747, 0xE14747, 1, false)
-      end
-
-      for i = 11, 13 do
-        clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamBlue" .. (i - 4) .. "'>Join", nil,
-          x[i - 1], y[i - 1], 150, 40, 0x184F81, 0x184F81, 1, false)
-      end
-    end
-  end, 1500, 1, "toggleTeams")
-
-  canJoin = addTimer(function(i)
-    if i == 1 then
-      gameStats.canJoin = true
-    end
-  end, 2500, 1, "canJoin")
+  resetRosters()
+  for tick=3,14 do drawSeat(tick) end
 end

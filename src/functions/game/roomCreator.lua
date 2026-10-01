@@ -1,6 +1,6 @@
 local function canBecomeRoomCreator(name)
   local data = tfm.get.room.playerList[name]
-  return data ~= nil and not name:find("*", 1, true) and not playerBan[name]
+  return data ~= nil and not name:find("*", 1, true) and not playerBan[name] and not playerLeft[name]
     and (timestamp == 0 or (data.registrationDate or 0) <= timestamp)
 end
 
@@ -18,7 +18,7 @@ function assignRoomCreator(name)
   roomCreator.name = name
   USER_PERMISSIONS[name] = math.max(USER_PERMISSIONS[name] or 1, 2)
   tfm.exec.chatMessage("<vp>" .. name .. " is the Room Creator.<n>", nil)
-  if mode == "startGame" then
+  if gameState.phase == "startGame" then
     ui.addWindow(31, "<p align='center'><font size='13px'><a href='event:settings'>Room settings", name,
       180, 370, 150, 30, 1, false, false)
   end

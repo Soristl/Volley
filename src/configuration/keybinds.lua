@@ -23,8 +23,8 @@ function bindKeys(name)
     end
 
     if type(v) == "table" then
-      for _, v2 in pairs(v) do
-        system.bindKeyboard(name, v2, true, true)
+      for code, enabled in pairs(v) do
+        if enabled then system.bindKeyboard(name, code, true, true) end
       end
     end
   end

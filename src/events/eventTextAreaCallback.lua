@@ -10,11 +10,19 @@ local function panelOpenCooldown(name, panel)
 end
 
 function eventTextAreaCallback(id, name, c)
-  if playerBan[name] then return end
+  if type(name) ~= "string" or not tfm.get.room.playerList[name] or playerBan[name] or playerLeft[name] then return end
   if clubhouse.guardCallback(name,c) then return end
   if c:sub(1,10)=="pageInput:" then clubhouse.pageInputCallback(name,c);return end
   local closing=c=="closeWindow" or c=="menuClose" or c=="profileClose" or c=="rankingClose" or c=="ballCategoriesClose"
   if not clubhouse.allowInput(name,closing) then return end
+  if c=="chooseDefaultMap" or c=="clearDefaultMap" or c=="returnDefaultSettings" or c:match("^setDefaultMap:") then clubhouse.defaultMapCallback(name,c);return end
+  if c=='toggleMapBackground' or c=='toggleCourtIndicator' then
+    if not settings[name] or pagePlayerSettings[name]~=3 or not (clubhouse.views[name] and clubhouse.views[name].settings) then return end
+    if c=='toggleMapBackground' then mapBackgrounds.toggleHidden(name)
+    else mapBackgrounds.toggleBorders(name) end
+    clubhouse.personalDisplayOptions(name)
+    return
+  end
   if c=="ballCategoriesOpen" or c=="ballCategoriesClose" or c:match("^ballCategory:") then clubhouse.ballCategoryCallback(name,c);return end
   if c:sub(1,11)=="choosePage:" then clubhouse.choosePage(name,c:sub(12));return end
   if c:sub(1, 7) == "ranking" and c ~= "ranking" then
@@ -32,7 +40,7 @@ function eventTextAreaCallback(id, name, c)
     return
   end
   if gameStats.initTimer > 2 and gameStats.canJoin then
-    if string.sub(c, 1, 11) == "joinTeamRed" and playerInGame[name] == false and playersRed[tonumber(string.sub(c, 12))].name == '' then
+    if string.sub(c, 1, 11) == "joinTeamRed" and playerInGame[name] == false and gameState.teams.red[tonumber(string.sub(c, 12))].name == '' then
       local isPlayerBanned = messagePlayerIsBanned(name)
       if isPlayerBanned then
         return
@@ -40,7 +48,7 @@ function eventTextAreaCallback(id, name, c)
 
       local index = tonumber(string.sub(c, 12))
       playerInGame[name] = true
-      playersRed[index].name = name
+      gameState.teams.red[index].name = name
 
       if gameStats.threeTeamsMode then
         clubhouse.joinArea(threeTeamsMode.id[index],
@@ -58,7 +66,7 @@ function eventTextAreaCallback(id, name, c)
         clubhouse.joinArea(index, "<p align='center'><font size='14px'><a href='event:leaveTeamRed" .. index ..
           "'>" .. name .. "", nil, x[index], y[index], 150, 40, 0x871F1F, 0x871F1F, 1, false)
       end
-    elseif string.sub(c, 1, 12) == "leaveTeamRed" and playersRed[tonumber(string.sub(c, 13))].name == name then
+    elseif string.sub(c, 1, 12) == "leaveTeamRed" and gameState.teams.red[tonumber(string.sub(c, 13))].name == name then
       local isPlayerBanned = messagePlayerIsBanned(name)
       if isPlayerBanned then
         return
@@ -66,7 +74,7 @@ function eventTextAreaCallback(id, name, c)
 
       local index = tonumber(string.sub(c, 13))
       playerInGame[name] = false
-      playersRed[index].name = ''
+      gameState.teams.red[index].name = ''
 
       if gameStats.threeTeamsMode then
         clubhouse.joinArea(threeTeamsMode.id[index],
@@ -83,7 +91,7 @@ function eventTextAreaCallback(id, name, c)
         clubhouse.joinArea(index, "<p align='center'><font size='14px'><a href='event:joinTeamRed" .. index .. "'>Join", nil,
           x[index], y[index], 150, 40, 0xE14747, 0xE14747, 1, false)
       end
-    elseif string.sub(c, 1, 12) == "joinTeamBlue" and playerInGame[name] == false and playersBlue[teamBlueIndex(tonumber(string.sub(c, 13)))].name == '' then
+    elseif string.sub(c, 1, 12) == "joinTeamBlue" and playerInGame[name] == false and gameState.teams.blue[teamBlueIndex(tonumber(string.sub(c, 13)))].name == '' then
       local isPlayerBanned = messagePlayerIsBanned(name)
       if isPlayerBanned then
         return
@@ -91,7 +99,7 @@ function eventTextAreaCallback(id, name, c)
 
       local index = teamBlueIndex(tonumber(string.sub(c, 13)))
       playerInGame[name] = true
-      playersBlue[index].name = name
+      gameState.teams.blue[index].name = name
 
       if gameStats.threeTeamsMode then
         clubhouse.joinArea(threeTeamsMode.id[index + 4],
@@ -110,7 +118,7 @@ function eventTextAreaCallback(id, name, c)
           "<p align='center'><font size='14px'><a href='event:leaveTeamBlue" .. (index + 3) .. "'>" .. name .. "", nil,
           x[index + 3], y[index + 3], 150, 40, 0x0B3356, 0x0B3356, 1, false)
       end
-    elseif string.sub(c, 1, 13) == "leaveTeamBlue" and playersBlue[teamBlueIndex(tonumber(string.sub(c, 14)))].name == name then
+    elseif string.sub(c, 1, 13) == "leaveTeamBlue" and gameState.teams.blue[teamBlueIndex(tonumber(string.sub(c, 14)))].name == name then
       local isPlayerBanned = messagePlayerIsBanned(name)
       if isPlayerBanned then
         return
@@ -118,7 +126,7 @@ function eventTextAreaCallback(id, name, c)
 
       local index = teamBlueIndex(tonumber(string.sub(c, 14)))
       playerInGame[name] = false
-      playersBlue[index].name = ''
+      gameState.teams.blue[index].name = ''
 
       if gameStats.threeTeamsMode then
         clubhouse.joinArea(threeTeamsMode.id[index + 4],
@@ -137,7 +145,7 @@ function eventTextAreaCallback(id, name, c)
           "<p align='center'><font size='14px'><a href='event:joinTeamBlue" .. (index + 3) .. "'>Join", nil, x
           [index + 3], y[index + 3], 150, 40, 0x184F81, 0x184F81, 1, false)
       end
-    elseif string.sub(c, 1, 14) == "joinTeamYellow" and playerInGame[name] == false and playersYellow[tonumber(string.sub(c, 15))].name == '' then
+    elseif string.sub(c, 1, 14) == "joinTeamYellow" and playerInGame[name] == false and gameState.teams.yellow[tonumber(string.sub(c, 15))].name == '' then
       local isPlayerBanned = messagePlayerIsBanned(name)
       if isPlayerBanned then
         return
@@ -145,12 +153,12 @@ function eventTextAreaCallback(id, name, c)
 
       local index = tonumber(string.sub(c, 15))
       playerInGame[name] = true
-      playersYellow[index].name = name
+      gameState.teams.yellow[index].name = name
 
       clubhouse.joinArea(index + 7,
         "<p align='center'><font size='14px'><a href='event:leaveTeamYellow" .. index .. "'>" .. name .. "", nil,
         x[index + 6], y[index + 6], 150, 40, 0xB57200, 0xB57200, 1, false)
-    elseif string.sub(c, 1, 15) == "leaveTeamYellow" and playersYellow[tonumber(string.sub(c, 16))].name == name then
+    elseif string.sub(c, 1, 15) == "leaveTeamYellow" and gameState.teams.yellow[tonumber(string.sub(c, 16))].name == name then
       local isPlayerBanned = messagePlayerIsBanned(name)
       if isPlayerBanned then
         return
@@ -158,11 +166,11 @@ function eventTextAreaCallback(id, name, c)
 
       local index = tonumber(string.sub(c, 16))
       playerInGame[name] = false
-      playersYellow[index].name = ''
+      gameState.teams.yellow[index].name = ''
 
       clubhouse.joinArea(index + 7, "<p align='center'><font size='14px'><a href='event:joinTeamYellow" .. index .. "'>Join",
         nil, x[index + 6], y[index + 6], 150, 40, 0xF59E0B, 0xF59E0B, 1, false)
-    elseif string.sub(c, 1, 13) == "joinTeamGreen" and playerInGame[name] == false and playersGreen[tonumber(string.sub(c, 14))].name == '' then
+    elseif string.sub(c, 1, 13) == "joinTeamGreen" and playerInGame[name] == false and gameState.teams.green[tonumber(string.sub(c, 14))].name == '' then
       local isPlayerBanned = messagePlayerIsBanned(name)
       if isPlayerBanned then
         return
@@ -170,7 +178,7 @@ function eventTextAreaCallback(id, name, c)
 
       local index = tonumber(string.sub(c, 14))
       playerInGame[name] = true
-      playersGreen[index].name = name
+      gameState.teams.green[index].name = name
 
       if gameStats.threeTeamsMode then
         clubhouse.joinArea(threeTeamsMode.id[index + 8],
@@ -183,7 +191,7 @@ function eventTextAreaCallback(id, name, c)
       clubhouse.joinArea(index + 10,
         "<p align='center'><font size='14px'><a href='event:leaveTeamGreen" .. index .. "'>" .. name .. "", nil,
         x[index + 9], y[index + 9], 150, 40, 0x0C6346, 0x0C6346, 1, false)
-    elseif string.sub(c, 1, 14) == "leaveTeamGreen" and playersGreen[tonumber(string.sub(c, 15))].name == name then
+    elseif string.sub(c, 1, 14) == "leaveTeamGreen" and gameState.teams.green[tonumber(string.sub(c, 15))].name == name then
       local isPlayerBanned = messagePlayerIsBanned(name)
       if isPlayerBanned then
         return
@@ -191,7 +199,7 @@ function eventTextAreaCallback(id, name, c)
 
       local index = tonumber(string.sub(c, 15))
       playerInGame[name] = false
-      playersGreen[index].name = ''
+      gameState.teams.green[index].name = ''
 
       if gameStats.threeTeamsMode then
         clubhouse.joinArea(threeTeamsMode.id[index + 8],
@@ -255,8 +263,8 @@ function eventTextAreaCallback(id, name, c)
       tfm.exec.chatMessage("<bv>" .. clubhouse.escape(clubhouse.text(name,"sync.missing")) .. "<n>", name)
       windowUISync({ name })
     else
+      if not requestPlayerSync(playerSync, name) then return end
       closeAllWindows(name)
-      tfm.exec.setPlayerSync(playerSync)
       tfm.exec.chatMessage("<bv>Set new player sync: " .. playerSync .. " selected by admin "..name.."<n>", nil)
     end
   elseif c == "openMode" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
@@ -317,6 +325,10 @@ function eventTextAreaCallback(id, name, c)
     if not index or not modes[index] then return end
     settingsMode[name] = false
     globalSettings.mapType = string.lower(modes[index])
+    if gameState.phase == 'startGame' and not gameStats.threeTeamsMode then
+      gameStats.setMapName = globalSettings.mapType
+      refreshMapSizeSelection()
+    end
     messageLog("<bv>The map size in normal mode was set by " .. modes[index] .. " by the admin " .. name .. "<n>")
     updateSettingsUI()
   elseif c == "closeMapType" then
@@ -324,14 +336,16 @@ function eventTextAreaCallback(id, name, c)
     clubhouse.settings(name)
   elseif string.sub(c, 1, 12) == 'nextSettings' then
     local page = tonumber(string.sub(c, 13))
-    if page ~= 1 and page ~= 2 then return end
+    if page ~= 1 and page ~= 2 and page ~= 3 and page ~= 4 then return end
+    if (USER_PERMISSIONS[name] or 1)<2 and page~=3 then return end
     settingsMode[name] = false
     pagePlayerSettings[name] = page
 
     updateSettingsUI(name)
   elseif string.sub(c, 1, 12) == 'prevSettings' then
     local page = tonumber(string.sub(c, 13))
-    if page ~= 1 and page ~= 2 then return end
+    if page ~= 1 and page ~= 2 and page ~= 3 and page ~= 4 then return end
+    if (USER_PERMISSIONS[name] or 1)<2 and page~=3 then return end
     settingsMode[name] = false
     pagePlayerSettings[name] = page
 
@@ -360,7 +374,7 @@ function eventTextAreaCallback(id, name, c)
     local index = tonumber(string.sub(c, 15))
     selectBallPage[name] = index
     selectBallUI(name)
-  elseif string.sub(c, 1, 7) == "setball" and customMapCommand[name] and not gameStats.realMode and mode == "startGame" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+  elseif string.sub(c, 1, 7) == "setball" and customMapCommand[name] and not gameStats.realMode and gameState.phase == "startGame" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
     local index = tonumber(string.sub(c, 8))
 
     if index and balls[index] then
@@ -384,11 +398,11 @@ function eventTextAreaCallback(id, name, c)
     selectMapUI(name)
   elseif string.sub(c, 1, 3) == "map" then
     tfm.exec.chatMessage('<bv>' .. string.sub(c, 4) .. '<n>', name)
-  elseif string.sub(c, 1, 7) == "votemap" and canVote[name] and not gameStats.realMode and mode == "startGame" then
+  elseif string.sub(c, 1, 7) == "votemap" and canVote[name] and not gameStats.realMode and gameState.phase == "startGame" then
     local index = tonumber(string.sub(c, 8))
     local maps = configSelectMap()
 
-    if not index or not maps[index] then return end
+    if not index or not maps[index] or not isMapAvailable(index) then return end
     if mapsVotes[index] == nil then
       mapsVotes[index] = 0
     end
@@ -436,10 +450,10 @@ function eventTextAreaCallback(id, name, c)
     end
 
     updateSettingsUI()
-  elseif string.sub(c, 1, 6) == "setmap" and customMapCommand[name] and not gameStats.realMode and mode == "startGame" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+  elseif string.sub(c, 1, 6) == "setmap" and customMapCommand[name] and not gameStats.realMode and gameState.phase == "startGame" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
     local index = tonumber(string.sub(c, 7))
     local maps = configSelectMap()
-    if not index or not maps[index] then return end
+    if not index or not maps[index] or not isMapAvailable(index) then return end
 
     clubhouse.selectionCooldown(name)
 
@@ -459,7 +473,7 @@ function eventTextAreaCallback(id, name, c)
         selectMapUI(name1)
       end
     end
-  elseif c == "settings" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+  elseif c == "settings" then
     if panelOpenCooldown(name, c) then return end
     closeRankingUI(name)
     removeUITrophies(name)

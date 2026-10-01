@@ -1,4 +1,5 @@
 function updateBoundariesFromMap()
+  groundProfile.refresh()
   if gameStats.realMode then return end
   local xmlInfo = tfm.get.room.xmlMapInfo
   if not xmlInfo or not xmlInfo.xml or xmlInfo.xml == "" then return end

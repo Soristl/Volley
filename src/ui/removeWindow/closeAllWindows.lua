@@ -5,17 +5,10 @@ function closeAllWindows(name)
   selectMapPage[name] = 1
   selectBallOpen[name] = false
   selectBallPage[name] = 1
-  local ids = { 21, 22, 24, 25, 44 }
-  for i = 1, #ids do
-    closeWindow(ids[i], name)
-  end
+  -- Current panels own their image and textarea handles. clearPanels removes
+  -- exactly those handles; legacy ID sweeps only waste host runtime.
   removeUITrophies(name)
   removeSelectUI(name)
-  ui.removeTextArea(99992, name)
-  closeWindow(266, name)
-  removeButtons(25, name)
-  removeButtons(26, name)
-  removeButtons(27, name)
   settings[name] = false
   settingsMode[name] = false
 

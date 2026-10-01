@@ -94,7 +94,7 @@ local playerForce = {}
 local playerBan = {}
 local playerBanHistory = {}
 local playerInGame = {}
-local countId = 1
+local countId = 100000 -- Player grounds: separate from XML grounds and 99990..99998 map helpers.
 local playerPhysicId = {}
 local playerLanguage = {}
 local killSpecPermanent = false
@@ -102,19 +102,11 @@ local autosync = true
 
 local x = { 100, 280, 280, 640, 460, 460, 100, 100, 280, 640, 460, 640 }
 local y = { 100, 100, 160, 100, 100, 160, 160, 220, 220, 160, 220, 220 }
-local teamsScores = { ['red'] = 0, ['blue'] = 0 }
--- local teamsScores['red'] = 0
--- local teamsScores['blue'] = 0
-local ball_id = 6
-local ballOnGame = false
-local ballOnGame2 = false
 local playerConsumable = {}
 local playerConsumableItem = {}
 local playerConsumables = {}
 local playerLeftRight = {}
 local playerConsumableKey = {}
-local ballOnGameTwoBalls = {}
-local ballsId = {}
 local gameStats = { gameMode = '' }
 local pagesList = {}
 local mapsVotes = {}
@@ -163,9 +155,6 @@ local playerAchievementsImages = {}
 local playerTrophyImage = {}
 local isOpenProfile = {}
 local profileState = {}
-local profileKeyTime = {}
-local rankKeyTime = {}
-local panelOpenTime = {}
 local timestamp = 0
 
 local selectMapOpen = {}
@@ -192,11 +181,11 @@ local teamPointsArea2 = {}
 local teamPointsArea3 = {}
 local teamPointsArea4 = {}
 
-local gameTimeEnd = os.time() + 5000
+
 
 -- local keys = {32, 0, 1, 2, 3, 49, 50, 51, 52, 55, 56, 57, 48, 77, 76, 80}
 
-GROUND_LINE_Y = 370
+GROUND_LINE_Y = 368
 
 -- Here there is a crucial possible optimization, instead of
 -- creating a new dictionary for everything, it will be better
@@ -208,7 +197,7 @@ GROUND_LINE_Y = 370
 local players = {}
 local function setPlayerData(name)
   local playersList = tfm.get.room.playerList
-  if players[name] then return end
+  if players[name] then return false end
 
   players[name] = {
     playerName = name,
@@ -237,6 +226,7 @@ local function setPlayerData(name)
   bindKeys(name)
   -- This copy makes possible to set custom keybinds
   -- players[name][KEYS] = KEYS
+  return true
 end
 
 local function initPlayersData()
@@ -315,3 +305,6 @@ for name, data in pairs(tfm.get.room.playerList) do
 end
 
 firstRun = true
+local profileKeyTime = {}
+local rankKeyTime = {}
+local panelOpenTime = {}

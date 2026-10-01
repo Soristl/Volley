@@ -1,4 +1,7 @@
 function init()
+  resetMatchStatistics()
+  clearRoundTimers()
+  gameCrowns.reset()
   clubhouse.reset()
   spawnBallArea400 = {}
   spawnBallArea800 = {}
@@ -17,15 +20,11 @@ function init()
   durationTimerPause = durationDefault
 
   playersOnGameHistoric = {}
-  mode = "startGame"
+  gameState.resetLobby()
   removeTimer('verifyBallCoordinates')
   playerConsumables = {}
 
-  ballOnGame = false
-  ballOnGame2 = false
-  ballOnGame3 = false
-  ballOnGameTwoBalls = { ballOnGame, ballOnGame2, ballOnGame3 }
-  ballsId = { nil, nil, nil }
+  gameBalls.clear()
   tfm.exec.disableAllShamanSkills(true)
 
   playerCanTransform = {}
@@ -34,49 +33,16 @@ function init()
   twoTeamsPlayerRedPosition = { [1] = "", [2] = "", [3] = "", [4] = "", [5] = "", [6] = "" }
   twoTeamsPlayerBluePosition = { [1] = "", [2] = "", [3] = "", [4] = "", [5] = "", [6] = "" }
 
-  playersRed = {
-    [1] = { name = '' },
-    [2] = { name = '' },
-    [3] = { name = '' },
-    [4] = { name = '' },
-    [5] = { name = '' },
-    [6] = { name = '' }
-  }
-  playersBlue = {
-    [1] = { name = '' },
-    [2] = { name = '' },
-    [3] = { name = '' },
-    [4] = { name = '' },
-    [5] = { name = '' },
-    [6] = { name = '' }
-  }
-  playersYellow = {
-    [1] = { name = '' },
-    [2] = { name = '' },
-    [3] = { name = '' }
-  }
+  gameTeams.resetRoster("red", 6)
+  gameTeams.resetRoster("blue", 6)
+  gameTeams.resetRoster("yellow", 3)
 
-  playersGreen = {
-    [1] = { name = '' },
-    [2] = { name = '' },
-    [3] = { name = '' }
-  }
+  gameTeams.resetRoster("green", 3)
 
-  teamsLifes = { [1] = { yellow = 3 }, [2] = { red = 3 }, [3] = { blue = 3 }, [4] = { green = 3 } }
+  gameState.lives = { [1] = { yellow = 3 }, [2] = { red = 3 }, [3] = { blue = 3 }, [4] = { green = 3 } }
 
   mapsToTest = { [1] = "", [2] = "", [3] = "" }
-
-  getTeamsLifes = {}
-
-  getTeamsColors = {}
   teamsPlayersOnGame = {}
-
-  messageTeamsLifes = {}
-  messageTeamsLostOneLife = {}
-  messageTeamsLifesTextChat = {}
-  messageWinners = {}
-
-  getTeamsColorsName = { 0xF59E0B, 0xEF4444, 0x3B82F6, 0x109267 }
 
   for i = 1, #customMaps do
     mapsVotes[i] = 0
@@ -136,11 +102,9 @@ function init()
 
   playerCoordinates = {}
   webY = 460
-  countId = 1
+  countId = 100000 -- Player grounds: separate from XML grounds and 99990..99998 map helpers.
   playerPhysicId = {}
-  teamsScores['red'] = 0
-  teamsScores['blue'] = 0
-  ball_id = 0
+  gameScores.reset()
   teamPointsArea1 = {}
   teamPointsArea2 = {}
   teamPointsArea3 = {}
@@ -151,29 +115,17 @@ function init()
 
   if globalSettings.mode == "4 teams mode" then
     gameStats.teamsMode = true
-    getTeamsColorsName = { 0xF59E0B, 0xEF4444, 0x3B82F6, 0x109267 }
-    teamsLifes = { [1] = { yellow = 3 }, [2] = { red = 3 }, [3] = { blue = 3 }, [4] = { green = 3 } }
-    updateLobbyTextAreas()
+    gameState.lives = { [1] = { yellow = 3 }, [2] = { red = 3 }, [3] = { blue = 3 }, [4] = { green = 3 } }
+    updateLobbyTextAreas(true)
     tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for " .. globalSettings.mode .. "<n>", nil)
   elseif globalSettings.mode == "3 teams mode" then
     gameStats.threeTeamsMode = true
-    getTeamsColorsName = { 0xEF4444, 0x3B82F6, 0x109267 }
-    playersYellow = {
-      [1] = { name = '' },
-      [2] = { name = '' },
-      [3] = { name = '' },
-      [4] = { name = '' }
-    }
+    gameTeams.resetRoster("yellow", 4)
 
-    playersGreen = {
-      [1] = { name = '' },
-      [2] = { name = '' },
-      [3] = { name = '' },
-      [4] = { name = '' }
-    }
+    gameTeams.resetRoster("green", 4)
 
-    teamsLifes = { [1] = { yellow = 5 }, [2] = { red = 5 }, [3] = { blue = 5 }, [4] = { green = 5 } }
-    updateLobbyTextAreas()
+    gameState.lives = { [1] = { yellow = 0 }, [2] = { red = 5 }, [3] = { blue = 5 }, [4] = { green = 5 } }
+    updateLobbyTextAreas(true)
     tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for " .. globalSettings.mode .. "<n>", nil)
   elseif globalSettings.mode == "2 teams mode" then
     gameStats.twoTeamsMode = true
@@ -188,7 +140,7 @@ function init()
     tfm.exec.chatMessage("<bv>Room Setup: The three-ball mode has been activated", nil)
   end
 
-  if globalSettings.twoBalls then
+  if globalSettings.twoBalls and not gameStats.realMode then
     gameStats.twoBalls = true
     tfm.exec.chatMessage("<bv>Room Setup: The two-ball mode has been activated<n>", nil)
   end
@@ -202,7 +154,11 @@ function init()
     gameStats.customBallId = indexBall
   end
 
-  if globalSettings.randomMap then
+  if not (gameStats.realMode or gameStats.teamsMode or gameStats.twoTeamsMode or gameStats.threeTeamsMode) then
+    gameStats.setMapName = globalSettings.mapType or ''
+  end
+  local _, availableMapIndices = availableMaps()
+  if globalSettings.randomMap and not gameStats.realMode and #availableMapIndices > 0 then
     gameStats.randomMap = true
     gameStats.isCustomMap = true
     local indexMap = ''
@@ -216,7 +172,7 @@ function init()
     end
 
     if gameStats.twoTeamsMode or gameStats.teamsMode then
-      indexMap = math.random(1, #customMapsFourTeamsMode)
+      indexMap = availableMapIndices[math.random(1, #availableMapIndices)]
       gameStats.customMapIndex = indexMap
       tfm.exec.chatMessage(
         '<bv>' ..
@@ -226,14 +182,14 @@ function init()
         customMapsFourTeamsMode[gameStats.customMapIndex][3] ..
         ' map (created by ' .. customMapsFourTeamsMode[gameStats.customMapIndex][4] .. ') selected randomly<n>')
     elseif gameStats.threeTeamsMode then
-      indexMap = math.random(1, #customMapsThreeTeamsMode)
+      indexMap = availableMapIndices[math.random(1, #availableMapIndices)]
       gameStats.customMapIndex = indexMap
       tfm.exec.chatMessage(
         '<bv>' ..
         customMapsThreeTeamsMode[gameStats.customMapIndex][3] ..
         ' map (created by ' .. customMapsThreeTeamsMode[gameStats.customMapIndex][4] .. ') selected randomly<n>', nil)
     elseif not gameStats.realMode then
-      indexMap = math.random(1, #customMaps)
+      indexMap = availableMapIndices[math.random(1, #availableMapIndices)]
       gameStats.customMapIndex = indexMap
 
       tfm.exec.chatMessage(
@@ -243,7 +199,7 @@ function init()
     end
   end
 
-  if not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realmode and not gameStats.threeTeamsMode then
+  if not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realMode and not gameStats.threeTeamsMode then
     if globalSettings.consumables then
       gameStats.consumables = true
 
@@ -280,6 +236,8 @@ function init()
     playersOnGameHistoric[name] = { teams = {} }
     isPlayerDead[name] = false
     playerPressSpace[name] = false
+    playerOutOfCourt[name] = false
+    showOutOfCourtText[name] = false
 
     --[[
     for i = 1, #keys do
@@ -297,10 +255,7 @@ function init()
       selectMapUI(name)
     end
 
-    if USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
-      ui.addWindow(31, "<p align='center'><font size='13px'><a href='event:settings'>Room settings", name, 180, 370, 150,
-        30, 1, false, false, _)
-    end
+    clubhouse.launcher(name,31)
   end
 
   ui.addWindow(23, "<p align='center'><font size='13px'><a href='event:menuOpen'>Menu", nil, 5, 15, 100, 30, 0.2, false,
@@ -310,7 +265,7 @@ function init()
 
   ui.removeTextArea(0)
 
-  if not gameStats.teamsMode then
+  if not gameStats.teamsMode and not gameStats.threeTeamsMode then
     for i = 1, 3 do
       clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamRed" .. i .. "'>Join", nil, x[i],
         y[i], 150, 40, 0xE14747, 0xE14747, 1, false)
@@ -334,7 +289,7 @@ function init()
 
   afkSystem()
 
-  initGame = os.time() + 25000
+  gameState.lobbyDeadline = os.time() + 25000
 
 end
 

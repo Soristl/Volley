@@ -1,11 +1,18 @@
 function eventNewGame()
+  groundProfile.reset()
+  mapBackgrounds.newGame()
+  gameBalls.forget()
+  showCrownToAllPlayers()
   clubhouse.ballSkins.reset()
   clubhouse.newGame()
   if firstRun then
-    print('first run')
-    initUsersPermissions()
-    lobbyMapConfig()
-    print(USER_PERMISSIONS)
+    local config, reason = readLobbyConfig()
+    if not config then
+      tfm.exec.chatMessage("<r>Lobby configuration error: " .. reason .. ". Waiting for valid XML.<n>", nil)
+      return
+    end
+    initUsersPermissions(config)
+    lobbyMapConfig(config)
     firstRun = false
     if roomCreator.pendingName then
       local pendingName = roomCreator.pendingName
@@ -17,23 +24,25 @@ function eventNewGame()
     end
   end
 
-  if mode == "gameStart" then
+  if autosync then refletzSyncSystem() end
+
+  if gameState.phase == "gameStart" then
+    if gameplayMapMatches() then
+      if not (globalSettings.minimalist and globalSettings.minimalistToggleMap) then
+        if mapBackgrounds.prepare() then return end
+        finishGameplayMapLoad()
+      end
+    else
+      return
+    end
     if globalSettings.minimalist and globalSettings.minimalistToggleMap then
       globalSettings.minimalistToggleMap = false
 
       tfm.exec.chatMessage("<ch>Minimalist mode is enabled, reloading the map to complete the settings.<n>", nil)
 
-      addTimer(function(i) 
-        tfm.exec.newGame(tfm.get.room.xmlMapInfo.xml)
-
-        tfm.exec.addPhysicObject (99999, 800, webY, 
-        {
-          type = 15,
-          width = 3000,
-          height = 100,
-          miceCollision = false,
-          groundCollision = false   
-        })
+      local loadedXML = tfm.get.room.xmlMapInfo.xml
+      addMapLoadTimer(function(i)
+        loadGameplayMap(loadedXML)
       end, 3000, 1)
     end
     showTheScore()
