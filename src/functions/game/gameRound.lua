@@ -54,6 +54,7 @@ do
 
   -- True asks eventLoop to end this tick before advancing timers.
   function gameRound.lobby()
+    if lobbyTransition.active then return true end
     local seconds = math.ceil((gameState.lobbyDeadline - os.time()) / 1000)
     if gameStats.stopTimer then return false end
     gameStats.initTimer = math.max(0, seconds)
@@ -106,12 +107,13 @@ do
   end
 
   function gameRound.ending()
+    if lobbyTransition.active then return end
     if math.ceil((gameState.endDeadline - os.time()) / 1000) <= 0 then
       countMatches = countMatches + 1
       ui.removeTextArea(899899)
       ui.removeTextArea(8998991)
       removeTimer('verifyBallCoordinates')
-      init()
+      init(true)
     end
   end
 end

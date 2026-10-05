@@ -12,6 +12,7 @@ function recordMatchParticipation(stats, name)
   local player = stats[name]
   player.matches = player.matches + 1
   player.winRatio = winRatioPercentage(player.wins, player.matches)
+  rankingCache.invalidate(stats)
 end
 
 function recordMatchVictory(stats, team, roster)
@@ -28,6 +29,7 @@ function recordMatchVictory(stats, team, roster)
       player.wins = player.wins + 1
       player[field] = player[field] + 1
       player.winRatio = winRatioPercentage(player.wins, player.matches)
+      rankingCache.invalidate(stats)
     end
   end
   matchStatistics.finished = true

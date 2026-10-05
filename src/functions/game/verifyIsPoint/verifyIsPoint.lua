@@ -5,5 +5,5 @@ function verifyIsPoint()
     local mode = gameTeams.mode()
     if mode == 'real' then gamePoints.checkReal()
     else gamePoints.check(mode) end
-  end, 500, 0, 'verifyBallCoordinates')
+  end, 1000, 0, 'verifyBallCoordinates')
 end

@@ -6,6 +6,7 @@ function clubhouse.launcher(name, id)
     if (id ~= 23 and clubhouse.hasPanel(player)) or gameState.phase ~= "startGame" then
       clubhouse.clear(player, key);return
     end
+    if lobbyTransition and not lobbyTransition.allowsDraw(player) then return end
     -- Center the label across the complete frame, independently of its icon.
     local buttonY = id == 23 and 22 or b.y
     local area = 95500 + id
@@ -27,13 +28,13 @@ function clubhouse.menu(name)
   clubhouse.endUpdate(name, "menu")
 end
 
-function clubhouse.clearPanels(name)
+function clubhouse.clearPanels(name, skipRestore)
   clubhouse.each(name,function(player)
     for key in pairs(clubhouse.screens) do
       if key ~= "lobby" and key ~= "score" and key ~= "victory" and key ~= "podium" then clubhouse.clear(player,key) end
     end
     clubhouse.launcher(player,23)
-    clubhouse.restoreLobbyControls(player)
+    if not skipRestore then clubhouse.restoreLobbyControls(player) end
   end)
 end
 
@@ -56,6 +57,7 @@ end
 
 function clubhouse.lobby(name)
   if gameState.phase ~= "startGame" then return end
+  if lobbyTransition and not lobbyTransition.allowsDraw(name) then return end
   if name and not tfm.get.room.playerList[name] then return end
   local viewers=clubhouse.lobbyArtworkViewers or {}
   clubhouse.lobbyArtworkViewers=viewers
@@ -95,6 +97,7 @@ function clubhouse.joinArea(id, text, name, x, y, width, height, background, bor
   local action, team
   if event then action, team = event:match("^(%a+)Team(%a+)%d+$") end
   if width ~= 150 or height ~= 40 or not team then
+    if lobbyTransition and not lobbyTransition.allowsDraw(name) then return end
     return ui.addTextArea(id,text,name,x,y,width,height,background,border,alpha,fixed)
   end
   local occupied = action == "leave"
@@ -104,6 +107,7 @@ function clubhouse.joinArea(id, text, name, x, y, width, height, background, bor
   end
   clubhouse.joinAreas[id] = {text=text,x=x,y=y,width=width,height=height,background=background,border=border,alpha=alpha,fixed=fixed}
   clubhouse.each(name,function(player)
+    if lobbyTransition and not lobbyTransition.allowsDraw(player) then return end
     local key="join" .. id
     if clubhouse.hasPanel(player) then clubhouse.clear(player,key);return end
     local signature=text..clubhouse.language(player)..x..":"..y
@@ -134,6 +138,7 @@ function clubhouse.lobbyTimer(name)
       clubhouse.clear(player,"lobbyTimer")
       return
     end
+    if lobbyTransition and not lobbyTransition.allowsDraw(player) then return end
     local state=clubhouse.state(player,"lobbyTimer")
     if state.seconds==gameStats.initTimer and state.areas[7] then return end
     clubhouse.area(player,"lobbyTimer",7,"<p align='center'><font size='18' color='#E3ECE7'>" .. string.format("%d",gameStats.initTimer) .. "</font></p>",375,65,50,25)
@@ -148,6 +153,7 @@ function clubhouse.hideLobbyControls(name)
 end
 
 function clubhouse.restoreLobbyControls(name)
+  if lobbyTransition and not lobbyTransition.allowsDraw(name) then return end
   if not tfm.get.room.playerList[name] or gameState.phase~="startGame" or clubhouse.hasPanel(name) then return end
   clubhouse.lobbyTimer(name)
   for id,r in pairs(clubhouse.joinAreas) do clubhouse.joinArea(id,r.text,name,r.x,r.y,r.width,r.height,r.background,r.border,r.alpha,r.fixed) end

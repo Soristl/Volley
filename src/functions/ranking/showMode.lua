@@ -14,25 +14,23 @@ local function rankingSetPage(name, index, page)
   pages[index][name] = page
 end
 
-function showMode(mode, name)
+function showMode(mode, name, findMe)
   local state = rankingState[name]
   if not state or not openRank[name] then return end
   local selected
   for i, value in ipairs(rankingModes) do if value == mode then selected = i; break end end
   if not selected then return end
-  local updaters = { updateRankingNormalMode, updateRankingTwoTeamsMode, updateRankingThreeTeamsMode, updateRankingFourTeamsMode, updateRankingRealMode }
-  updaters[selected]()
-  local rank = rankMode(mode)
+  local rank = rankingCache.ensure(selected)
+  local ownPosition = rankingCache.position(selected, name)
   local pages = math.max(1, math.ceil(#rank / 8))
   local page = math.max(1, math.min(pages, rankPageMode(mode, name) or 1))
+  if findMe and ownPosition then page = math.ceil(ownPosition / 8) end
   rankingSetPage(name, selected, page)
   playerRankingMode[name] = mode
   state.mode, state.page, state.pages, state.targets = selected, page, pages, {}
   local language = playerLanguage[name].tr
   local text = language.ranking or lang.en.ranking
   local profile = getProfileText(name)
-  local ownPosition
-  for position, player in ipairs(rank) do if player.name == name then ownPosition = position; break end end
   state.ownPosition = ownPosition
 
   clubhouse.panel(name, "ranking")
@@ -116,11 +114,7 @@ function rankingCallback(name, callback)
       showMode(rankingModes[state.mode], name)
     end
   elseif callback == "rankingMe" then
-    showMode(rankingModes[state.mode], name)
-    if state.ownPosition then
-      rankingSetPage(name, state.mode, math.ceil(state.ownPosition / 8))
-      showMode(rankingModes[state.mode], name)
-    end
+    showMode(rankingModes[state.mode], name, true)
   elseif callback:sub(1, 13) == "rankingPlayer" then
     local row = tonumber(callback:sub(14))
     local target = row and state.targets[row]

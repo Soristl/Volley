@@ -36,24 +36,29 @@ clubhouse.strings["navigation.confirm"]={en="Go",fr="Valider",br="Ir",pl="Przejd
 clubhouse.strings["navigation.invalidCompact"]={en="Invalid page (1–{pages}).",fr="Page invalide (1–{pages}).",br="Página inválida (1–{pages}).",pl="Nieprawidłowa strona (1–{pages}).",ar="صفحة غير صالحة (1–{pages})."}
 clubhouse.strings["navigation.erase"]={en="Erase",fr="Effacer",br="Apagar",pl="Usuń",ar="حذف"}
 
+-- Each player's last accepted input; one player's clicks never throttle another.
 clubhouse.inputAt = {}
-clubhouse.inputBudget = {tokens=1, at=0}
 clubhouse.selectionTimers = {}
-function clubhouse.allowInput(name, closing)
+function clubhouse.allowInput(name, closing, callback)
   if not tfm.get.room.playerList[name] then return false end
+  if lobbyTransition and lobbyTransition.blocksInput() then return false end
   local now=os.time()
   if closing then
     if not clubhouse.hasPanel(name) then return false end
-    clubhouse.inputAt[name]=now+1500
+    clubhouse.inputAt[name]=now
     return true
   end
-  if now < (clubhouse.inputAt[name] or 0) then return false end
-  local budget=clubhouse.inputBudget
-  budget.tokens=math.min(1,budget.tokens+math.max(0,now-budget.at)/1500)
-  budget.at=now
-  if budget.tokens<1 then return false end
-  budget.tokens=budget.tokens-1
-  clubhouse.inputAt[name]=now+1500
+  local navigation = callback and (
+    callback:match("^nextSelectMap%d+$") or callback:match("^prevSelectMap%d+$") or
+    callback:match("^nextSelectBall%d+$") or callback:match("^prevSelectBall%d+$") or
+    callback:match("^nextHelp%d+$") or callback:match("^prevHelp%d+$") or
+    callback:match("^nextSettings%d+$") or callback:match("^prevSettings%d+$") or
+    callback:match("^rankingPage%d+$") or
+    callback=="ballCategory:next" or callback=="ballCategory:previous")
+  local delay=navigation and 1000 or 1500
+  -- All controls use the player's own clock. Rejected clicks do not restart it.
+  if now-(clubhouse.inputAt[name] or -math.huge)<delay then return false end
+  clubhouse.inputAt[name]=now
   return true
 end
 
@@ -242,6 +247,26 @@ function clubhouse.label(name, key, region, text, event, color)
   if not r then return end
   local closeIcon = region == "close" and (clubhouse.closeIcons[key] or r.display == "close_icon")
   if closeIcon then r = clubhouse.closeIcons[key] or r end
+  local state = clubhouse.state(name, key)
+  local language = clubhouse.language(name)
+  local translation = not text and clubhouse.strings[r.text_key]
+  local copy = translation and (translation[language] or translation.en) or r.text_key
+  local cached = state.labelCache and state.labelCache[region]
+  local id = state.ids and state.ids[region]
+  local area = id and state.areaSpecs and state.areaSpecs[id]
+  -- Keep one entry per region. Reuse only a still-visible, unchanged owned area;
+  -- hidden/removed areas and changed layouts must follow the normal draw path.
+  if cached and state.areas[id] and area == cached.area and area.text == cached.value
+    and area.signature == cached.signature and cached.text == text and cached.event == event
+    and cached.color == color and cached.language == language and cached.copy == copy
+    and cached.screen == screen and cached.screenX == screen.x and cached.screenY == screen.y
+    and cached.closeIcon == closeIcon and cached.x == r.x and cached.y == r.y
+    and cached.width == r.width and cached.height == r.height and cached.align == r.align
+    and cached.fontSize == r.font_size and cached.regionColor == r.color then
+    if state.drawnAreas then state.drawnAreas[id] = true end
+    return
+  end
+  local sourceRegion = r
   if key == "selector" or key == "selector_balls" then
     local layout={};for field,value in pairs(r) do layout[field]=value end;r=layout
     -- Allow for the native text field's padding inside the thin hosted buttons.
@@ -262,15 +287,21 @@ function clubhouse.label(name, key, region, text, event, color)
       r.y=r.y+3;r.height=20
     else r.y=r.y-3;r.height=20 end
   end
-  local state = clubhouse.state(name, key)
   state.ids = state.ids or {}
   if not state.ids[region] then state.next = (state.next or screen.base) + 1; state.ids[region] = state.next end
   local value = clubhouse.escape(text or clubhouse.text(name, r.text_key))
   if event then value = "<a href='event:" .. clubhouse.escape(event) .. "'>" .. value .. "</a>" end
-  value = "<p align='" .. (closeIcon and "center" or r.align or (clubhouse.language(name) == "ar" and "right" or "left")) .. "'><font face='" ..
-    (not closeIcon and clubhouse.language(name) == "ar" and "Arial" or "Verdana") .. "' size='" .. (r.font_size or 11) .. "' color='" ..
+  value = "<p align='" .. (closeIcon and "center" or r.align or (language == "ar" and "right" or "left")) .. "'><font face='" ..
+    (not closeIcon and language == "ar" and "Arial" or "Verdana") .. "' size='" .. (r.font_size or 11) .. "' color='" ..
     (color or r.color or "#E3ECE7") .. "'>" .. value .. "</font></p>"
   clubhouse.area(name, key, state.ids[region], value, screen.x + r.x, screen.y + r.y, r.width, r.height)
+  area = state.areaSpecs[state.ids[region]]
+  state.labelCache = state.labelCache or {}
+  state.labelCache[region] = {text=text,event=event,color=color,language=language,copy=copy,
+    screen=screen,screenX=screen.x,screenY=screen.y,closeIcon=closeIcon,
+    x=sourceRegion.x,y=sourceRegion.y,width=sourceRegion.width,height=sourceRegion.height,
+    align=sourceRegion.align,fontSize=sourceRegion.font_size,regionColor=sourceRegion.color,
+    area=area,signature=area.signature,value=value}
 end
 
 function clubhouse.closeLabel(name, key, event)
@@ -325,6 +356,7 @@ function clubhouse.choosePage(name,key)
 end
 
 function clubhouse.pageInputCallback(name,callback,keyboard)
+  if lobbyTransition and lobbyTransition.blocksInput() then return end
   local id,action=callback:match("^pageInput:(%d+):(%w+)$")
   local request=clubhouse.pageRequests[name]
   if not request or request.id~=tonumber(id) then return end
@@ -344,7 +376,7 @@ function clubhouse.pageInputCallback(name,callback,keyboard)
     elseif key=="ranking" then rankingCallback(name,"rankingPage"..page)
     elseif key=="settings" and settings[name] and (USER_PERMISSIONS[name] or 1)>=2 then settingsMode[name]=false;pagePlayerSettings[name]=({1,4,2,3})[page];clubhouse.settings(name) end
   elseif action=="back" or action:match("^%d$") then
-    -- Editing touches only two text areas; expensive page redraws keep the shared gate.
+    -- Editing has its own per-request delay; confirmation uses the player's click delay.
     local now=os.time()
     -- Page numbers such as 11 can be typed faster than the click throttle.
     -- Growth is bounded by the page count; erase still uses the throttle.
@@ -359,6 +391,7 @@ end
 
 -- Consume page-entry keys before gameplay, while preserving P/L panel toggles.
 function clubhouse.pageInputKey(name,key,down)
+  if lobbyTransition and lobbyTransition.blocksInput() then return true end
   local request=clubhouse.pageRequests[name]
   if not request or key==KEYS.PROFILE or key==KEYS.RANK then return false end
   if not down then return true end

@@ -1,4 +1,5 @@
 function eventPlayerLeft(name)
+  lobbyTransition.leave(name)
   mapBackgrounds.leave(name)
   clearPlayerTimers(name, true)
   clearPlayerGameplay(name)
@@ -13,11 +14,12 @@ function eventPlayerLeft(name)
   playerLastMatchCount[name] = countMatches
   playerCanTransform[name] = true
   playerInGame[name] = false
+  if lobbyTransition.blocksInput() then clearDepartedPlayerUiState(name);return end
   if gameState.phase == "startGame" then
     updateLobbyTexts(name)
     -- The departing player can still be in playerList during the broadcast.
     clubhouse.clearPlayer(name)
-
+    clearDepartedPlayerUiState(name)
     return
   elseif gameState.phase ~= "startGame" then
     canVote[name] = true
@@ -41,4 +43,5 @@ function eventPlayerLeft(name)
       end
     end
   end
+  clearDepartedPlayerUiState(name)
 end

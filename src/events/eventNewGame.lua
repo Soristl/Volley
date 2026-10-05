@@ -1,4 +1,5 @@
 function eventNewGame()
+  if lobbyTransition.blocksInput() then lobbyTransition.onMapLoaded();return end
   groundProfile.reset()
   mapBackgrounds.newGame()
   gameBalls.forget()
@@ -41,8 +42,9 @@ function eventNewGame()
       tfm.exec.chatMessage("<ch>Minimalist mode is enabled, reloading the map to complete the settings.<n>", nil)
 
       local loadedXML = tfm.get.room.xmlMapInfo.xml
+      local sourceTarget = gameState.map.sourceTarget
       addMapLoadTimer(function(i)
-        loadGameplayMap(loadedXML)
+        loadGameplayMap(loadedXML, sourceTarget)
       end, 3000, 1)
     end
     showTheScore()

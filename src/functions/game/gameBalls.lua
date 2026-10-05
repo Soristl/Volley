@@ -26,8 +26,9 @@ function gameBalls.pointPosition(index)
   local slot = gameState.balls[index]
   local previous = slot and slot.pointPosition
   local elapsed = previous and os.time() - previous.time
-  -- Do not interpolate across pauses, long host stalls or clock resets.
-  if elapsed and elapsed >= 0 and elapsed <= 1000 then return previous end
+  -- Allow one delayed scoring interval at the one-second cadence. Pauses
+  -- clear balls; stale samples and clock resets must not imply a trajectory.
+  if elapsed and elapsed >= 0 and elapsed <= 2000 then return previous end
 end
 
 function gameBalls.deactivate(index)

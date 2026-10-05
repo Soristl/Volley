@@ -1,7 +1,7 @@
-function commandHandlers.cmdBackgroundDiagnostic(name)
-  mapBackgrounds.diagnose(name)
+function commandHandlers.cmdBackgroundDiagnostic(args)
+  mapBackgrounds.diagnose(args[1])
 end
 
-function commandHandlers.cmdBackgroundRefresh(name)
-  mapBackgrounds.refresh(name)
+function commandHandlers.cmdBackgroundRefresh(args)
+  mapBackgrounds.refresh(args[1])
 end

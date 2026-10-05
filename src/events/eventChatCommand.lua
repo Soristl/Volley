@@ -142,6 +142,8 @@ function eventChatCommand(name, c)
   local args = commandHandlers.split(c)
   if not args[1] then return end
   local cmdName = string.lower(args[1])
+  -- Settings and timers cannot mutate a lobby that is still being rebuilt.
+  if lobbyTransition.blocksInput() then return end
   args[1] = name
 
   local userLevel = USER_PERMISSIONS[name] or 1

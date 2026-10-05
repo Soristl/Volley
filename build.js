@@ -10,6 +10,7 @@ const inputs = [
 function build(minify = false) {
 	return combine(inputs, "volley.lua", {
 		delimeterBefore: "--[[ ", delimeterAfter: " ]]--",
+		filter: file => path.extname(file) === ".lua",
 		transform(source) {
 			if (!source.trim()) throw new Error("Empty assembled source")
 			// luamin parses the entire chunk before producing output, including readable builds.

@@ -257,7 +257,7 @@ function commandHandlers.cmdSetPlayerForce(args)
   local name = args[1]
   local force = tonumber(args[2])
 
-  if not force or force < 0 or force > 1.05 then
+  if not force or force ~= force or force < 0 or force > 1.05 then
     tfm.exec.chatMessage('<j>Force must be between 0 and 1.05<n>', name)
     return
   end

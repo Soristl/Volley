@@ -8,4 +8,6 @@ function beginEndGame()
   clearMapPlayerGameplay()
   gameStats.canTransform = false
   gameState.setPhase("endGame")
+  -- Use the existing victory interval without shortening its presentation.
+  if lobbyTransition then lobbyTransition.prime() end
 end

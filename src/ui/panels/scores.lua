@@ -1,6 +1,6 @@
-function clubhouse.drawScores(entries)
+function clubhouse.drawScores(entries,viewer)
   -- Frames and numbers share map coordinates, so neither follows the camera.
-  clubhouse.each(nil,function(player)
+  clubhouse.each(viewer,function(player)
     clubhouse.beginUpdate(player,"score")
     for slot,entry in ipairs(entries) do
       local x = entry.x

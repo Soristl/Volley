@@ -5,9 +5,11 @@ function updateBoundariesFromMap()
   if not xmlInfo or not xmlInfo.xml or xmlInfo.xml == "" then return end
   local xml = xmlInfo.xml
 
-  local mapWidth = tonumber(xml:match('<P[^>]*L="(%d+)"')) or 800
-
-  -- print("[updateBoundaries] GROUND_LINE_Y=" .. GROUND_LINE_Y .. ", mapWidth=" .. mapWidth)
+  -- Use the same XML attribute grammar as spawns and background geometry.
+  -- Quote style or whitespace must not change which team owns a court.
+  local params = xml:match('<P%s+[^>]*>') or ''
+  local mapWidth = mapXml.number(mapXml.attribute(params, 'L'))
+  if not mapWidth or mapWidth <= 0 then mapWidth = 800 end
 
   if gameStats.typeMap == "large4v4" then
     if gameStats.teamsMode then

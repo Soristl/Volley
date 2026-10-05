@@ -99,7 +99,7 @@ function clubhouse.ballCategoryCallback(name,callback)
   selectBallUI(name)
 end
 
--- Update just the five actions when the shared map/ball cooldown expires.
+-- Update just the five actions after a selection or when its cooldown expires.
 function clubhouse.selectorActions(name,isBall,items,indices)
   local key=isBall and "selector_balls" or "selector"
   if not (clubhouse.views[name] and clubhouse.views[name][key]) then return end
@@ -117,6 +117,46 @@ function clubhouse.selectorActions(name,isBall,items,indices)
       if picking then selected=items[index][3]==globalSettings.defaultMap end
       clubhouse.label(name,key,"select_"..i,clubhouse.text(name,selected and (isBall and "ball.selected" or "map.selected") or "action.select"),
         not selected and enabled and ((picking and "setDefaultMap:" or isBall and "setball" or "setmap")..selectedIndex) or nil,selected and "#DEC18A" or enabled and "#E3ECE7" or "#718B83")
+    end
+  end
+end
+
+-- Catalogs are shared during this refresh, while pages and permissions stay personal.
+function clubhouse.refreshSelectorActions(isBall)
+  local key=isBall and "selector_balls" or "selector"
+  local open=isBall and selectBallOpen or selectMapOpen
+  local catalogs={}
+  for name in pairs(tfm.get.room.playerList) do
+    if open[name] and clubhouse.views[name] and clubhouse.views[name][key] then
+      local category=isBall and clubhouse.ballCategory(name).selected or "maps"
+      local catalog=catalogs[category]
+      if not catalog then
+        local items,indices
+        if isBall then items,indices=clubhouse.ballItems(name,category) else items,indices=availableMaps() end
+        catalog={items,indices};catalogs[category]=catalog
+      end
+      clubhouse.selectorActions(name,isBall,catalog[1],catalog[2])
+    end
+  end
+end
+
+-- A vote changes one visible counter and all of the voter's vote permissions.
+-- Keep the panel, previews, category menu and page input owned by their viewer.
+function clubhouse.refreshMapVotes(changedIndex,voter)
+  local items,indices=availableMaps()
+  for name in pairs(tfm.get.room.playerList) do
+    local view=clubhouse.views[name] and clubhouse.views[name].selector
+    if selectMapOpen[name] and view and not view.defaultMapPicker then
+      local page=selectMapPage[name] or 1
+      local enabled=canVote[name] and gameState.phase=="startGame" and not gameStats.realMode
+      for i=1,5 do
+        local index=(page-1)*5+i
+        local mapIndex=indices[index]
+        if items[index] and (name==voter or mapIndex==changedIndex) then
+          clubhouse.label(name,"selector","vote_"..i,clubhouse.text(name,"action.vote",{count=showMapVotes(items,mapIndex)}),
+            enabled and "votemap"..mapIndex or nil,enabled and "#E3ECE7" or "#718B83")
+        end
+      end
     end
   end
 end

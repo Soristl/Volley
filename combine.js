@@ -12,7 +12,7 @@ function filesAt(input) {
 }
 
 function assemble(input, options = {}) {
-	const files = input.flatMap(filesAt)
+	const files = input.flatMap(filesAt).filter(options.filter || (() => true))
 	if (!files.length) throw new Error("No source files")
 	return files.map((file, index) => {
 		const source = fs.readFileSync(file, "utf8")

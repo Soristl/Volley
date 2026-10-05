@@ -250,14 +250,7 @@ function commandHandlers.cmdVoteMap(args)
   mapsVotes[indexMap] = (mapsVotes[indexMap] or 0) + 1
   gameStats.totalVotes = gameStats.totalVotes + 1
 
-  -- Update UI for voters
-  -- The UI system needs to be reviewed too.
-  -- It looks so verbose and inefficient. @Vit0rg
-  for n, _ in pairs(tfm.get.room.playerList) do
-    if selectMapPage[name] == selectMapPage[n] and selectMapOpen[n] then
-      selectMapUI(n)
-    end
-  end
+  clubhouse.refreshMapVotes(indexMap,name)
 
   verifyMostMapVoted()
 

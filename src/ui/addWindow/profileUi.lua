@@ -32,16 +32,13 @@ function updateProfileMode(name, index)
   state.mode = index
   local text = getProfileText(name)
   local sources = { playersNormalMode, playersTwoTeamsMode, playersThreeTeamsMode, playersFourTeamsMode, playersRealMode }
-  local updaters = { updateRankingNormalMode, updateRankingTwoTeamsMode, updateRankingThreeTeamsMode, updateRankingFourTeamsMode, updateRankingRealMode }
-  local modeNames = { "Normal mode", "2 teams mode", "3 teams mode", "4 teams mode", "Real mode" }
   local stats = sources[index][state.target] or {}
   local matches, wins = stats.matches or 0, stats.wins or 0
   local position = "—"
-  updaters[index]()
+  rankingCache.ensure(index)
   if matches > 0 then
-    for rank, player in ipairs(rankMode(modeNames[index])) do
-      if player.name == state.target then position = "#" .. rank; break end
-    end
+    local rank = rankingCache.position(index, state.target)
+    if rank then position = "#" .. rank end
   end
   profileArea(8707, "", name, 550, 68, 132, 54, 0x102323, 1, 0x795D36)
   profileArea(8705, "<p align='center'><font face='Georgia' size='26' color='#DEC18A'>" .. position .. "</font></p>", name, 556, 68, 120, 33)

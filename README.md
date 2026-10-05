@@ -56,7 +56,105 @@ Images and text areas are tracked per viewer and panel. Closing a panel, switchi
 
 Settings callbacks verify permissions and option indexes. The sync chooser handles zero to five candidates without indexing missing players. Existing Room Creator protection, profile lookup, trophies, ranking order and panel-opening cooldowns are preserved.
 
-Build with `npm run build` or `npm run minify`. Local checks cover Lua 5.1 compilation, interface transitions, all languages, selector permissions, JOIN layouts, trophy ownership, image cleanup and Room Creator permission scenarios. These checks use mocked Transformice APIs: visual layering, native font metrics and mouse interaction still require a client test.
+Click throttles are per player for every control, including Maps / Balls,
+Settings, Menu, votes and the page-number chooser. Navigation keeps its 1000 ms
+delay, other actions 1500 ms, and reopening the same panel 2000 ms. Closing stays
+immediate. Rejected panel-opening retries do not extend the accepted-click clock.
+
+Profile and ranking cleanup removes their registered text areas once. Closing all
+panels restores lobby controls once after their state has been cleared, avoiding
+redundant removals and restores during the return to the lobby.
+
+Completed matches and `!lobby` use a staged return. During the existing five-second
+victory interval, non-match panels are cleaned in batches; the victory, score,
+podium, crowns and court remain visible. At its deadline the lobby is requested
+immediately. Its confirmed delivery draws the shared artwork, then complete
+personal controls are rebuilt for at most four players per 500 ms pass. A batch
+also yields after a completed job if three milliseconds of elapsed time have
+passed. This is a cooperative elapsed-time hint, not a measurement or guarantee
+of Transformice's CPU quota. Existing images, coordinates and click cooldowns
+are preserved. The initial script load keeps its existing startup path.
+
+The 25-second lobby countdown starts when all queued controls are ready. Menus
+and commands are suspended during this preparation; arrivals and
+reconnections join the same queue, and departures invalidate their old jobs.
+A new map delivery during drawing restarts preparation with fresh image handles.
+Ordinary direct initialization or an explicit gameplay map load cancels old work.
+With immediate simulated map delivery and no host-call execution cost, the
+additional delay after the victory interval is 1 second for 8 players, 2.5 seconds
+for 20 and 4 seconds for 30. Actual map loading and earlier time-budget yields
+can extend it. The full transition still needs live server runtime validation.
+
+Switching between Maps, Balls and Settings keeps the lobby controls hidden until
+the destination panel is drawn. This avoids 60 temporary native UI/image calls
+per tested switch without changing the final panel or its previews. Labels also
+reuse their formatted output while their inputs, geometry, language and owned
+text area remain unchanged; the cache is discarded with its panel.
+
+Build with `npm run build` or `npm run minify`. Use `npm run watch` while editing the Lua sources.
+
+## Production script
+
+The generated `volley.lua` contains no optional performance profiler or event measurement
+wrappers. The temporary regression tests used during development are kept outside this
+repository and are never included in the game script. Map commands
+`!np` / `!test`, personal background options and background refresh remain
+available. Invalid XML warnings are retained to explain unusable map data.
+
+## Maintenance boundaries
+
+When a player hides map backgrounds in Advanced Options, reviewed invisible
+floors use fourteen hosted material textures from `ui/floorVisuals.lua`. Native
+XML material types keep their appearance; generic types 12/14 use visual
+categories based on restitution and friction (trampoline, ice, chocolate, wood).
+The artwork follows the XML center, size and rotation, with one image per floor
+for that viewer. Physics coefficients and scoring eligibility remain unchanged.
+Snowy Mountains slopes have separate rendering eligibility. Unsupported material
+types retain the neutral fallback. The texture identifiers and rendering dimensions are embedded in `ui/floorVisuals.lua`.
+
+| Concern | Owner |
+| --- | --- |
+| Match phases and map readiness | `gameState`, `gameRound`, `gameMaps` |
+| Team membership and positions | `gameTeams` |
+| Timer membership, label lookup and cancellation | `timer.lua` |
+| Statistics and immutable ranking snapshots | `matchStatistics`, `rankingCache` |
+| UI ownership and validated callbacks | `clubhouse`, `panels/lifecycle.lua` |
+
+Timer removal must use the scheduler API so its label index and iteration
+snapshot stay consistent. Duplicate labels resolve to the earliest live timer;
+removing a label removes all its timers. A callback may create/cancel timers or
+reenter the loop, so never mutate an iteration snapshot in place.
+
+Rosters retain their table identity when reset. Ranking updates create new
+arrays and rows because an active match may still use the previous crown
+snapshot. UI-only state can be cleared on departure; session statistics,
+permissions and deliberate reconnection guards must not be discarded with it.
+
+Assign a roster slot whenever a player becomes active. Match participation scans
+these bounded rosters and checks the gameplay flag, including departures still
+pending their callback; it must not scan every player from the session history.
+Team changes and reconnects still count once per match.
+
+Map loading keeps the requested target separate from its original published
+identity. A minimalist XML reload must preserve that identity for map helpers
+and background lookup while matching the XML that was actually requested.
+The Real Mode serve lock prevents transformations, but natural deaths still
+receive their normal recovery timer while the gameplay map is ready.
+
+Ball scoring, player spawns, court borders and floor artwork intentionally have
+different XML eligibility rules. Keep their geometry and collision decisions
+separate. A refactor should compare effects with the old implementation and
+include the lifecycle transitions it touches, not only the ordinary path.
+
+Scoring samples run every 1000 ms. Consecutive positions remain eligible for
+interpolation for at most 2000 ms; ball replacement, pause and map changes still
+invalidate the old trajectory. This reduces scoring checks, not every eventLoop
+task, and can increase the delay before a point is displayed.
+
+The nine Myzk XL courts now place their invisible ball catcher at Y1100 (top 1095)
+with zero ground restitution. All 45 hosted layouts have their new user-provided
+map codes registered, including Crystal Rift 3T at @7985453. Static background
+aliases preserve the existing art for all 54 prepared XML layouts.
 
 ## 💻 Project
 

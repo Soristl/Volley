@@ -1,5 +1,6 @@
 function eventNewPlayer(name)
   if type(name) ~= 'string' or not tfm.get.room.playerList[name] then return end
+  lobbyTransition.leave(name) -- A reconnect invalidates work for the former connection.
   clearPlayerTimers(name, false)
   clearPlayerGameplay(name)
   removePlayerTrophy(name)
@@ -101,6 +102,8 @@ function eventNewPlayer(name)
     playersThreeTeamsMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0, winsGreen = 0 }
     playersTwoTeamsMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
     playersRealMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
+    -- Even an unranked insertion can change pairs ordering for exact ties.
+    rankingCache.invalidateAll()
 
     --[[
       This could also  all be inside one single table:
@@ -147,6 +150,14 @@ function eventNewPlayer(name)
     isPlayerDead[name] = false
   end
 
+  if lobbyTransition.blocksInput() then
+    lobbyTransition.enqueue(name)
+    tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
+    tfm.exec.chatMessage("<j>#Volley Version: " .. gameVersion .. "<n>", name)
+    tfm.exec.chatMessage("<ce>Join our #Volley Discord server: https://discord.com/invite/pWNTesmNhu<n>", name)
+    return
+  end
+
   ui.addWindow(23, "<p align='center'><font size='13px'><a href='event:menuOpen'>Menu", name, 5, 15, 100, 30, 0.2, false, false, _)
   tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
 
@@ -160,7 +171,12 @@ function eventNewPlayer(name)
     clubhouse.launcher(name,31)
   elseif gameState.phase ~= "startGame" then
     tfm.exec.chatMessage("<ch>If you don't want to see the ranking crowns, type the command !crown false<n>", name)
-    showTheScore()
+    -- Transitional maps can leave every viewer's score pending a redraw.
+    if not isGameplayMapReady() or getTimerId('delayToToggleMap') then
+      showTheScore()
+    else
+      showTheScore(name)
+    end
     teleportPlayersToSpecWithSpecificSpawn(name)
 
     tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage2, name)

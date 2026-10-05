@@ -676,28 +676,28 @@ local published = {
   ["@7985215"] = catalog["871847179-59673-48"],
   ["@7985212"] = catalog["1189579043-23182-34"],
   ["@7985213"] = catalog["1258496599-30784-37"],
-  ["@7984775"] = catalog["1083277023-3767-47"],
-  ["@7984776"] = catalog["987540983-6330-47"],
+  ["@7985409"] = catalog["1083277023-3767-47"],
+  ["@7985410"] = catalog["987540983-6330-47"],
   ["@7984639"] = catalog["1229807852-10305-47"],
-  ["@7984777"] = catalog["395127669-30380-56"],
-  ["@7984778"] = catalog["196709261-64437-45"],
-  ["@7984779"] = catalog["750588942-63816-45"],
-  ["@7984782"] = catalog["1346157954-39480-59"],
-  ["@7984783"] = catalog["1795429764-5001-47"],
-  ["@7984781"] = catalog["390912037-62809-44"],
-  ["@7984784"] = catalog["1951992032-4239-47"],
-  ["@7984780"] = catalog["462302972-59733-44"],
+  ["@7985411"] = catalog["395127669-30380-56"],
+  ["@7985412"] = catalog["196709261-64437-45"],
+  ["@7985413"] = catalog["750588942-63816-45"],
+  ["@7985416"] = catalog["1346157954-39480-59"],
+  ["@7985417"] = catalog["1795429764-5001-47"],
+  ["@7985415"] = catalog["390912037-62809-44"],
+  ["@7985418"] = catalog["1951992032-4239-47"],
+  ["@7985414"] = catalog["462302972-59733-44"],
   ["@7984661"] = catalog["1702101070-65391-44"],
-  ["@7985111"] = catalog["1910353760-63347-44"],
-  ["@7985112"] = catalog["199550533-21885-30"],
-  ["@7985113"] = catalog["387200682-46857-60"],
-  ["@7985114"] = catalog["813728279-1893-45"],
-  ["@7985115"] = catalog["1712816736-1392-45"],
-  ["@7984785"] = catalog["159660057-27943-57"],
-  ["@7984786"] = catalog["1133663579-30597-57"],
-  ["@7984787"] = catalog["965028882-27918-59"],
-  ["@7984788"] = catalog["1077929057-62970-47"],
-  ["@7984789"] = catalog["1341724065-61047-47"],
+  ["@7985419"] = catalog["1910353760-63347-44"],
+  ["@7985420"] = catalog["199550533-21885-30"],
+  ["@7985421"] = catalog["387200682-46857-60"],
+  ["@7985422"] = catalog["813728279-1893-45"],
+  ["@7985423"] = catalog["1712816736-1392-45"],
+  ["@7985424"] = catalog["159660057-27943-57"],
+  ["@7985425"] = catalog["1133663579-30597-57"],
+  ["@7985426"] = catalog["965028882-27918-59"],
+  ["@7985427"] = catalog["1077929057-62970-47"],
+  ["@7985428"] = catalog["1341724065-61047-47"],
 }
 catalog["511300641-6322-52"].width = 1600
 catalog["511300641-6322-52"].height = 400
@@ -1216,31 +1216,31 @@ catalog["2047857447-48301-40"] = {["pieces"]={[1]={[1]="1a0f83a30fc.png",[2]=-93
 catalog["1290976541-39740-39"] = {["pieces"]={[1]={[1]="1a0da069b52.png",[2]=-1380,[3]=-1000,[4]=1},[2]={[1]="1a0da091b53.png",[2]=-290,[3]=-1000,[4]=1},[3]={[1]="1a0da062770.png",[2]=-1380,[3]=200,[4]=1},[4]={[1]="1a0da08bd9b.png",[2]=800,[3]=-1000,[4]=1},[5]={[1]="1a0da05c7fa.png",[2]=800,[3]=200,[4]=1},[6]={[1]="1a0f839747c.png",[2]=367.7314211212516,[3]=249.02216427640155,[4]=0.0651890482398957},[7]={[1]="1a0f839747c.png",[2]=767.7314211212516,[3]=249.02216427640155,[4]=0.0651890482398957},[8]={[1]="1a0f839747c.png",[2]=1167.7314211212515,[3]=249.02216427640155,[4]=0.0651890482398957}},["width"]=1600.0,["height"]=400.0}
 catalog["947432607-7939-27"] = {["pieces"]={[1]={[1]="1a0da6335f7.png",[2]=-1380,[3]=-1000,[4]=1},[2]={[1]="1a0da637c42.png",[2]=-1380,[3]=200,[4]=1},[3]={[1]="1a0da631e7a.png",[2]=600,[3]=-1000,[4]=1},[4]={[1]="1a0da6364cf.png",[2]=600,[3]=200,[4]=1},[5]={[1]="1a0f839747c.png",[2]=366.76336375488916,[3]=248.9928292046936,[4]=0.06714471968709257},[6]={[1]="1a0f839747c.png",[2]=766.7633637548892,[3]=248.9928292046936,[4]=0.06714471968709257}},["width"]=1200.0,["height"]=400.0}
 catalog["1818935705-57608-21"] = {["pieces"]={[1]={[1]="1a0cfe19b6a.png",[2]=-1380,[3]=-1000,[4]=1},[2]={[1]="1a0cfe311cc.png",[2]=-1380,[3]=200,[4]=1},[3]={[1]="1a0cfe39e5d.png",[2]=400,[3]=-1000,[4]=1},[4]={[1]="1a0cfe29c95.png",[2]=400,[3]=200,[4]=1},[5]={[1]="1a0f839747c.png",[2]=367.7314211212516,[3]=250.02216427640155,[4]=0.0651890482398957}},["width"]=800.0,["height"]=400.0}
-published["@7984790"] = catalog["2074728831-42326-38"]
-published["@7984791"] = catalog["1273590666-10080-25"]
-published["@7984792"] = catalog["1145050908-40142-53"]
-published["@7984793"] = catalog["907925187-725-41"]
-published["@7984794"] = catalog["1691160087-394-41"]
-published["@7984795"] = catalog["1730966166-46233-40"]
-published["@7984796"] = catalog["458222008-26071-32"]
-published["@7984797"] = catalog["1705202265-26455-56"]
-published["@7984798"] = catalog["984482707-61743-44"]
-published["@7984799"] = catalog["507428460-58064-44"]
-published["@7984800"] = catalog["767753377-48959-40"]
-published["@7984801"] = catalog["998373879-22995-31"]
-published["@7984802"] = catalog["66756022-20743-53"]
-published["@7984803"] = catalog["966837684-54975-42"]
-published["@7984804"] = catalog["76088704-54372-42"]
-published["@7984805"] = catalog["1217429391-47988-40"]
-published["@7984806"] = catalog["171090748-30688-33"]
-published["@7984807"] = catalog["422089550-31232-57"]
-published["@7984808"] = catalog["64782262-1156-45"]
-published["@7984809"] = catalog["1954301682-62190-45"]
-published["@7984769"] = catalog["1154021664-41050-38"]
-published["@7984770"] = catalog["1518405818-27700-33"]
-published["@7984771"] = catalog["979178964-30070-57"]
-published["@7984772"] = catalog["1701076885-62009-45"]
-published["@7984773"] = catalog["1412787987-61468-45"]
+published["@7985429"] = catalog["2074728831-42326-38"]
+published["@7985430"] = catalog["1273590666-10080-25"]
+published["@7985431"] = catalog["1145050908-40142-53"]
+published["@7985432"] = catalog["907925187-725-41"]
+published["@7985433"] = catalog["1691160087-394-41"]
+published["@7985434"] = catalog["1730966166-46233-40"]
+published["@7985435"] = catalog["458222008-26071-32"]
+published["@7985436"] = catalog["1705202265-26455-56"]
+published["@7985437"] = catalog["984482707-61743-44"]
+published["@7985438"] = catalog["507428460-58064-44"]
+published["@7985439"] = catalog["767753377-48959-40"]
+published["@7985440"] = catalog["998373879-22995-31"]
+published["@7985441"] = catalog["66756022-20743-53"]
+published["@7985453"] = catalog["966837684-54975-42"]
+published["@7985442"] = catalog["76088704-54372-42"]
+published["@7985443"] = catalog["1217429391-47988-40"]
+published["@7985444"] = catalog["171090748-30688-33"]
+published["@7985445"] = catalog["422089550-31232-57"]
+published["@7985446"] = catalog["64782262-1156-45"]
+published["@7985447"] = catalog["1954301682-62190-45"]
+published["@7985448"] = catalog["1154021664-41050-38"]
+published["@7985449"] = catalog["1518405818-27700-33"]
+published["@7985450"] = catalog["979178964-30070-57"]
+published["@7985451"] = catalog["1701076885-62009-45"]
+published["@7985452"] = catalog["1412787987-61468-45"]
 published["@7984900"] = catalog["1327270132-65364-24"]
 published["@7985231"] = catalog["966444991-49547-44"]
 published["@7984877"] = catalog["1545905817-821-24"]
@@ -1272,6 +1272,63 @@ published["@7985245"] = catalog["969611748-13931-29"]
 published["@7985246"] = catalog["122964921-14474-29"]
 published["@7985247"] = catalog["1499850571-53211-44"]
 published["@7985248"] = catalog["1086810883-32255-36"]
+
+-- BEGIN Myzk lowered-catcher background aliases
+catalog["1049806518-48996-40"] = published["@7985439"] -- Crystal Rift / normal_small
+catalog["1059072731-27737-33"] = published["@7985449"] -- Orbital Station / normal_large
+catalog["1075748374-39517-59"] = published["@7985416"] -- Neon Reactor / two
+catalog["1157952105-62846-44"] = published["@7985415"] -- Neon Reactor / normal_large
+catalog["1171718915-64378-45"] = published["@7985412"] -- Sky Temple / three
+catalog["1205044676-10246-47"] = catalog["1229807852-10305-47"] -- Sky Temple / normal_xl
+catalog["1222244804-26108-32"] = published["@7985435"] -- Magma Forge / normal_large
+catalog["1234808513-6271-47"] = published["@7985410"] -- Sky Temple / normal_large
+catalog["1275534270-27955-59"] = published["@7985426"] -- Abyssal Tide / two
+catalog["134631325-59770-44"] = published["@7985414"] -- Neon Reactor / normal_small
+catalog["1398466806-30321-56"] = published["@7985411"] -- Sky Temple / two
+catalog["1434834853-46656-60"] = published["@7985421"] -- Black Hole / two
+catalog["1444996007-40179-53"] = published["@7985431"] -- Storm Core / two
+catalog["1456495753-1193-45"] = published["@7985446"] -- Rose Garden / three
+catalog["1494623454-62227-45"] = published["@7985447"] -- Rose Garden / four_three
+catalog["1557538685-65428-44"] = catalog["1702101070-65391-44"] -- Neon Reactor / normal_xl
+catalog["155760905-5038-47"] = published["@7985417"] -- Neon Reactor / three
+catalog["159308069-4276-47"] = published["@7985418"] -- Neon Reactor / four_three
+catalog["1593871025-26492-56"] = published["@7985436"] -- Magma Forge / two
+catalog["1594759802-10240-25"] = catalog["1005367829-10203-25"] -- Storm Core / normal_xl
+catalog["1610631496-31269-57"] = published["@7985445"] -- Rose Garden / two
+catalog["1706816881-27855-32"] = catalog["386679188-27818-32"] -- Magma Forge / normal_xl
+catalog["1712080561-63757-45"] = published["@7985413"] -- Sky Temple / four_three
+catalog["1737353348-54409-42"] = published["@7985442"] -- Crystal Rift / four_three
+catalog["1771095193-4600-46"] = published["@7985422"] -- Black Hole / three
+catalog["1817984106-20780-53"] = published["@7985441"] -- Crystal Rift / two
+catalog["1838298683-30634-57"] = published["@7985425"] -- Abyssal Tide / normal_large
+catalog["1845722808-61084-47"] = published["@7985428"] -- Abyssal Tide / four_three
+catalog["1892853333-30107-57"] = published["@7985450"] -- Orbital Station / two
+catalog["1913737348-27980-57"] = published["@7985424"] -- Abyssal Tide / normal_small
+catalog["1960013262-28184-33"] = catalog["490462914-28147-33"] -- Orbital Station / normal_xl
+catalog["1988200167-55012-42"] = published["@7985453"] -- Crystal Rift / three
+catalog["2049659322-30725-33"] = published["@7985444"] -- Rose Garden / normal_large
+catalog["2079887264-61505-45"] = published["@7985452"] -- Orbital Station / four_three
+catalog["209440766-41087-38"] = published["@7985448"] -- Orbital Station / normal_small
+catalog["263422715-23032-31"] = published["@7985440"] -- Crystal Rift / normal_large
+catalog["365057822-42363-38"] = published["@7985429"] -- Storm Core / normal_small
+catalog["43018101-46270-40"] = published["@7985434"] -- Magma Forge / normal_small
+catalog["437739133-24829-31"] = catalog["2038814688-24792-31"] -- Black Hole / normal_xl
+catalog["508284543-23476-31"] = catalog["226361810-23439-31"] -- Crystal Rift / normal_xl
+catalog["600161169-58101-44"] = published["@7985438"] -- Magma Forge / four_three
+catalog["657816765-24583-31"] = published["@7985420"] -- Black Hole / normal_large
+catalog["665444351-63007-47"] = published["@7985427"] -- Abyssal Tide / three
+catalog["711822481-32113-33"] = catalog["1010591868-32076-33"] -- Rose Garden / normal_xl
+catalog["721521547-762-41"] = published["@7985432"] -- Storm Core / three
+catalog["764817311-10117-25"] = published["@7985430"] -- Storm Core / normal_large
+catalog["765418331-32810-57"] = catalog["873333026-32773-57"] -- Abyssal Tide / normal_xl
+catalog["788843255-479-45"] = published["@7985419"] -- Black Hole / normal_small
+catalog["824567480-431-41"] = published["@7985433"] -- Storm Core / four_three
+catalog["834340717-62046-45"] = published["@7985451"] -- Orbital Station / three
+catalog["887062449-48025-40"] = published["@7985443"] -- Rose Garden / normal_small
+catalog["889198566-3708-47"] = published["@7985409"] -- Sky Temple / normal_small
+catalog["906081015-4090-46"] = published["@7985423"] -- Black Hole / four_three
+catalog["911373147-61780-44"] = published["@7985437"] -- Magma Forge / three
+-- END Myzk lowered-catcher background aliases
 
 local active, personal, shown = nil, {}, {}
 local hidden, broadcast = {}, nil
@@ -1366,7 +1423,10 @@ local function drawCourtBorders(xml, width, height)
   mapBackgrounds.showBorders()
 end
 
+-- Keep only the last exact XML; published codes still bypass this fallback.
+local lastGeometryXML, lastGeometryKey
 local function geometryKey(xml)
+  if xml == lastGeometryXML then return lastGeometryKey end
   local params = xml:match('<P%s+[^>]*>') or ''
   local values = {(mapXml.attribute(params, 'L') or '800') .. '|' ..
     (mapXml.attribute(params, 'H') or '400') .. ';'}
@@ -1384,7 +1444,9 @@ local function geometryKey(xml)
     hash = (hash * 31 + byte) % 2147483647
     check = (check + byte) % 65521
   end
-  return string.format('%.0f-%.0f-%d', hash, check, count)
+  local key = string.format('%.0f-%.0f-%d', hash, check, count)
+  lastGeometryXML, lastGeometryKey = xml, key
+  return key
 end
 
 function mapBackgrounds.newGame()
@@ -1499,29 +1561,33 @@ function mapBackgrounds.prepare()
   noBorders = noBorders or code == '@7984904' or code == '@7984905'
     or code == '@7984906' or code == '@7984907'
   -- Match live catalog targets so exclusions follow map reuploads and mode variants.
-  local excludedNames = {['quad cannons']=true, ['top player']=true,
-    chaos=true, lacostes=true, handball=true, squad=true}
-  for _, maps in ipairs({customMaps, customMapsThreeTeamsMode, customMapsFourTeamsMode}) do
-    for _, map in ipairs(maps) do
-      local name = type(map[3]) == 'string' and map[3]:lower() or ''
-      local allVariants = excludedNames[name] or name:find('soccer', 1, true)
-      local dustyTwoAlive = maps == customMapsFourTeamsMode and name == 'dusty journey'
-      if allVariants or dustyTwoAlive then
-        for _, slot in ipairs({1, 2, 5, 'twoTeams', 'extraLarge'}) do
-          local target = (allVariants or slot == 5) and map[slot]
-          if type(target) == 'string' and (target == code or target == info.xml
-            or (entry and published[target] == entry)) then
-            noBorders = true
+  if not noBorders then
+    local excludedNames = {['quad cannons']=true, ['top player']=true,
+      chaos=true, lacostes=true, handball=true, squad=true}
+    for _, maps in ipairs({customMaps, customMapsThreeTeamsMode, customMapsFourTeamsMode}) do
+      for _, map in ipairs(maps) do
+        local name = type(map[3]) == 'string' and map[3]:lower() or ''
+        local allVariants = excludedNames[name] or name:find('soccer', 1, true)
+        local dustyTwoAlive = maps == customMapsFourTeamsMode and name == 'dusty journey'
+        if allVariants or dustyTwoAlive then
+          for _, slot in ipairs({1, 2, 5, 'twoTeams', 'extraLarge'}) do
+            local target = (allVariants or slot == 5) and map[slot]
+            if type(target) == 'string' and (target == code or target == info.xml
+              or (entry and published[target] == entry)) then
+              noBorders = true
+              break
+            end
           end
         end
+        if noBorders then break end
       end
+      if noBorders then break end
     end
   end
   if not noBorders then drawCourtBorders(info.xml, width, height) end
   if globalSettings.minimalist then status = "minimalist enabled"; return false end
   if not entry then status = "no complete background for this map"; return false end
-  if (tonumber(mapXml.attribute(params, 'L')) or 800) ~= entry.width
-    or (tonumber(mapXml.attribute(params, 'H')) or 400) ~= entry.height then
+  if width ~= entry.width or height ~= entry.height then
     status = "map dimensions differ from the export"; return false
   end
   -- Add artwork only. Preserve the native XML, backgrounds and ground visibility.

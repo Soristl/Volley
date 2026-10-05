@@ -1,4 +1,5 @@
-function showTheScore()
+function showTheScore(viewer)
+  -- Arrivals render only their own panel; phase cleanup remains room-wide.
   if gameState.phase ~= "gameStart" then clubhouse.clear(nil,"score");return end
   -- Retire the old map-relative score textareas, including Real Mode counters.
   for _,id in ipairs({0,1,899899,8998991}) do ui.removeTextArea(id) end
@@ -35,5 +36,5 @@ function showTheScore()
     add(gameState.scores.red,colors.red,positions[1])
     add(gameState.scores.blue,colors.blue,positions[2])
   end
-  clubhouse.drawScores(entries)
+  clubhouse.drawScores(entries,viewer)
 end

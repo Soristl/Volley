@@ -1,7 +1,33 @@
 -- Timers are iterated through a snapshot: callbacks may cancel or create timers.
 -- IDs are never reused, so an old UI/player handle cannot cancel a newer timer.
 do -- Keep private timer locals out of the assembled chunk's 200-local limit.
-local timerState = { active = {}, nextId = 0, round = 0, disconnected = {} }
+local timerState = { active = {}, labels = {}, nextId = 0, round = 0, disconnected = {} }
+
+-- All removals share this path so label lookups and snapshots agree.
+local function deleteTimer(id)
+  local timer = timerState.active[id]
+  if not timer then return false end
+  timerState.active[id] = nil
+  timerState.snapshot = nil
+  if type(timer.label) == 'string' then
+    local ids = timerState.labels[timer.label]
+    for index = #ids, 1, -1 do
+      if ids[index] == id then table.remove(ids, index); break end
+    end
+    if #ids == 0 then timerState.labels[timer.label] = nil end
+  end
+  return true
+end
+
+local function timerSnapshot()
+  if not timerState.snapshot then
+    local ids = {}
+    for id in pairs(timerState.active) do ids[#ids + 1] = id end
+    table.sort(ids)
+    timerState.snapshot = ids
+  end
+  return timerState.snapshot
+end
 
 local function sampleTimerTime(timer, now)
   local elapsed = math.max(0, now - timer.lastTime)
@@ -20,13 +46,20 @@ end
 -- LuaJ may reject next(table, key) after that key has been removed.
 -- Collect matches without mutation, then delete after iteration has finished.
 function removeTimersMatching(field, value)
+  if field == 'label' and type(value) == 'string' then
+    local ids = timerState.labels[value]
+    if not ids then return false end
+    -- Remove from the end: duplicate labels retain increasing ID order.
+    for index = #ids, 1, -1 do deleteTimer(ids[index]) end
+    return true
+  end
   local pending = {}
   for id, timer in pairs(timerState.active) do
     if (value == nil and timer[field] ~= nil) or (value ~= nil and timer[field] == value) then
       pending[#pending + 1] = id
     end
   end
-  for _, id in ipairs(pending) do timerState.active[id] = nil end
+  for _, id in ipairs(pending) do deleteTimer(id) end
   return #pending > 0
 end
 
@@ -47,9 +80,11 @@ function setGameplayTimersPaused(paused)
   timerState.gameplayPaused = paused
 end
 
-function loadGameplayMap(target)
+function loadGameplayMap(target, sourceTarget)
+  if lobbyTransition and lobbyTransition.blocksInput() then lobbyTransition.cancel() end
   gameState.map.target = target
-  gameState.map.sourceTarget = target
+  -- Reloaded XML still belongs to the published map that supplied its helpers.
+  gameState.map.sourceTarget = sourceTarget or target
   tfm.exec.newGame(target)
 end
 
@@ -95,6 +130,12 @@ function addTimer(callback, ms, loops, label, ...)
     arguments = { n = select('#', ...), ... }, currentTime = 0,
     currentLoop = 0, isPaused = false, lastTime = os.time()
   }
+  if type(label) == 'string' then
+    local ids = timerState.labels[label] or {}
+    timerState.labels[label] = ids
+    ids[#ids + 1] = id
+  end
+  timerState.snapshot = nil
   return id
 end
 
@@ -119,6 +160,10 @@ function clearPlayerTimers(name, disconnected)
 end
 
 function getTimerId(label)
+  if type(label) == 'string' then
+    local ids = timerState.labels[label]
+    return ids and ids[1]
+  end
   local first
   for id, timer in pairs(timerState.active) do
     if timer.label == label and (not first or id < first) then first = id end
@@ -148,9 +193,8 @@ function removeTimer(id)
   if type(id) == 'string' then
     return removeTimersMatching('label', id)
   end
-  if id == nil or not timerState.active[id] then return false end
-  timerState.active[id] = nil
-  return true
+  if id == nil then return false end
+  return deleteTimer(id)
 end
 
 function clearRoundTimers()
@@ -165,13 +209,15 @@ function clearTimers()
   gameState.resetMap()
   timerState.round = timerState.round + 1
   timerState.active = {}
+  timerState.labels = {}
+  timerState.snapshot = nil
 end
 
 function timersLoop()
   local now = os.time()
-  local pending = {}
-  for id in pairs(timerState.active) do pending[#pending + 1] = id end
-  table.sort(pending)
+  -- Each invocation keeps its own immutable list. Callbacks only invalidate
+  -- the cache, so additions still wait for the next invocation (even nested).
+  local pending = timerSnapshot()
   for _, id in ipairs(pending) do
     local timer = timerState.active[id]
     if timer then sampleTimerTime(timer, now) end
@@ -183,7 +229,7 @@ function timersLoop()
         timer.currentTime = 0
         timer.currentLoop = timer.currentLoop + 1
         local complete = timer.loops > 0 and timer.currentLoop >= timer.loops
-        if complete then timerState.active[id] = nil end
+        if complete then deleteTimer(id) end
         if timer.callback then
           timer.callback(timer.currentLoop, (table.unpack or unpack)(timer.arguments, 1, timer.arguments.n))
         end

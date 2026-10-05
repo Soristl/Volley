@@ -1,8 +1,12 @@
-function init()
+function init(staged, prepared)
+  if staged then return lobbyTransition.begin() end
+  if not prepared then lobbyTransition.cancel() end
   resetMatchStatistics()
-  clearRoundTimers()
-  gameCrowns.reset()
-  clubhouse.reset()
+  if not prepared then
+    clearRoundTimers()
+    gameCrowns.reset()
+    clubhouse.reset()
+  end
   spawnBallArea400 = {}
   spawnBallArea800 = {}
   spawnBallArea1200 = {}
@@ -166,7 +170,7 @@ function init()
     tfm.exec.chatMessage("<bv>Room Setup: The random map mode has been activated<n>", nil)
 
     for name1, data in pairs(tfm.get.room.playerList) do
-      if selectMapOpen[name1] then
+      if not prepared and selectMapOpen[name1] then
         selectMapUI(name1)
       end
     end
@@ -250,7 +254,7 @@ function init()
     pagesList[name] = { helpPage = 1 }
     canVote[name] = true
 
-    if selectMapOpen[name] then
+    if not prepared and selectMapOpen[name] then
       selectMapPage[name] = 1
       selectMapUI(name)
     end
@@ -289,7 +293,8 @@ function init()
 
   afkSystem()
 
-  gameState.lobbyDeadline = os.time() + 25000
+  gameState.lobbyDeadline = prepared and math.huge or os.time() + 25000
+  if prepared then gameStats.canJoin=false end
 
 end
 
