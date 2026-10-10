@@ -1423,6 +1423,17 @@ local function drawCourtBorders(xml, width, height)
   mapBackgrounds.showBorders()
 end
 
+-- These hash fields are non-negative integers; encode digits without relying
+-- on the host's floating-point string formatting.
+local function integerKey(value)
+  local result = ''
+  repeat
+    result = string.char(48 + value % 10) .. result
+    value = math.floor(value / 10)
+  until value == 0
+  return result
+end
+
 -- Keep only the last exact XML; published codes still bypass this fallback.
 local lastGeometryXML, lastGeometryKey
 local function geometryKey(xml)
@@ -1444,7 +1455,7 @@ local function geometryKey(xml)
     hash = (hash * 31 + byte) % 2147483647
     check = (check + byte) % 65521
   end
-  local key = string.format('%.0f-%.0f-%d', hash, check, count)
+  local key = integerKey(hash) .. '-' .. integerKey(check) .. '-' .. integerKey(count)
   lastGeometryXML, lastGeometryKey = xml, key
   return key
 end
@@ -1533,7 +1544,7 @@ end
 function mapBackgrounds.prepare()
   local info = tfm.get.room.xmlMapInfo
   if not info or type(info.xml) ~= 'string' then return false end
-  floorVisuals.setXML(info.xml)
+  floorVisuals.setXML(info.xml, info.mapCode, gameState.map.sourceTarget or tfm.get.room.currentMap)
   for name in pairs(hidden) do floorVisuals.show(name) end
   local params = info.xml:match('<P%s+[^>]*>') or ''
   local width = tonumber(mapXml.attribute(params, 'L')) or 800
