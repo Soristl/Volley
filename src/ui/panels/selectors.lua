@@ -50,6 +50,18 @@ function clubhouse.closeBallCategories(name)
   clubhouse.ballCategoryLabel(name)
 end
 
+do
+  -- Counting the menu labels needs neither sorted lists nor preview arrays.
+  -- Recompute on opening so current category metadata is always reflected.
+  local function ballCategoryCounts()
+    local counts = {}
+    for _, ball in ipairs(balls) do
+      local category = ball.category or "classic"
+      counts[category] = (counts[category] or 0) + 1
+    end
+    return counts
+  end
+
 function clubhouse.ballCategoryCallback(name,callback)
   if not selectBallOpen[name] or not (clubhouse.views[name] and clubhouse.views[name].selector_balls) then return end
   if callback=="ballCategoriesClose" then clubhouse.closeBallCategories(name);return end
@@ -63,10 +75,10 @@ function clubhouse.ballCategoryCallback(name,callback)
     clubhouse.area(name,"selector_balls",97600,"",x,y,190,98)
     clubhouse.image(name,"selector_balls","30-dropdown-map-sizes-190x98.png",x,y,"categoryMenu","~97600")
     local rowHeight=math.min(26,80/#clubhouse.ballCategoryKeys)
+    local counts = ballCategoryCounts()
     for i,key in ipairs(clubhouse.ballCategoryKeys) do
-      local items=clubhouse.ballItems(name,key)
       local selected=clubhouse.ballCategory(name).selected==key
-      local text=clubhouse.escape(clubhouse.text(name,"ball.category."..key)).." ("..#items..")"
+      local text=clubhouse.escape(clubhouse.text(name,"ball.category."..key)).." ("..(counts[key] or 0)..")"
       local color=selected and "#DEC18A" or "#E3ECE7"
       text="<font color='"..color.."'>"..text.."</font>"
       text="<a href='event:ballCategory:"..key.."'>"..text.."</a>"
@@ -97,6 +109,7 @@ function clubhouse.ballCategoryCallback(name,callback)
   state.selected=category
   selectBallPage[name]=state.pages[category] or 1
   selectBallUI(name)
+end
 end
 
 -- Update just the five actions after a selection or when its cooldown expires.
@@ -143,10 +156,12 @@ end
 -- A vote changes one visible counter and all of the voter's vote permissions.
 -- Keep the panel, previews, category menu and page input owned by their viewer.
 function clubhouse.refreshMapVotes(changedIndex,voter)
-  local items,indices=availableMaps()
+  local items,indices
   for name in pairs(tfm.get.room.playerList) do
     local view=clubhouse.views[name] and clubhouse.views[name].selector
     if selectMapOpen[name] and view and not view.defaultMapPicker then
+      -- Share one list for this refresh, only when a panel needs it.
+      if not items then items,indices=availableMaps() end
       local page=selectMapPage[name] or 1
       local enabled=canVote[name] and gameState.phase=="startGame" and not gameStats.realMode
       for i=1,5 do
@@ -171,6 +186,104 @@ function clubhouse.selectionCooldown(name)
     clubhouse.selectorActions(name,false)
     clubhouse.selectorActions(name,true)
   end,2000,1,"clubhouseSelection:"..name)
+end
+
+-- Arrows and the page picker use the same per-player page update.
+function clubhouse.selectorPage(name, isBall, page)
+  if isBall then
+    selectBallPage[name] = page
+    selectBallUI(name)
+  else
+    selectMapPage[name] = page
+    selectMapUI(name)
+  end
+end
+
+-- Called after the shared callback guards and personal input delays.
+-- True consumes a selector action; false leaves other routes to the caller.
+function clubhouse.selectorCallback(name, c)
+  if c == "selectMap" then
+    closeAllWindows(name, true)
+    selectMapOpen[name] = true
+    selectBallOpen[name] = false
+    selectMapPage[name] = 1
+    selectMapUI(name)
+  elseif c == "selectBall" then
+    closeAllWindows(name, true)
+    selectBallOpen[name] = true
+    selectMapOpen[name] = false
+    local category=clubhouse.ballCategory(name)
+    selectBallPage[name] = category.pages[category.selected] or 1
+    selectBallUI(name)
+  elseif string.sub(c, 1, 14) == "nextSelectBall" or string.sub(c, 1, 14) == "prevSelectBall" then
+    local index = tonumber(string.sub(c, 15))
+    clubhouse.selectorPage(name, true, index)
+  elseif string.sub(c, 1, 7) == "setball" and customMapCommand[name] and not gameStats.realMode and gameState.phase == "startGame" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+    local index = tonumber(string.sub(c, 8))
+
+    if index and balls[index] then
+      clubhouse.selectionCooldown(name)
+
+      gameStats.customBall = true
+      gameStats.customBallId = index
+
+      tfm.exec.chatMessage(" <bv>Ball: " .. balls[index].name ..
+        " selected by " .. name .. " <n> ", nil)
+
+      clubhouse.refreshSelectorActions(true)
+    end
+  elseif string.sub(c, 1, 13) == "nextSelectMap" or string.sub(c, 1, 13) == "prevSelectMap" then
+    local index = tonumber(string.sub(c, 14))
+    clubhouse.selectorPage(name, false, index)
+  elseif string.sub(c, 1, 3) == "map" then
+    tfm.exec.chatMessage('<bv>' .. string.sub(c, 4) .. '<n>', name)
+  elseif string.sub(c, 1, 7) == "votemap" and canVote[name] and not gameStats.realMode and gameState.phase == "startGame" then
+    local index = tonumber(string.sub(c, 8))
+    local maps = configSelectMap()
+
+    if not index or not maps[index] or not isMapAvailable(index) then return true end
+    if mapsVotes[index] == nil then
+      mapsVotes[index] = 0
+    end
+
+    mapsVotes[index] = mapsVotes[index] + 1
+    canVote[name] = false
+    gameStats.totalVotes = gameStats.totalVotes + 1
+    verifyMostMapVoted()
+
+    clubhouse.refreshMapVotes(index,name)
+
+    tfm.exec.chatMessage(
+      "<bv>" ..
+      name ..
+      " voted for the " ..
+      maps[index][3] ..
+      " map (" ..
+      tostring(mapsVotes[index]) .. " votes), type !maps to see the maps list and to vote !votemap (number)<n>",
+      nil)
+  elseif string.sub(c, 1, 6) == "setmap" and customMapCommand[name] and not gameStats.realMode and gameState.phase == "startGame" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+    local index = tonumber(string.sub(c, 7))
+    local maps = configSelectMap()
+    if not index or not maps[index] or not isMapAvailable(index) then return true end
+
+    clubhouse.selectionCooldown(name)
+
+    gameStats.isCustomMap = true
+    gameStats.customMapIndex = index
+
+    tfm.exec.chatMessage(
+      '<bv>' ..
+      maps[gameStats.customMapIndex][3] ..
+      ' map (created by ' .. maps[gameStats.customMapIndex][4] .. ') selected by admin ' .. name .. '<n>', nil)
+    print('<bv>' ..
+      maps[gameStats.customMapIndex][3] ..
+      ' map (created by ' .. maps[gameStats.customMapIndex][4] .. ') selected by admin ' .. name .. '<n>')
+
+    clubhouse.refreshSelectorActions(false)
+  else
+    return false
+  end
+  return true
 end
 
 function clubhouse.selector(name, isBall)

@@ -159,22 +159,6 @@ end
 
 -- Join helpers remain private: callers only commit through gameTeams.join.
 do
-  local function joinCandidates(reduced)
-    local candidates = {}
-    if reduced then
-      for index, roster in ipairs(teamsPlayersOnGame) do
-        local key = gameTeams.keyForRoster(roster)
-        if key then candidates[#candidates+1] = {key=key, roster=roster, area=index} end
-      end
-    else
-      local rosters = gameTeams.rosters()
-      for _, key in ipairs(gameTeams.keys()) do
-        candidates[#candidates+1] = {key=key, roster=rosters[key]}
-      end
-    end
-    return candidates
-  end
-
   local function joinCapacity(mode, reduced, roster)
     if reduced then return #roster end
     if mode == 'four' then return 3 end
@@ -184,20 +168,31 @@ do
   end
 
   local function chooseJoinSlot(mode, multi, reduced)
-    local chosen, smallest, emptySlot
-    for _, team in ipairs(joinCandidates(reduced)) do
-      local count = gameTeams.count(team.roster)
-      if (not multi or count > 0) and count < joinCapacity(mode, reduced, team.roster)
-          and (not smallest or count < smallest) then
-        for index, slot in ipairs(team.roster) do
-          if slot.name == '' then
-            chosen, smallest, emptySlot = team, count, index
-            break
+    local chosenKey, chosenRoster, chosenArea, smallest, emptySlot
+    local rosters = not reduced and gameTeams.rosters()
+    -- Keep court order and the first empty slot; only allocate the final choice.
+    for area, candidate in ipairs(reduced and teamsPlayersOnGame or gameTeams.keys()) do
+      local key, roster
+      if reduced then
+        key, roster = gameTeams.keyForRoster(candidate), candidate
+      else
+        key, roster = candidate, rosters[candidate]
+      end
+      if key then
+        local count = gameTeams.count(roster)
+        if (not multi or count > 0) and count < joinCapacity(mode, reduced, roster)
+            and (not smallest or count < smallest) then
+          for index, slot in ipairs(roster) do
+            if slot.name == '' then
+              chosenKey, chosenRoster, chosenArea = key, roster, reduced and area or nil
+              smallest, emptySlot = count, index
+              break
+            end
           end
         end
       end
     end
-    return chosen, emptySlot
+    return chosenKey and {key=chosenKey, roster=chosenRoster, area=chosenArea}, emptySlot
   end
 
   local function recordJoin(name, key, mode)

@@ -12,6 +12,18 @@ do
     else spawnBall(fallback, index) end
   end
 
+  -- Clip the shared trajectory interval without creating a closure per zone.
+  local function clipAxis(start, delta, low, high, first, last)
+    if delta == 0 then
+      if start >= low and start <= high then return first, last end
+      return nil
+    end
+    local a, b = (low-start)/delta, (high-start)/delta
+    if a > b then a,b = b,a end
+    first, last = math.max(first,a), math.min(last,b)
+    if first <= last then return first, last end
+  end
+
   -- First entry along two consecutive host samples, not the final court after
   -- a fast ball has already travelled underneath a divider. Point queries
   -- without a previous sample retain their ordinary rectangle semantics.
@@ -21,16 +33,11 @@ do
       if x >= rect[1] and x <= rect[2] and y >= rect[3] and y <= rect[4] then return 0 end
       return nil
     end
-    local first, last = 0, 1
-    local function clip(start, delta, low, high)
-      if delta == 0 then return start >= low and start <= high end
-      local a, b = (low-start)/delta, (high-start)/delta
-      if a > b then a,b = b,a end
-      first, last = math.max(first,a), math.min(last,b)
-      return first <= last
+    local first, last = clipAxis(previous.x,x-previous.x,rect[1],rect[2],0,1)
+    if first then
+      first = clipAxis(previous.y,y-previous.y,rect[3],rect[4],first,last)
+      return first
     end
-    if clip(previous.x,x-previous.x,rect[1],rect[2])
-      and clip(previous.y,y-previous.y,rect[3],rect[4]) then return first end
   end
 
   local function courtKey(area, full)

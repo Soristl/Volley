@@ -14,22 +14,11 @@ function eventPlayerDied(name)
 
         if gameStats.teamsMode then
           teleportOnePlayerTeamsMode(playerName)
-
-          isPlayerDead[playerName] = false
-
-          return
-        end
-
-        if gameStats.threeTeamsMode then
+        elseif gameStats.threeTeamsMode then
           teleportOnePlayerThreeTeamsMode(playerName)
-
-          isPlayerDead[playerName] = false
-
-          return
+        else
+          teleportOnePlayer(playerName)
         end
-
-        teleportOnePlayer(playerName)
-
         isPlayerDead[playerName] = false
       end
     end, 5000, 1, "deadTimer")

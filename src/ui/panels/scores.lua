@@ -1,17 +1,24 @@
 function clubhouse.drawScores(entries,viewer)
   -- Frames and numbers share map coordinates, so neither follows the camera.
+  -- Text is shared only within this draw; later scores always build fresh text.
+  local scoreTexts, detailTexts
   clubhouse.each(viewer,function(player)
     clubhouse.beginUpdate(player,"score")
+    if not scoreTexts then scoreTexts, detailTexts = {}, {} end
     for slot,entry in ipairs(entries) do
       local x = entry.x
       -- Cover the legacy grounds within their layer, below mice and shaman objects.
       clubhouse.image(player,"score","02-score-couverture-100x106.png",x,-8,"score"..slot,"_1000")
+      scoreTexts[slot] = scoreTexts[slot] or
+        "<p align='center'><font face='Verdana' size='30' color='"..entry.color.."'>"..tostring(entry.value).."</font></p>"
       clubhouse.area(player,"score",96100+slot,
-        "<p align='center'><font face='Verdana' size='30' color='"..entry.color.."'>"..tostring(entry.value).."</font></p>",
+        scoreTexts[slot],
         x+8,29,84,43,nil,false)
       if entry.detail then
+        detailTexts[slot] = detailTexts[slot] or
+          "<p align='center'><font size='20' color='"..entry.color.."'>"..entry.detail.."</font></p>"
         clubhouse.area(player,"score",96200+slot,
-          "<p align='center'><font size='20' color='"..entry.color.."'>"..entry.detail.."</font></p>",entry.detailX,20,100,30)
+          detailTexts[slot],entry.detailX,20,100,30)
       end
     end
     clubhouse.endUpdate(player,"score")

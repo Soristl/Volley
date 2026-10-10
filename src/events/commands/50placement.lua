@@ -54,6 +54,73 @@ function commandHandlers.cmdSyncTFM(args)
   tfm.exec.chatMessage("<vi>Default sync selection requested from TFM.<n>", nil)
 end
 
+do
+local teleportAliases = {
+  red='red', rouge='red', blue='blue', bleu='blue',
+  yellow='yellow', jaune='yellow', green='green', vert='green'
+}
+local teleportFourSlots = {yellow=1, red=2, blue=3, green=4}
+local teleportThreeSlots = {red=1, blue=2, green=3}
+
+local function teleportAreaSpawns(slot)
+  if slot == 1 then return playersSpawn400 end
+  if slot == 2 then return playersSpawn800 end
+  if slot == 3 then return playersSpawn1200 end
+  if slot == 4 then return playersSpawn1600 end
+end
+
+-- Resolve the current court without changing membership or spawn occupancy.
+local function teleportCourt(color)
+  local spawns, x
+  if gameStats.teamsMode or gameStats.threeTeamsMode then
+    local slot
+    if gameStats.typeMap == 'large4v4' then
+      local slots = gameStats.threeTeamsMode and teleportThreeSlots or teleportFourSlots
+      slot = slots[color]
+    else
+      local roster = gameState.teams[color]
+      for i, team in ipairs(teamsPlayersOnGame or {}) do
+        if roster and team == roster then slot = i; break end
+      end
+    end
+    if slot then
+      spawns = teleportAreaSpawns(slot)
+      local width = gameStats.threeTeamsMode and 600 or 400
+      x = width * (slot - 0.5)
+    end
+  elseif color == 'red' or color == 'blue' then
+    local red = color == 'red'
+    if gameStats.realMode then
+      x = red and 900 or 1700
+    elseif gameStats.twoTeamsMode then
+      spawns = red and playersSpawn800 or playersSpawn1200
+      x = red and 600 or 1000
+    elseif gameStats.gameMode == '3v3' then
+      spawns = red and playersSpawn400 or playersSpawn800
+      x = red and 101 or 700
+    elseif gameStats.gameMode == '4v4' then
+      spawns = red and playersSpawn800 or playersSpawn1600
+      x = red and 301 or 900
+    else
+      x = red and 401 or 1500
+    end
+  end
+  return spawns, x
+end
+
+local function teleportSpawn(spawns)
+  local chosen = spawns[1]
+  for i = 2, #spawns do
+    local candidate = spawns[i]
+    local count = candidate.players and #candidate.players or 0
+    local best = chosen.players and #chosen.players or 0
+    if count < best or (count == best and (candidate.spawnPriority or 0) < (chosen.spawnPriority or 0)) then
+      chosen = candidate
+    end
+  end
+  return chosen
+end
+
 function commandHandlers.cmdTeleport(args)
   local name = args[1]
   -- The final argument is the command name added by the dispatcher.
@@ -81,42 +148,8 @@ function commandHandlers.cmdTeleport(args)
     tfm.exec.chatMessage('<j>Player not found or dead.<n>', name)
     return
   end
-  local aliases = {red='red', rouge='red', blue='blue', bleu='blue', yellow='yellow', jaune='yellow', green='green', vert='green'}
-  local color = aliases[args[#args - 1]:lower()]
-  local groups = {yellow=gameState.teams.yellow, red=gameState.teams.red, blue=gameState.teams.blue, green=gameState.teams.green}
-  local spawns, x
-  if gameStats.teamsMode or gameStats.threeTeamsMode then
-    local slot
-    if gameStats.typeMap == 'large4v4' then
-      local slots = gameStats.threeTeamsMode and {red=1,blue=2,green=3} or {yellow=1,red=2,blue=3,green=4}
-      slot = slots[color]
-    else
-      for i, team in ipairs(teamsPlayersOnGame or {}) do
-        if groups[color] and team == groups[color] then slot = i; break end
-      end
-    end
-    if slot then
-      spawns = ({playersSpawn400,playersSpawn800,playersSpawn1200,playersSpawn1600})[slot]
-      local width = gameStats.threeTeamsMode and 600 or 400
-      x = width * (slot - 0.5)
-    end
-  elseif color == 'red' or color == 'blue' then
-    local red = color == 'red'
-    if gameStats.realMode then
-      x = red and 900 or 1700
-    elseif gameStats.twoTeamsMode then
-      spawns = red and playersSpawn800 or playersSpawn1200
-      x = red and 600 or 1000
-    elseif gameStats.gameMode == '3v3' then
-      spawns = red and playersSpawn400 or playersSpawn800
-      x = red and 101 or 700
-    elseif gameStats.gameMode == '4v4' then
-      spawns = red and playersSpawn800 or playersSpawn1600
-      x = red and 301 or 900
-    else
-      x = red and 401 or 1500
-    end
-  end
+  local color = teleportAliases[args[#args - 1]:lower()]
+  local spawns, x = teleportCourt(color)
   if not x then
     tfm.exec.chatMessage('<j>Unknown team or team unavailable on this map.<n>', name)
     return
@@ -125,16 +158,10 @@ function commandHandlers.cmdTeleport(args)
   -- Read spawn coordinates without registering the player in another team's
   -- spawn occupancy, roster, colours, or match history.
   if spawns and #spawns > 0 then
-    local chosen = spawns[1]
-    for i = 2, #spawns do
-      local candidate = spawns[i]
-      local count, best = #(candidate.players or {}), #(chosen.players or {})
-      if count < best or (count == best and (candidate.spawnPriority or 0) < (chosen.spawnPriority or 0)) then
-        chosen = candidate
-      end
-    end
+    local chosen = teleportSpawn(spawns)
     x, y = chosen.x, chosen.y
   end
   tfm.exec.movePlayer(target, x, y, false, 0, 0, false)
   tfm.exec.chatMessage('<vi>' .. target .. ' teleported to ' .. color .. ' spawn by ' .. name .. '.<n>', nil)
+end
 end

@@ -92,6 +92,35 @@ function clubhouse.lobby(name)
   end
 end
 
+-- Index is the roster slot; Blue callback numbers differ outside 3-team mode.
+function clubhouse.teamSeat(team, index, occupant, viewer)
+  local occupied = occupant ~= ""
+  local id, px, py, color, callbackIndex = nil, nil, nil, nil, index
+  if gameStats.threeTeamsMode and team ~= "Yellow" then
+    local offset = team == "Red" and 0 or team == "Blue" and 4 or 8
+    id, px, py = threeTeamsMode.id[index+offset], threeTeamsMode.x[index+offset], threeTeamsMode.y[index+offset]
+  else
+    local position
+    if team == "Red" then
+      id = index > 3 and index+4 or index
+      position = index > 3 and index+3 or index
+    elseif team == "Blue" then
+      id = index > 3 and index+7 or index+3
+      position = index > 3 and index+6 or index+3
+      callbackIndex = index+3
+    elseif team == "Yellow" then id,position = index+7,index+6
+    else id,position = index+10,index+9 end
+    px,py = x[position],y[position]
+  end
+  if team == "Red" then color = occupied and 0x871F1F or 0xE14747
+  elseif team == "Blue" then color = occupied and 0x0B3356 or 0x184F81
+  elseif team == "Yellow" then color = occupied and 0xB57200 or 0xF59E0B
+  else color = occupied and 0x0C6346 or 0x109267 end
+  local action = occupied and "leave" or "join"
+  clubhouse.joinArea(id,"<p align='center'><font size='14px'><a href='event:" .. action .. "Team" .. team .. callbackIndex .. "'>" .. (occupied and occupant or "Join"),
+    viewer,px,py,150,40,color,color,1,false)
+end
+
 function clubhouse.joinArea(id, text, name, x, y, width, height, background, border, alpha, fixed)
   local event = tostring(text):match("event:([^'\"]+)")
   local action, team

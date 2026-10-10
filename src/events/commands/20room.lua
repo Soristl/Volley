@@ -209,7 +209,7 @@ function commandHandlers.cmdSetMap(args)
     return
   end
 
-  if mapType == "small" or mapType == "large" then resetMapsToTest() end
+  resetMapsToTest()
 
   gameStats.setMapName = mapType
   refreshMapSizeSelection()

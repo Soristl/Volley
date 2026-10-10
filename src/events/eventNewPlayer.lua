@@ -38,14 +38,7 @@ function eventNewPlayer(name)
   isOpenProfile[name] = false
   playerTrophyImage[name] = 0
   if playerAchievements[name] == nil then
-    playerAchievements[name] = {
-      [1] = { image = "img@193d6763c82", quantity = 0 },
-      [2] = { image = '19636907e9e.png', quantity = 0 },
-      [3] = { image = "197d9272515.png", quantity = 0 },
-      [4] = { image = "1984ac78d52.png", quantity = 0 },
-      [5] = { image = "1984ac773d3.png", quantity = 0 },
-      [6] = { image = "19fa0498eb4.png", quantity = 0 }
-    }
+    playerAchievements[name] = newPlayerAchievements()
   end
 
   settings[name] = false
@@ -97,11 +90,11 @@ function eventNewPlayer(name)
       This could all be inside one single table:
       --Vit0rg
     ]]
-    playersNormalMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
-    playersFourTeamsMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0, winsYellow = 0, winsGreen = 0 }
-    playersThreeTeamsMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0, winsGreen = 0 }
-    playersTwoTeamsMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
-    playersRealMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
+    playersNormalMode[name] = newPlayerStats(name)
+    playersFourTeamsMode[name] = newPlayerStats(name, 4)
+    playersThreeTeamsMode[name] = newPlayerStats(name, 3)
+    playersTwoTeamsMode[name] = newPlayerStats(name)
+    playersRealMode[name] = newPlayerStats(name)
     -- Even an unranked insertion can change pairs ordering for exact ties.
     rankingCache.invalidateAll()
 

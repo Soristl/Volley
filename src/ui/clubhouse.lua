@@ -103,8 +103,8 @@ function clubhouse.state(name, key)
   return views[key]
 end
 
-function clubhouse.clear(name, key)
-  clubhouse.each(name, function(player)
+do
+  local function clearPanel(player, key)
     local views = clubhouse.views[player]
     local state = views and views[key]
     if not state then return end
@@ -114,7 +114,15 @@ function clubhouse.clear(name, key)
     views[key] = nil
     for _, image in pairs(state.images) do tfm.exec.removeImage(image) end
     for id in pairs(state.areas) do ui.removeTextArea(id, player) end
-  end)
+  end
+
+  function clubhouse.clear(name, key)
+    if name then
+      clearPanel(name, key)
+    else
+      for player in pairs(tfm.get.room.playerList) do clearPanel(player, key) end
+    end
+  end
 end
 
 function clubhouse.beginUpdate(name, key)
@@ -371,8 +379,8 @@ function clubhouse.pageInputCallback(name,callback,keyboard)
     clubhouse.closePageInput(name)
     if page==view.navigation.page then return end
     if key=="help" then clubhouse.document(name,"help",page)
-    elseif key=="selector" and selectMapOpen[name] then selectMapPage[name]=page;selectMapUI(name)
-    elseif key=="selector_balls" and selectBallOpen[name] then selectBallPage[name]=page;selectBallUI(name)
+    elseif key=="selector" and selectMapOpen[name] then clubhouse.selectorPage(name,false,page)
+    elseif key=="selector_balls" and selectBallOpen[name] then clubhouse.selectorPage(name,true,page)
     elseif key=="ranking" then rankingCallback(name,"rankingPage"..page)
     elseif key=="settings" and settings[name] and (USER_PERMISSIONS[name] or 1)>=2 then settingsMode[name]=false;pagePlayerSettings[name]=({1,4,2,3})[page];clubhouse.settings(name) end
   elseif action=="back" or action:match("^%d$") then

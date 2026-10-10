@@ -51,25 +51,30 @@ do
     return result or GROUND_LINE_Y
   end
 
+  local function checkCrossing(previous, dx, dy, first, low, high, startX, startY, slope)
+    local distance = previous.y-(startY+(previous.x-startX)*slope)
+    local delta = dy-dx*slope
+    if distance >= 0 or delta <= 0 then return end
+    local t = -distance/delta
+    if t < 0 or t > 1 or (first and t >= first) then return end
+    local at = previous.x+dx*t
+    if at < low or at > high then return end
+    -- Ignore buried edges where two grounds overlap, and the legacy line
+    -- wherever an actual floor supplies the threshold.
+    if math.abs(groundProfile.height(at)-(previous.y+dy*t)) > 0.00001 then return end
+    return t, at
+  end
+
   function groundProfile.crossing(previous, x, y)
     if not previous or y < previous.y then return nil end
     local dx, dy = x-previous.x, y-previous.y
     local first, result
-    local function check(low, high, startX, startY, slope)
-      local distance = previous.y-(startY+(previous.x-startX)*slope)
-      local delta = dy-dx*slope
-      if distance >= 0 or delta <= 0 then return end
-      local t = -distance/delta
-      if t < 0 or t > 1 or (first and t >= first) then return end
-      local at = previous.x+dx*t
-      if at < low or at > high then return end
-      -- Ignore buried edges where two grounds overlap, and the legacy line
-      -- wherever an actual floor supplies the threshold.
-      if math.abs(groundProfile.height(at)-(previous.y+dy*t)) > 0.00001 then return end
-      first, result = t, at
+    for _, edge in ipairs(segments) do
+      local t, at = checkCrossing(previous,dx,dy,first,edge[1],edge[2],edge[1],edge[3],edge[4])
+      if t then first, result = t, at end
     end
-    for _, edge in ipairs(segments) do check(edge[1],edge[2],edge[1],edge[3],edge[4]) end
-    check(-math.huge,math.huge,0,GROUND_LINE_Y,0)
+    local t, at = checkCrossing(previous,dx,dy,first,-math.huge,math.huge,0,GROUND_LINE_Y,0)
+    if t then result = at end
     return result
   end
 end

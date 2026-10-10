@@ -26,10 +26,13 @@ function commandHandlers.cmdPromoteInactivePerm(args)
     return
   end
 end
-function commandHandlers.cmdKick(args)
+do
+-- Kick and force-leave require a connected target. Ban/unban also accept
+-- offline players and deliberately keep their separate resolution rules.
+local function presentModerationTarget(args, usage)
   local name = args[1]
   if #args ~= 3 then
-    tfm.exec.chatMessage('<j>Usage: !kick Player#0000<n>', name)
+    tfm.exec.chatMessage(usage, name)
     return
   end
   local target = commandHandlers.resolveAdminTarget(args[2])
@@ -37,6 +40,13 @@ function commandHandlers.cmdKick(args)
     tfm.exec.chatMessage('<j>Player not found or already departed.<n>', name)
     return
   end
+  return target
+end
+
+function commandHandlers.cmdKick(args)
+  local name = args[1]
+  local target = presentModerationTarget(args, '<j>Usage: !kick Player#0000<n>')
+  if not target then return end
 
   if USER_PERMISSIONS[target] ~= nil and USER_PERMISSIONS[target] > 3 then return end
 
@@ -53,15 +63,8 @@ end
 
 function commandHandlers.cmdForceLeave(args)
   local name = args[1]
-  if #args ~= 3 then
-    tfm.exec.chatMessage('<j>Usage: !fleave Player#0000<n>', name)
-    return
-  end
-  local target = commandHandlers.resolveAdminTarget(args[2])
-  if not target or not tfm.get.room.playerList[target] or playerLeft[target] then
-    tfm.exec.chatMessage('<j>Player not found or already departed.<n>', name)
-    return
-  end
+  local target = presentModerationTarget(args, '<j>Usage: !fleave Player#0000<n>')
+  if not target then return end
 
   if gameState.phase ~= "gameStart" or not target or (USER_PERMISSIONS[target] or 1) == 5 then
     return
@@ -86,6 +89,8 @@ function commandHandlers.cmdForceLeave(args)
   end
 
   tfm.exec.chatMessage("<vi>Force leave disabled<n> ", name)
+end
+
 end
 
 function commandHandlers.resolveBanTarget(target)

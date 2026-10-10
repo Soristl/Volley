@@ -1,3 +1,8 @@
+do
+-- Fixed profile metadata stays private; text and player data are read on render.
+local roleTags = {[2]="ch", [3]="j", [4]="vi", [5]="vi"}
+local trophyIds = {27, 28, 29, 32, 33, 34}
+
 local function profileEscape(text)
   return tostring(text):gsub("&", "&amp;"):gsub("<", "&lt;"):gsub(">", "&gt;")
 end
@@ -10,10 +15,11 @@ end
 function resolveProfileTarget(query)
   if type(query) ~= "string" then return nil, "notFound" end
   local lower = query:lower()
+  local hasDiscriminator = query:find("#", 1, true)
   local candidate, count = nil, 0
   for target in pairs(playerAchievements) do
     if target:lower() == lower then return target end
-    if not query:find("#", 1, true) and target:gsub("#%d+$", ""):lower() == lower then
+    if not hasDiscriminator and target:gsub("#%d+$", ""):lower() == lower then
       candidate, count = target, count + 1
     end
   end
@@ -106,21 +112,20 @@ function profileUI(name, playerTarget)
   local level = USER_PERMISSIONS[playerTarget] or 1
   local role = text.roles[level] or text.roles[1]
   local roleColors = tfm.exec.chatMessage_colors
-  local roleTag = ({[2]="ch", [3]="j", [4]="vi", [5]="vi"})[level] or "n"
+  local roleTag = roleTags[level] or "n"
   local roleLabel = "<font size='10' color='" .. roleColors[roleTag] .. "'>" .. role .. "</font>"
   if roomCreator.name == playerTarget then
     roleLabel = "<font size='10' color='" .. roleColors.vp .. "'>Room Creator · </font>" .. roleLabel
   end
   if playerTarget == "Myzk#5789" or playerTarget == "Tanarchosl#4785" or playerTarget == "Refletz#6472" then
     local developerKey = playerTarget == "Refletz#6472" and "profile.developer_main" or "profile.developer_second"
-    roleLabel = "<font size='10' color='#000000'>" .. clubhouse.escape(clubhouse.text(name, developerKey)) .. "</font>"
+    roleLabel = "<font size='10' color='#EF4444'>" .. clubhouse.escape(clubhouse.text(name, developerKey)) .. "</font>"
   end
   profileArea(8704, roleLabel, name, 94, 102, 435, 19)
   local collected = 0
-  local ids = { 27, 28, 29, 32, 33, 34 }
   for i = 1, 6 do
     if (playerAchievements[playerTarget][i].quantity or 0) > 0 then collected = collected + 1 end
-    ui.addTrophie(ids[i], "trophie" .. i, name, playerTarget, 94 + (i - 1) * 106, 250, 82, 50, 1)
+    ui.addTrophie(trophyIds[i], "trophie" .. i, name, playerTarget, 94 + (i - 1) * 106, 250, 82, 50, 1)
   end
   profileArea(8718, "<font face='Georgia' size='11' color='#DEC18A'>" .. text.trophies .. "</font><font size='10' color='#ADAB94'>   " .. collected .. "/6</font>", name, 109, 228, 576, 18)
   profileArea(8720, "<font size='10' color='#ADAB94'>" .. text.session .. "</font>", name, 94, 333, 610, 18)
@@ -128,4 +133,5 @@ function profileUI(name, playerTarget)
   updateProfileMode(name, refresh and previous.mode or index)
   showProfileTrophy(name, refresh and previous.trophy or 1)
   clubhouse.endUpdate(name, "profile")
+end
 end

@@ -1,61 +1,53 @@
 function configSelectMap()
-  local maps
-
   if gameStats.realMode then
     return {}
   end
-
   if gameStats.threeTeamsMode then
-    maps = customMapsThreeTeamsMode
-
-    return maps
+    return customMapsThreeTeamsMode
   end
-
   if gameStats.teamsMode or gameStats.twoTeamsMode then
-    maps = customMapsFourTeamsMode
-    return maps
+    return customMapsFourTeamsMode
   end
-
-  maps = customMaps
-
-  return maps
+  return customMaps
 end
 
--- Keep catalog IDs stable when the visible list is filtered.
-function isMapAvailable(index)
-  local entry = configSelectMap()[index]
-  if not entry then return false end
-  local column = 1
-  if not (gameStats.teamsMode or gameStats.twoTeamsMode or gameStats.threeTeamsMode) then
-    local size = gameStats.setMapName
-    if size == 'extra-large' then column = 'extraLarge'
-    elseif size == 'large' then column = 2
-    elseif size == '' then
-      -- Automatic size can change with the player count.
-      return type(entry[1]) == 'string' and entry[1] ~= ''
-        and type(entry[2]) == 'string' and entry[2] ~= ''
+do
+  local function selectionRules()
+    if not (gameStats.teamsMode or gameStats.twoTeamsMode or gameStats.threeTeamsMode) then
+      local size = gameStats.setMapName
+      if size == 'extra-large' then return 'extraLarge', false end
+      if size == 'large' then return 2, false end
+      -- Automatic sizing must support both courts as the player count changes.
+      if size == '' then return 1, true end
     end
+    return 1, false
   end
-  return type(entry[column]) == 'string' and entry[column] ~= ''
-end
 
-function availableMaps()
-  local items, indices = {}, {}
-  local maps, column, automatic = configSelectMap(), 1, false
-  if not (gameStats.teamsMode or gameStats.twoTeamsMode or gameStats.threeTeamsMode) then
-    local size = gameStats.setMapName
-    if size == 'extra-large' then column = 'extraLarge'
-    elseif size == 'large' then column = 2
-    elseif size == '' then automatic = true end
-  end
-  for index, entry in ipairs(maps) do
+  local function hasVariant(entry, column, automatic)
+    if not entry then return false end
     local value = entry[column]
-    if type(value) == 'string' and value ~= ''
-      and (not automatic or (type(entry[2]) == 'string' and entry[2] ~= '')) then
-      items[#items+1], indices[#indices+1] = entry, index
-    end
+    return type(value) == 'string' and value ~= ''
+      and (not automatic or (type(entry[2]) == 'string' and entry[2] ~= ''))
   end
-  return items, indices
+
+  -- Menus, commands and votes share the same rule and stable catalog IDs.
+  function isMapAvailable(index)
+    local entry = configSelectMap()[index]
+    local column, automatic = selectionRules()
+    return hasVariant(entry, column, automatic)
+  end
+
+  function availableMaps()
+    local items, indices = {}, {}
+    local maps = configSelectMap()
+    local column, automatic = selectionRules()
+    for index, entry in ipairs(maps) do
+      if hasVariant(entry, column, automatic) then
+        items[#items+1], indices[#indices+1] = entry, index
+      end
+    end
+    return items, indices
+  end
 end
 
 function refreshMapSizeSelection()

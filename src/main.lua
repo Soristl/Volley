@@ -229,6 +229,24 @@ local function setPlayerData(name)
   return true
 end
 
+local function newPlayerAchievements()
+  return {
+    [1] = { image = "img@193d6763c82", quantity = 0 },
+    [2] = { image = '19636907e9e.png', quantity = 0 },
+    [3] = { image = "197d9272515.png", quantity = 0 },
+    [4] = { image = "1984ac78d52.png", quantity = 0 },
+    [5] = { image = "1984ac773d3.png", quantity = 0 },
+    [6] = { image = "19fa0498eb4.png", quantity = 0 }
+  }
+end
+
+local function newPlayerStats(name, teamCount)
+  local stats = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
+  if teamCount == 4 then stats.winsYellow = 0 end
+  if teamCount == 3 or teamCount == 4 then stats.winsGreen = 0 end
+  return stats
+end
+
 local function initPlayersData()
   local playersList = tfm.get.room.playerList
 
@@ -253,29 +271,22 @@ for name, data in pairs(tfm.get.room.playerList) do
   playerTrophyImage[name] = 0
 
   if playerAchievements[name] == nil then
-    playerAchievements[name] = {
-      [1] = { image = "img@193d6763c82", quantity = 0 },
-      [2] = { image = '19636907e9e.png', quantity = 0 },
-      [3] = { image = "197d9272515.png", quantity = 0 },
-      [4] = { image = "1984ac78d52.png", quantity = 0 },
-      [5] = { image = "1984ac773d3.png", quantity = 0 },
-      [6] = { image = "19fa0498eb4.png", quantity = 0 }
-    }
+    playerAchievements[name] = newPlayerAchievements()
   end
 
   pagePlayerSettings[name] = 1
   playersAfk[name] = os.time()
   playerAchievementsImages[name] = {}
   showCrownImages[name] = true
-  playersNormalMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
+  playersNormalMode[name] = newPlayerStats(name)
   pageNormalMode[name] = 1
-  playersFourTeamsMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0, winsYellow = 0, winsGreen = 0 }
+  playersFourTeamsMode[name] = newPlayerStats(name, 4)
   pageFourTeamsMode[name] = 1
-  playersThreeTeamsMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0, winsGreen = 0 }
+  playersThreeTeamsMode[name] = newPlayerStats(name, 3)
   pageThreeTeamsMode[name] = 1
-  playersTwoTeamsMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
+  playersTwoTeamsMode[name] = newPlayerStats(name)
   pageTwoTeamsMode[name] = 1
-  playersRealMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
+  playersRealMode[name] = newPlayerStats(name)
   pageRealMode[name] = 1
   playerRankingMode[name] = "Normal mode"
   playerLeft[name] = false

@@ -1,3 +1,8 @@
+do
+local threeTeamGroups = {'Red','Blue','Green'}
+local fourTeamGroups = {'Red','Blue','Yellow','Green'}
+local twoTeamGroups = {'Red','Blue','Red','Blue'}
+
 function updateLobbyTextAreas(playersAlreadyReset, preferredPlayer)
   removeTimer('resetTeams')
   removeTimer('toggleTeams')
@@ -6,6 +11,7 @@ function updateLobbyTextAreas(playersAlreadyReset, preferredPlayer)
   gameState.lobbyDeadline = os.time() + 25000
   gameStats.canJoin = false
   local three, four = gameStats.threeTeamsMode, gameStats.teamsMode
+  local groups = three and threeTeamGroups or four and fourTeamGroups or twoTeamGroups
   local function resetRosters()
     gameTeams.resetRoster('red', three and 4 or four and 3 or 6)
     gameTeams.resetRoster('blue', three and 4 or four and 3 or 6)
@@ -17,27 +23,19 @@ function updateLobbyTextAreas(playersAlreadyReset, preferredPlayer)
   local function drawSeat(tick)
     local seat=tick-2
     if seat<1 or gameState.phase~='startGame' then return end
-    local id, team, slot, px, py, color
+    local group, slot
     if three then
-      local group=math.floor((seat-1)/4)+1
-      team=({'Red','Blue','Green'})[group]
+      group=math.floor((seat-1)/4)+1
       slot=(seat-1)%4+1
-      id,px,py=threeTeamsMode.id[seat],threeTeamsMode.x[seat],threeTeamsMode.y[seat]
-      color=({0xE14747,0x184F81,0x109267})[group]
     else
-      local group=math.floor((seat-1)/3)+1
-      team=({'Red','Blue',four and 'Yellow' or 'Red',four and 'Green' or 'Blue'})[group]
+      group=math.floor((seat-1)/3)+1
       slot=(seat-1)%3+1
-      if group==2 then slot=slot+3 end
-      if group>=3 and not four then slot=slot+(group==3 and 3 or 6) end
-      id=seat>6 and seat+1 or seat
-      px,py=x[seat],y[seat]
-      color=({0xE14747,0x184F81,four and 0xF59E0B or 0xE14747,four and 0x109267 or 0x184F81})[group]
+      if group>=3 and not four then slot=slot+3 end
     end
-    clubhouse.joinArea(id,"<p align='center'><font size='14px'><a href='event:joinTeam"..team..slot.."'>Join",
-      nil,px,py,150,40,color,color,1,false)
+    clubhouse.teamSeat(groups[group],slot,"")
     if seat==12 then gameStats.canJoin=true end
   end
   resetRosters()
   for tick=3,14 do drawSeat(tick) end
+end
 end

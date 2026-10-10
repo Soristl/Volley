@@ -26,9 +26,17 @@ function showTheScore(viewer)
     else
       local count = gameStats.teamsMode and gameStats.typeMap == "large3v3" and 3 or 2
       local positions = gameStats.typeMap == "small" and {0,700} or count == 3 and {200,550,900} or {200,900}
+      if count == 3 then
+        -- Simple Neon's visible right frame is 200px beyond the standard slot.
+        -- Use the requested source during transitions, not the previous map.
+        local source = gameState.map.sourceTarget or gameState.map.target or tfm.get.room.currentMap
+        if tonumber((tostring(source):gsub('^@', ''))) == 7985080 then positions[3] = 1100 end
+      end
       for i=1,count do
-        if gameLives.at(i) == nil or gameTeams.keyAt(i) == nil then clubhouse.clear(nil,"score");return end
-        add(gameLives.at(i),colors[gameTeams.keyAt(i)] or "#E3ECE7",positions[i])
+        local key = gameTeams.keyAt(i)
+        local lives = gameLives.forTeam(key)
+        if lives == nil or key == nil then clubhouse.clear(nil,"score");return end
+        add(lives,colors[key] or "#E3ECE7",positions[i])
       end
     end
   else

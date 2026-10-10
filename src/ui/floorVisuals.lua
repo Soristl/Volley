@@ -151,6 +151,10 @@ floorVisuals = {
     ["98"] = {"1a1221e41a4.png",-130,350},
   },
   maps = {
+    -- Collision: show sand without the wooden catcher below in every variant.
+    [7984858] = {"1a1221696e2.png",0,350,"74;224"},
+    [7984859] = {"1a12216c5c5.png",0,350,"79;255"},
+    [7984860] = {"1a1221696e2.png",0,350,"74;224"},
     [7984937] = {"1a12288b1d0.png",-400,355,"193"},
     [7984938] = {"1a122889a5f.png",0,355,"256"},
     [7984939] = {"1a12287987f.png",-50,265,"64;61;62"},
@@ -378,15 +382,28 @@ floorVisuals = {
     [1727.25] = {{311,1,12,375,145.5,50,3,0,0,0.3,0.2,0,0,0,0}},
   }
 }
+-- Re-exported maps keep their existing personal floor corrections.
+floorVisuals.maps[7985691] = floorVisuals.maps[7985196]
+floorVisuals.maps[7985692] = floorVisuals.maps[7985277]
+floorVisuals.maps[7985698] = floorVisuals.maps[7985069]
+floorVisuals.maps[7985701] = floorVisuals.maps[7985077]
+floorVisuals.maps[7985702] = floorVisuals.maps[7985078]
+floorVisuals.maps[7985727] = floorVisuals.maps[7984939]
+floorVisuals.maps[7985728] = floorVisuals.maps[7984940]
+floorVisuals.maps[7985739] = floorVisuals.maps[7984970]
+floorVisuals.maps[7985740] = floorVisuals.maps[7984972]
+floorVisuals.maps[7985741] = floorVisuals.maps[7984973]
+floorVisuals.maps[7985753] = floorVisuals.maps[7984937]
 do
-  local xml, pieces, layout, mapCode
+  local xml, pieces, layout, mapCode, sidePieces
   local viewers = {}
+  local simpleNeonWidths = {[7985079]=1600, [7985080]=1200, [7985081]=800}
   local defaultFriction = {[1]=0,[2]=0,[3]=0,[4]=20,[7]=0.1,[9]=0,[11]=0.05,[15]=0,[21]=0}
   local defaultRestitution = {[2]=1.2,[3]=20,[9]=0,[10]=0,[11]=0.1,[15]=0,[19]=0,[20]=0,[21]=0}
 
   function floorVisuals.newGame()
     -- The engine has already discarded the previous map's images.
-    xml, pieces, layout, mapCode, viewers = nil, nil, nil, nil, {}
+    xml, pieces, layout, mapCode, sidePieces, viewers = nil, nil, nil, nil, nil, {}
   end
 
   function floorVisuals.clearPlayer(name)
@@ -410,7 +427,7 @@ do
     local names = {}
     for name in pairs(viewers) do names[#names+1] = name end
     for _, name in ipairs(names) do floorVisuals.clearPlayer(name) end
-    xml, pieces, layout, mapCode = value, nil, nil, code
+    xml, pieces, layout, mapCode, sidePieces = value, nil, nil, code, nil
   end
 
   local function number(value, default)
@@ -466,6 +483,33 @@ do
     end
   end
 
+  local function simpleNeonSide(a, width)
+    -- Locate the posts bounding Simple Neon's exterior gaps. Central dividers,
+    -- decorative outlines and moving ramps are not image anchors.
+    local x = number(a.X)
+    if not width or (x ~= 0 and x ~= width) or number(a.T) ~= 12
+        or number(a.Y) ~= 351 or number(a.L) ~= 10 or number(a.H) ~= 200 then return end
+    local collision = number(a.c, 1)
+    if collision ~= 0 and collision ~= 1 then return end
+    local p = physics(a.P, 12)
+    if not p or p[1] ~= 0 or p[2] ~= 0 or p[3] ~= 0 or p[4] ~= 0.2
+        or p[5] ~= 0 or p[6] ~= 0 or p[7] ~= 0 or p[8] ~= 0 then return end
+    return {x, number(a.Y), number(a.L), number(a.H)}
+  end
+
+  local function simpleNeonOuterEdge(a, width)
+    local x = number(a.X)
+    if (x ~= -120 and x ~= width+120) or number(a.T) ~= 12
+        or number(a.Y) ~= 200 or number(a.L) ~= 2000 or number(a.H) ~= 10
+        or number(a.c) ~= 2 then return end
+    local p = physics(a.P, 12)
+    if not p or p[1] ~= 0 or p[2] ~= 0 or p[3] ~= 0.1 or p[4] ~= 0.2
+        or p[5] ~= -90 or p[6] ~= 0 or p[7] ~= 0 or p[8] ~= 0 then return end
+    -- Rotated walls use H as their horizontal thickness.
+    if x < 0 then return 0, x+number(a.H)/2 end
+    return width, x-number(a.H)/2
+  end
+
   local function materialType(kind, p)
     if kind ~= 12 and kind ~= 14 then return kind end
     if p[4] >= 1 then return 2 end
@@ -482,8 +526,9 @@ do
 
   local function geometry()
     if pieces then return pieces end
-    pieces = {}
-    local ids = {}
+    pieces, sidePieces = {}, {}
+    local ids, sideXs, outerEdges = {}, {}, {}
+    local sideWidth = mapCode and simpleNeonWidths[mapCode]
     local corrected = mapCode and floorVisuals.maps[mapCode]
     local allowed, correctedIds
     if validLayout(corrected) and type(corrected[4]) == 'string' and corrected[4] ~= '' then
@@ -494,6 +539,15 @@ do
     for tag in grounds:gmatch('<S%s+([^>]+)>') do
       local a = {}
       for k, quote, value in tag:gmatch('([%w_]+)%s*=%s*([\'"])(.-)%2') do a[k] = value end
+      if sideWidth then
+        local edgeX, edge = simpleNeonOuterEdge(a, sideWidth)
+        if edgeX then outerEdges[edgeX] = edge end
+        local side = simpleNeonSide(a, sideWidth)
+        if side and not sideXs[side[1]] then
+          sideXs[side[1]] = true
+          sidePieces[#sidePieces+1] = side
+        end
+      end
       local entry, x, p = ground(a)
       if entry then
         local id, kind = entry[1], entry[3]
@@ -502,6 +556,23 @@ do
           ids[#ids+1] = id
         end
         if allowed and allowed[id] then correctedIds[#correctedIds+1] = id end
+      end
+    end
+    -- Fill only the exterior gap, at the adjacent XML floor's height. The
+    -- image is horizontal and stops at both wall faces; no collision is added.
+    for _, side in ipairs(sidePieces) do
+      local edge = outerEdges[side[1]]
+      side[4] = 0
+      if edge then
+        for _, floor in ipairs(pieces) do
+          if floor[5] == 0 and floor[1]-floor[3]/2 <= side[1]+side[3]/2
+              and floor[1]+floor[3]/2 >= side[1]-side[3]/2 then
+            local inner = side[1] + (side[1] == 0 and -1 or 1)*side[3]/2
+            side[1], side[2] = (edge+inner)/2, floor[2]
+            side[3], side[4] = math.abs(inner-edge), floor[4]
+            break
+          end
+        end
       end
     end
     if correctedIds and table.concat(correctedIds, ';') == corrected[4] then
@@ -517,10 +588,20 @@ do
     if not name or not tfm.get.room.playerList[name] or viewers[name] or not xml then return end
     local ids = {}
     local grounds = geometry()
+    local trampoline = floorVisuals.materials[2]
+    if trampoline and trampoline[1] and trampoline[1] ~= '' then
+      for _, p in ipairs(sidePieces) do
+        if p[4] > 0 then
+          local id = tfm.exec.addImage(trampoline[1], '?1001', p[1], p[2], name,
+            p[3]/trampoline[2], p[4]/trampoline[3], 0, 1, 0.5, 0.5)
+          if id then ids[#ids+1] = id end
+        end
+      end
+    end
     if layout then
       local id = tfm.exec.addImage(layout[1], '?1001', layout[2], layout[3], name,
         1, 1, 0, 1, 0, 0)
-      if id then ids[1] = id end
+      if id then ids[#ids+1] = id end
     else
       for _, p in ipairs(grounds) do
         local asset, w, h = floorVisuals.image, 32, 32

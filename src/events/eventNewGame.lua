@@ -48,54 +48,14 @@ function eventNewGame()
       end, 3000, 1)
     end
     showTheScore()
-    if gameStats.teamsMode or gameStats.twoTeamsMode then
-      if gameStats.isCustomMap and gameStats.customMapIndex >= 1 then
-        ui.setMapName("<j>" .. customMapsFourTeamsMode[gameStats.customMapIndex][4] .. "<n>")
-
-        return
-      end
-
-      if gameStats.totalVotes >= 2 then
-        ui.setMapName("<j>" .. customMapsFourTeamsMode[gameStats.mapIndexSelected][4] .. "<n>")
-
-        return
-      end
-
-      ui.setMapName("<j>Refletz#6472<n>")
-
-      return
-    end
-
-    if gameStats.threeTeamsMode then
-      if gameStats.isCustomMap and gameStats.customMapIndex >= 1 then
-        ui.setMapName("<j>" .. customMapsThreeTeamsMode[gameStats.customMapIndex][4] .. "<n>")
-
-        return
-      end
-
-      if gameStats.totalVotes >= 2 then
-        ui.setMapName("<j>" .. customMapsThreeTeamsMode[gameStats.mapIndexSelected][4] .. "<n>")
-
-        return
-      end
-
-      ui.setMapName("<j>Refletz#6472<n>")
-
-      return
-    end
-
+    local maps = (gameStats.teamsMode or gameStats.twoTeamsMode) and customMapsFourTeamsMode
+      or gameStats.threeTeamsMode and customMapsThreeTeamsMode or customMaps
     if gameStats.isCustomMap and gameStats.customMapIndex >= 1 then
-      ui.setMapName("<j>" .. customMaps[gameStats.customMapIndex][4] .. "<n>")
-
-      return
+      ui.setMapName("<j>" .. maps[gameStats.customMapIndex][4] .. "<n>")
+    elseif gameStats.totalVotes >= 2 then
+      ui.setMapName("<j>" .. maps[gameStats.mapIndexSelected][4] .. "<n>")
+    else
+      ui.setMapName("<j>Refletz#6472<n>")
     end
-
-    if gameStats.totalVotes >= 2 then
-      ui.setMapName("<j>" .. customMaps[gameStats.mapIndexSelected][4] .. "<n>")
-
-      return
-    end
-
-    ui.setMapName("<j>Refletz#6472<n>")
   end
 end

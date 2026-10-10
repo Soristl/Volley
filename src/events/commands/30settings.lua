@@ -291,6 +291,42 @@ function commandHandlers.cmdConsumables(args)
     nil)
 end
 
+do
+local command_to_mode =
+{
+  ["4teamsmode"] = 'teamsMode',
+  ["fourteamsmode"] = 'teamsMode',
+  ["fom"] = 'teamsMode',
+  ["2teamsmode"] = 'twoTeamsMode',
+  ["twoteamsmode"] = 'twoTeamsMode',
+  ["twm"] = 'twoTeamsMode',
+  ["3teamsmode"] = 'threeTeamsMode',
+  ["threeteamsmode"] = 'threeTeamsMode',
+  ["thm"] = 'threeTeamsMode',
+  ["realmode"] = 'realMode',
+  ["rm"] = 'realMode',
+}
+
+local modeLabels = {
+  ['twoTeamsMode'] = '2-team mode',
+  ['threeTeamsMode'] = '3-team mode',
+  ['teamsMode'] = '4-team mode',
+  ['realMode'] = 'Real mode'
+}
+
+-- Lives are mutable during play, so each successful transition gets fresh tables.
+local function newModeLives(mode, enabling)
+  if enabling and mode == 'threeTeamsMode' then
+    return {[1] = {yellow = 0 }, [2] = { red = 5 }, [3] = { blue = 5 }, [4] = { green = 5 } }
+  end
+  return {
+    [1] = { yellow = 3 },
+    [2] = { red = 3 },
+    [3] = { blue = 3 },
+    [4] = { green = 3 }
+  }
+end
+
 function commandHandlers.cmdSetTeamMode(args)
   local name = args[1]
   local toggle = args[2]
@@ -306,43 +342,9 @@ function commandHandlers.cmdSetTeamMode(args)
     return
   end
 
-  local command_to_mode =
-  {
-    ["4teamsmode"] = 'teamsMode',
-    ["fourteamsmode"] = 'teamsMode',
-    ["fom"] = 'teamsMode',
-    ["2teamsmode"] = 'twoTeamsMode',
-    ["twoteamsmode"] = 'twoTeamsMode',
-    ["twm"] = 'twoTeamsMode',
-    ["3teamsmode"] = 'threeTeamsMode',
-    ["threeteamsmode"] = 'threeTeamsMode',
-    ["thm"] = 'threeTeamsMode',
-    ["realmode"] = 'realMode',
-    ["rm"] = 'realMode',
-  }
   local _mode = command_to_mode[args[3]] or ''
 
-  local modes = {
-    ['twoTeamsMode'] = {
-      alias = '2-team mode',
-    },
-    ['threeTeamsMode'] = {
-      alias = '3-team mode',
-      lives = {[1] = {yellow = 0 }, [2] = { red = 5 }, [3] = { blue = 5 }, [4] = { green = 5 } }
-    },
-    ['teamsMode'] = {
-      alias = '4-team mode',
-      lives = {
-        [1] = { yellow = 3 },
-        [2] = { red = 3 },
-        [3] = { blue = 3 },
-        [4] = { green = 3 }
-      }
-    },
-    ['realMode'] = { alias = 'Real mode' }
-  }
-
-  if not modes[_mode] then
+  if not modeLabels[_mode] then
     tfm.exec.chatMessage(
       '<vi>Critical error, mode not implemented or wrong argument.')
     return
@@ -351,7 +353,7 @@ function commandHandlers.cmdSetTeamMode(args)
 
   local enabling = toggle == 'true'
   if gameStats[_mode] == enabling then
-    tfm.exec.chatMessage('<j>Mode already ' .. (enabling and 'enabled: ' or 'disabled: ') .. modes[_mode].alias, name)
+    tfm.exec.chatMessage('<j>Mode already ' .. (enabling and 'enabled: ' or 'disabled: ') .. modeLabels[_mode], name)
     return
   end
 
@@ -369,15 +371,16 @@ function commandHandlers.cmdSetTeamMode(args)
   if gameStats.realMode then gameStats.twoBalls = false end
   if not gameStats.threeTeamsMode then gameStats.threeBalls = false end
 
-  gameState.lives = (enabling and modes[_mode].lives) or modes['teamsMode'].lives
+  gameState.lives = newModeLives(_mode, enabling)
   resetMapsToTest()
   resetMapsList()
   updateLobbyTextAreas(nil,name)
 
-  tfm.exec.chatMessage(" <n>" .. modes[_mode].alias ..
+  tfm.exec.chatMessage(" <n>" .. modeLabels[_mode] ..
     (toggle == 'true' and " <vp>enabled<n2>" or
       " <r>disabled<n2>") .. " by " .. name ..
     " <n2> ", nil)
+end
 end
 
 function commandHandlers.cmdSettings(args)
