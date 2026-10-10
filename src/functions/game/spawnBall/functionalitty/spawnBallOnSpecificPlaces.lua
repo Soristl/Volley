@@ -1,28 +1,19 @@
 function spawnBallsOnSpecificPlaces(spawnBallsTable, defaultSpawnBallTable)
-  local spawnBalls = spawnBallsTable
-  local defaultSpawnBall = defaultSpawnBallTable
-
-  local randomIndex = 0
-  local spawnPlaces = { [1] = { x = 0, y = 50 }, [2] = { x = 0, y = 50 }, [3] = { x = 0, y = 50 } }
-  local maxIndex = 2
-
-  if gameStats.threeTeamsMode then
-    maxIndex = 3
+  local pool,places={},{}
+  for index,x in ipairs(defaultSpawnBallTable) do
+    pool[#pool+1]={markers=spawnBallsTable[index],x=x}
   end
-
-  for i = 1, maxIndex do
-    local randomTeamSpawn = math.random(1, #spawnBalls)
-    if #spawnBalls > 0 and #spawnBalls[randomTeamSpawn] ~= 0 then
-      randomIndex = math.random(1, #spawnBalls[randomTeamSpawn])
-      spawnPlaces[i].x = spawnBalls[randomTeamSpawn][randomIndex].x
-      spawnPlaces[i].y = spawnBalls[randomTeamSpawn][randomIndex].y
-      table.remove(spawnBalls, randomTeamSpawn)
+  -- Inputs are map metadata: do not consume or reorder the caller's tables.
+  for index=1,gameBalls.quantity() do
+    if #pool==0 then
+      places[index]={x=defaultSpawnBallTable[1] or 400,y=50}
     else
-      randomIndex = math.random(1, #defaultSpawnBall)
-      spawnPlaces[i].x = defaultSpawnBall[randomIndex]
-      table.remove(defaultSpawnBall, randomIndex)
+      local selected=table.remove(pool,math.random(1,#pool))
+      if selected.markers and #selected.markers>0 then
+        local point=selected.markers[math.random(1,#selected.markers)]
+        places[index]={x=point.x,y=point.y}
+      else places[index]={x=selected.x,y=50} end
     end
   end
-
-  return spawnPlaces
+  return places
 end

@@ -1,5 +1,104 @@
-function init()
-  clubhouse.reset()
+do
+-- Apply persistent room choices after the map request, before player resets.
+local function applyLobbySettings(prepared)
+  local configuredMode = true
+  if globalSettings.mode == "4 teams mode" then
+    gameStats.teamsMode = true
+    gameState.lives = { [1] = { yellow = 3 }, [2] = { red = 3 }, [3] = { blue = 3 }, [4] = { green = 3 } }
+    updateLobbyTextAreas(true)
+  elseif globalSettings.mode == "3 teams mode" then
+    gameStats.threeTeamsMode = true
+    gameTeams.resetRoster("yellow", 4)
+
+    gameTeams.resetRoster("green", 4)
+
+    gameState.lives = { [1] = { yellow = 0 }, [2] = { red = 5 }, [3] = { blue = 5 }, [4] = { green = 5 } }
+    updateLobbyTextAreas(true)
+  elseif globalSettings.mode == "2 teams mode" then
+    gameStats.twoTeamsMode = true
+  elseif globalSettings.mode == "Real mode" then
+    gameStats.realMode = true
+  else
+    configuredMode = false
+  end
+  if configuredMode then
+    tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for " .. globalSettings.mode .. "<n>", nil)
+  end
+
+  if globalSettings.threeBalls and gameStats.threeTeamsMode then
+    gameStats.threeBalls = true
+    tfm.exec.chatMessage("<bv>Room Setup: The three-ball mode has been activated", nil)
+  end
+
+  if globalSettings.twoBalls and not gameStats.realMode then
+    gameStats.twoBalls = true
+    tfm.exec.chatMessage("<bv>Room Setup: The two-ball mode has been activated<n>", nil)
+  end
+
+  if globalSettings.randomBall then
+    gameStats.customBall = true
+
+    tfm.exec.chatMessage("<bv>Room Setup: The random ball mode has been activated<n>", nil)
+
+    local indexBall = math.random(1, #balls)
+    gameStats.customBallId = indexBall
+  end
+
+  if not (gameStats.realMode or gameStats.teamsMode or gameStats.twoTeamsMode or gameStats.threeTeamsMode) then
+    gameStats.setMapName = globalSettings.mapType or ''
+  end
+  local _, availableMapIndices = availableMaps()
+  if globalSettings.randomMap and not gameStats.realMode and #availableMapIndices > 0 then
+    gameStats.randomMap = true
+    gameStats.isCustomMap = true
+
+    tfm.exec.chatMessage("<bv>Room Setup: The random map mode has been activated<n>", nil)
+
+    for name1, data in pairs(tfm.get.room.playerList) do
+      if not prepared and selectMapOpen[name1] then
+        selectMapUI(name1)
+      end
+    end
+
+    local usesFourTeamMaps = gameStats.twoTeamsMode or gameStats.teamsMode
+    local maps = usesFourTeamMaps and customMapsFourTeamsMode or
+      gameStats.threeTeamsMode and customMapsThreeTeamsMode or customMaps
+    local indexMap = availableMapIndices[math.random(1, #availableMapIndices)]
+    gameStats.customMapIndex = indexMap
+    local map = maps[indexMap]
+    local message = '<bv>' .. map[3] .. ' map (created by ' .. map[4] .. ') selected randomly<n>'
+    tfm.exec.chatMessage(message, nil)
+    if usesFourTeamMaps then print(message) end
+  end
+
+  if not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realMode and not gameStats.threeTeamsMode then
+    if globalSettings.consumables then
+      gameStats.consumables = true
+
+      tfm.exec.chatMessage("<bv>Room Setup: Consumables has been activated in normal mode<n>", nil)
+    end
+
+    if globalSettings.mapType ~= '' then
+      gameStats.setMapName = globalSettings.mapType
+
+      tfm.exec.chatMessage("<bv>Room Setup: The map size has been set to " .. globalSettings.mapType .. "<n>", nil)
+    end
+  end
+
+  if globalSettings.minimalist then
+    tfm.exec.chatMessage("<bv>Room Setup: Minimalist mode is enabled for maps (This may cause a slight delay when switching maps)<n>", nil)
+  end
+end
+
+function init(staged, prepared)
+  if staged then return lobbyTransition.begin() end
+  if not prepared then lobbyTransition.cancel() end
+  resetMatchStatistics()
+  if not prepared then
+    clearRoundTimers()
+    gameCrowns.reset()
+    clubhouse.reset()
+  end
   spawnBallArea400 = {}
   spawnBallArea800 = {}
   spawnBallArea1200 = {}
@@ -17,15 +116,11 @@ function init()
   durationTimerPause = durationDefault
 
   playersOnGameHistoric = {}
-  mode = "startGame"
+  gameState.resetLobby()
   removeTimer('verifyBallCoordinates')
   playerConsumables = {}
 
-  ballOnGame = false
-  ballOnGame2 = false
-  ballOnGame3 = false
-  ballOnGameTwoBalls = { ballOnGame, ballOnGame2, ballOnGame3 }
-  ballsId = { nil, nil, nil }
+  gameBalls.clear()
   tfm.exec.disableAllShamanSkills(true)
 
   playerCanTransform = {}
@@ -34,49 +129,16 @@ function init()
   twoTeamsPlayerRedPosition = { [1] = "", [2] = "", [3] = "", [4] = "", [5] = "", [6] = "" }
   twoTeamsPlayerBluePosition = { [1] = "", [2] = "", [3] = "", [4] = "", [5] = "", [6] = "" }
 
-  playersRed = {
-    [1] = { name = '' },
-    [2] = { name = '' },
-    [3] = { name = '' },
-    [4] = { name = '' },
-    [5] = { name = '' },
-    [6] = { name = '' }
-  }
-  playersBlue = {
-    [1] = { name = '' },
-    [2] = { name = '' },
-    [3] = { name = '' },
-    [4] = { name = '' },
-    [5] = { name = '' },
-    [6] = { name = '' }
-  }
-  playersYellow = {
-    [1] = { name = '' },
-    [2] = { name = '' },
-    [3] = { name = '' }
-  }
+  gameTeams.resetRoster("red", 6)
+  gameTeams.resetRoster("blue", 6)
+  gameTeams.resetRoster("yellow", 3)
 
-  playersGreen = {
-    [1] = { name = '' },
-    [2] = { name = '' },
-    [3] = { name = '' }
-  }
+  gameTeams.resetRoster("green", 3)
 
-  teamsLifes = { [1] = { yellow = 3 }, [2] = { red = 3 }, [3] = { blue = 3 }, [4] = { green = 3 } }
+  gameState.lives = { [1] = { yellow = 3 }, [2] = { red = 3 }, [3] = { blue = 3 }, [4] = { green = 3 } }
 
   mapsToTest = { [1] = "", [2] = "", [3] = "" }
-
-  getTeamsLifes = {}
-
-  getTeamsColors = {}
   teamsPlayersOnGame = {}
-
-  messageTeamsLifes = {}
-  messageTeamsLostOneLife = {}
-  messageTeamsLifesTextChat = {}
-  messageWinners = {}
-
-  getTeamsColorsName = { 0xF59E0B, 0xEF4444, 0x3B82F6, 0x109267 }
 
   for i = 1, #customMaps do
     mapsVotes[i] = 0
@@ -136,11 +198,9 @@ function init()
 
   playerCoordinates = {}
   webY = 460
-  countId = 1
+  countId = 100000 -- Player grounds: separate from XML grounds and 99990..99998 map helpers.
   playerPhysicId = {}
-  teamsScores['red'] = 0
-  teamsScores['blue'] = 0
-  ball_id = 0
+  gameScores.reset()
   teamPointsArea1 = {}
   teamPointsArea2 = {}
   teamPointsArea3 = {}
@@ -149,118 +209,7 @@ function init()
   lobby_map = '@7983549'
   tfm.exec.newGame(lobby_map)
 
-  if globalSettings.mode == "4 teams mode" then
-    gameStats.teamsMode = true
-    getTeamsColorsName = { 0xF59E0B, 0xEF4444, 0x3B82F6, 0x109267 }
-    teamsLifes = { [1] = { yellow = 3 }, [2] = { red = 3 }, [3] = { blue = 3 }, [4] = { green = 3 } }
-    updateLobbyTextAreas()
-    tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for " .. globalSettings.mode .. "<n>", nil)
-  elseif globalSettings.mode == "3 teams mode" then
-    gameStats.threeTeamsMode = true
-    getTeamsColorsName = { 0xEF4444, 0x3B82F6, 0x109267 }
-    playersYellow = {
-      [1] = { name = '' },
-      [2] = { name = '' },
-      [3] = { name = '' },
-      [4] = { name = '' }
-    }
-
-    playersGreen = {
-      [1] = { name = '' },
-      [2] = { name = '' },
-      [3] = { name = '' },
-      [4] = { name = '' }
-    }
-
-    teamsLifes = { [1] = { yellow = 5 }, [2] = { red = 5 }, [3] = { blue = 5 }, [4] = { green = 5 } }
-    updateLobbyTextAreas()
-    tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for " .. globalSettings.mode .. "<n>", nil)
-  elseif globalSettings.mode == "2 teams mode" then
-    gameStats.twoTeamsMode = true
-    tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for " .. globalSettings.mode .. "<n>", nil)
-  elseif globalSettings.mode == "Real mode" then
-    gameStats.realMode = true
-    tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for " .. globalSettings.mode .. "<n>", nil)
-  end
-
-  if globalSettings.threeBalls and gameStats.threeTeamsMode then
-    gameStats.threeBalls = true
-    tfm.exec.chatMessage("<bv>Room Setup: The three-ball mode has been activated", nil)
-  end
-
-  if globalSettings.twoBalls then
-    gameStats.twoBalls = true
-    tfm.exec.chatMessage("<bv>Room Setup: The two-ball mode has been activated<n>", nil)
-  end
-
-  if globalSettings.randomBall then
-    gameStats.customBall = true
-
-    tfm.exec.chatMessage("<bv>Room Setup: The random ball mode has been activated<n>", nil)
-
-    local indexBall = math.random(1, #balls)
-    gameStats.customBallId = indexBall
-  end
-
-  if globalSettings.randomMap then
-    gameStats.randomMap = true
-    gameStats.isCustomMap = true
-    local indexMap = ''
-
-    tfm.exec.chatMessage("<bv>Room Setup: The random map mode has been activated<n>", nil)
-
-    for name1, data in pairs(tfm.get.room.playerList) do
-      if selectMapOpen[name1] then
-        selectMapUI(name1)
-      end
-    end
-
-    if gameStats.twoTeamsMode or gameStats.teamsMode then
-      indexMap = math.random(1, #customMapsFourTeamsMode)
-      gameStats.customMapIndex = indexMap
-      tfm.exec.chatMessage(
-        '<bv>' ..
-        customMapsFourTeamsMode[gameStats.customMapIndex][3] ..
-        ' map (created by ' .. customMapsFourTeamsMode[gameStats.customMapIndex][4] .. ') selected randomly<n>', nil)
-      print('<bv>' ..
-        customMapsFourTeamsMode[gameStats.customMapIndex][3] ..
-        ' map (created by ' .. customMapsFourTeamsMode[gameStats.customMapIndex][4] .. ') selected randomly<n>')
-    elseif gameStats.threeTeamsMode then
-      indexMap = math.random(1, #customMapsThreeTeamsMode)
-      gameStats.customMapIndex = indexMap
-      tfm.exec.chatMessage(
-        '<bv>' ..
-        customMapsThreeTeamsMode[gameStats.customMapIndex][3] ..
-        ' map (created by ' .. customMapsThreeTeamsMode[gameStats.customMapIndex][4] .. ') selected randomly<n>', nil)
-    elseif not gameStats.realMode then
-      indexMap = math.random(1, #customMaps)
-      gameStats.customMapIndex = indexMap
-
-      tfm.exec.chatMessage(
-        '<bv>' ..
-        customMaps[gameStats.customMapIndex][3] ..
-        ' map (created by ' .. customMaps[gameStats.customMapIndex][4] .. ') selected randomly<n>', nil)
-    end
-  end
-
-  if not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realmode and not gameStats.threeTeamsMode then
-    if globalSettings.consumables then
-      gameStats.consumables = true
-
-      tfm.exec.chatMessage("<bv>Room Setup: Consumables has been activated in normal mode<n>", nil)
-    end
-
-    if globalSettings.mapType ~= '' then
-      gameStats.setMapName = globalSettings.mapType
-
-      tfm.exec.chatMessage("<bv>Room Setup: The map size has been set to " .. globalSettings.mapType .. "<n>", nil)
-    end
-  end
-
-  if globalSettings.minimalist then
-    tfm.exec.chatMessage("<bv>Room Setup: Minimalist mode is enabled for maps (This may cause a slight delay when switching maps)<n>", nil)
-  end
-  
+  applyLobbySettings(prepared)
 
   for name, data in pairs(tfm.get.room.playerList) do
     if string.match(name, '%*') then
@@ -280,6 +229,8 @@ function init()
     playersOnGameHistoric[name] = { teams = {} }
     isPlayerDead[name] = false
     playerPressSpace[name] = false
+    playerOutOfCourt[name] = false
+    showOutOfCourtText[name] = false
 
     --[[
     for i = 1, #keys do
@@ -292,49 +243,43 @@ function init()
     pagesList[name] = { helpPage = 1 }
     canVote[name] = true
 
-    if selectMapOpen[name] then
+    if not prepared and selectMapOpen[name] then
       selectMapPage[name] = 1
       selectMapUI(name)
     end
 
-    if USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
-      ui.addWindow(31, "<p align='center'><font size='13px'><a href='event:settings'>Room settings", name, 180, 370, 150,
-        30, 1, false, false, _)
-    end
+    clubhouse.launcher(name,31)
   end
 
-  ui.addWindow(23, "<p align='center'><font size='13px'><a href='event:menuOpen'>Menu", nil, 5, 15, 100, 30, 0.2, false,
-    false, _)
-  ui.addWindow(30, "<p align='center'><font size='13px'><a href='event:selectMap'>Select a map/ball", nil, 10, 370, 150, 30, 1,
-    false, false, _)
+  clubhouse.launcher(nil,23)
+  clubhouse.launcher(nil,30)
 
   ui.removeTextArea(0)
 
-  if not gameStats.teamsMode then
+  if not gameStats.teamsMode and not gameStats.threeTeamsMode then
     for i = 1, 3 do
-      clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamRed" .. i .. "'>Join", nil, x[i],
-        y[i], 150, 40, 0xE14747, 0xE14747, 1, false)
+      clubhouse.teamSeat("Red", i, "")
     end
 
     for i = 4, 6 do
-      clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamBlue" .. i .. "'>Join", nil, x[i],
-        y[i], 150, 40, 0x184F81, 0x184F81, 1, false)
+      clubhouse.teamSeat("Blue", i - 3, "")
     end
 
     for i = 8, 10 do
-      clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamRed" .. (i - 4) .. "'>Join", nil,
-        x[i - 1], y[i - 1], 150, 40, 0xE14747, 0xE14747, 1, false)
+      clubhouse.teamSeat("Red", i - 4, "")
     end
 
     for i = 11, 13 do
-      clubhouse.joinArea(i, "<p align='center'><font size='14px'><a href='event:joinTeamBlue" .. (i - 4) .. "'>Join", nil,
-        x[i - 1], y[i - 1], 150, 40, 0x184F81, 0x184F81, 1, false)
+      clubhouse.teamSeat("Blue", i - 7, "")
     end
   end
 
   afkSystem()
 
-  initGame = os.time() + 25000
+  gameState.lobbyDeadline = prepared and math.huge or os.time() + 25000
+  if prepared then gameStats.canJoin=false end
+
+end
 
 end
 

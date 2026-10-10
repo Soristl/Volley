@@ -1,94 +1,34 @@
 function foundPointsAreaOnMap(map)
-  local mapXML = ''
-  
-  if #map > 10 then
-    mapXML = map
-  else
-    mapXML = tfm.get.room.xmlMapInfo.xml
-  end
-
-  teamPointsArea1 = {}
-  teamPointsArea2 = {}
-  teamPointsArea3 = {}
-  teamPointsArea4 = {}
-
-  local team1Text = mapXML:match('<C>%s*<P[^>]-team1="([^"]+)"')
-
-  if team1Text ~= nil then
-    local count = 1
-    local arr = {}
-
-    for value in team1Text:gmatch("%d+") do
-      arr[#arr + 1] = tonumber(value)
-
-      if count == 4 then
-        count = 1
-        teamPointsArea1[#teamPointsArea1 + 1] = arr
-
-        arr = {}
-      else
-        count = count + 1
+  local xml = mapXml.source(map)
+  local properties = xml:match("<P%s+[^>]*>") or ""
+  local function areas(key)
+    local text = mapXml.attribute(properties, key)
+    if not text or not text:match("%S") then return {} end
+    local values, result = {}, {}
+    for token in text:gmatch("[^%s,;]+") do
+      local number = mapXml.number(token)
+      if not number then
+        print("[Volley] Invalid point area coordinates: " .. key)
+        return {}
       end
+      values[#values + 1] = number
     end
-  end
-
-  local team2Text = mapXML:match('<C>%s*<P[^>]-team2="([^"]+)"')
-
-  if team2Text ~= nil then
-    local count = 1
-    local arr = {}
-
-    for value in team2Text:gmatch("%d+") do
-      arr[#arr + 1] = tonumber(value)
-
-      if count == 4 then
-        count = 1
-        teamPointsArea2[#teamPointsArea2 + 1] = arr
-
-        arr = {}
-      else
-        count = count + 1
+    if #values % 4 ~= 0 then
+      print("[Volley] Incomplete point area rectangle: " .. key)
+      return {}
+    end
+    for i = 1, #values, 4 do
+      local x1, x2, y1, y2 = values[i], values[i + 1], values[i + 2], values[i + 3]
+      if x1 > x2 or y1 > y2 then
+        print("[Volley] Reversed point area bounds: " .. key)
+        return {}
       end
+      result[#result + 1] = { x1, x2, y1, y2 }
     end
+    return result
   end
-
-  local team3Text = mapXML:match('<C>%s*<P[^>]-team3="([^"]+)"')
-
-  if team3Text ~= nil then
-    local count = 1
-    local arr = {}
-
-    for value in team3Text:gmatch("%d+") do
-      arr[#arr + 1] = tonumber(value)
-
-      if count == 4 then
-        count = 1
-        teamPointsArea3[#teamPointsArea3 + 1] = arr
-
-        arr = {}
-      else
-        count = count + 1
-      end
-    end
-  end
-
-  local team4Text = mapXML:match('<C>%s*<P[^>]-team4="([^"]+)"')
-
-  if team4Text ~= nil then
-    local count = 1
-    local arr = {}
-
-    for value in team4Text:gmatch("%d+") do
-      arr[#arr + 1] = tonumber(value)
-
-      if count == 4 then
-        count = 1
-        teamPointsArea4[#teamPointsArea4 + 1] = arr
-
-        arr = {}
-      else
-        count = count + 1
-      end
-    end
-  end
+  teamPointsArea1 = areas("team1")
+  teamPointsArea2 = areas("team2")
+  teamPointsArea3 = areas("team3")
+  teamPointsArea4 = areas("team4")
 end

@@ -1,4 +1,11 @@
 function eventPlayerLeft(name)
+  lobbyTransition.leave(name)
+  mapBackgrounds.leave(name)
+  clearPlayerTimers(name, true)
+  clearPlayerGameplay(name)
+  removePlayerTrophy(name)
+  gameCrowns.clearPlayer(name)
+  removePlayerOnSpawnConfig(name)
   clubhouse.ballSkins.clearPlayer(name)
   clubhouse.clearPlayer(name)
   removeUITrophies(name)
@@ -7,32 +14,34 @@ function eventPlayerLeft(name)
   playerLastMatchCount[name] = countMatches
   playerCanTransform[name] = true
   playerInGame[name] = false
-  if mode == "startGame" then
+  if lobbyTransition.blocksInput() then clearDepartedPlayerUiState(name);return end
+  if gameState.phase == "startGame" then
     updateLobbyTexts(name)
     -- The departing player can still be in playerList during the broadcast.
     clubhouse.clearPlayer(name)
-
+    clearDepartedPlayerUiState(name)
     return
-  elseif mode ~= "startGame" then
+  elseif gameState.phase ~= "startGame" then
     canVote[name] = true
 
     if gameStats.teamsMode or gameStats.threeTeamsMode then
       leaveTeamTeamsModeConfig(name)
     end
 
-    for i = 1, #playersRed do
-      if playersRed[i].name == name then
-        playersRed[i].name = ''
+    for i = 1, #gameState.teams.red do
+      if gameState.teams.red[i].name == name then
+        gameState.teams.red[i].name = ''
         twoTeamsPlayerRedPosition[i] = ''
         removePlayerOnSpawnConfig(name)
-        leaveConfigRealMode(name)
+        leaveConfigRealMode(name, "red")
       end
-      if playersBlue[i].name == name then
-        playersBlue[i].name = ''
+      if gameState.teams.blue[i].name == name then
+        gameState.teams.blue[i].name = ''
         twoTeamsPlayerBluePosition[i] = ''
         removePlayerOnSpawnConfig(name)
-        leaveConfigRealMode(name)
+        leaveConfigRealMode(name, "blue")
       end
     end
   end
+  clearDepartedPlayerUiState(name)
 end

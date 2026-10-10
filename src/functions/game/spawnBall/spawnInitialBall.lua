@@ -14,6 +14,8 @@ function spawnInitialBall()
     x = { 300, 900 }
 
     if gameStats.threeBalls then
+      -- Keep the right-team markers assigned to the rightmost ball.
+      spawnBalls = { spawnBallArea400, {}, spawnBallArea800 }
       x = { 300, 600, 900 }
     end
 
@@ -47,44 +49,23 @@ function spawnInitialBall()
   end
 
   if gameStats.realMode then
-    ballOnGame = false
+    if endRealMatchIfTeamEmpty() then return end
+    gameBalls.deactivate(1)
     local team = chooseInitialPlayer()
 
     print(team)
     gameStats.reduceForce = true
-    if team == "red" then
-      gameStats.aceRed = true
-      gameStats.redLimitSpawn = 1
-      local delaySpawnBall = addTimer(function(i)
-        if i == 1 then
-          if gameStats.customBall then
-            ball_id = tfm.exec.addShamanObject(balls[gameStats.customBallId].id, 700, 50, 0, 0, -5, true)
-            addBallSkin(ball_id)
-          else
-            ball_id = tfm.exec.addShamanObject(6, 700, 50, 0, 0, -5, true)
-          end
-        end
-      end, 4000, 1, "delaySpawnBall")
-    elseif team == "blue" then
-      gameStats.aceBlue = true
-      gameStats.blueLimitSpawn = 1
-      local delaySpawnBall = addTimer(function(i)
-        if i == 1 then
-          if gameStats.customBall then
-            ball_id = tfm.exec.addShamanObject(balls[gameStats.customBallId].id, 1900, 50, 0, 0, -5, true)
-            addBallSkin(ball_id)
-          else
-            ball_id = tfm.exec.addShamanObject(6, 1900, 50, 0, 0, -5, true)
-          end
-        end
-      end, 4000, 1, "delaySpawnBall")
-    end
+    if not team then return end
+    gameStats[team .. 'LimitSpawn']=1
+    addRoundTimer(function()
+      gameBalls.spawn(1,team=='red' and 700 or 1900,50,false)
+    end,4000,1,'delaySpawnBall')
 
     showTheScore()
 
-    delayToVerifyBall = addTimer(function(i)
+    delayToVerifyBall = addRoundTimer(function(i)
       if i == 1 then
-        ballOnGame = true
+        gameBalls.activate(1)
       end
     end, 5000, 1, "delayToVerifyBall")
     return
@@ -105,6 +86,4 @@ function spawnInitialBall()
   --print(x)
 
   spawnBallConfig(spawnBalls, x)
-  ballOnGame = true
-  updateTwoBallOnGame()
 end

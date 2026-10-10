@@ -73,7 +73,7 @@ documentStrings("docs.aliases", "Alias : {aliases}", "Aliases: {aliases}", "Atal
 clubhouse.documentAliases = {
   lang={"la"}, join={"j"}, leave={"l"}, profile={"pr"}, maps={"m"}, balls={"b"},
   votemap={"vm"}, crown={"cr"}, settings={"se"}, password={"pw"}, winscore={"w"}, setmaxplayers={"smp"},
-  resettimer={"re"}, stoptimer={"stop"}, skiptimer={"skip"}, lobby={"lo"},
+  resettimer={"re"}, stoptimer={"stop"}, skiptimer={"s","skip"}, lobby={"lo"},
   setmap={"sm"}, custommap={"cm"}, customball={"cb"}, setscore={"ssc"},
   ["2teamsmode"]={"twm","twoteamsmode"}, ["3teamsmode"]={"thm","threeteamsmode"},
   ["4teamsmode"]={"fom","fourteamsmode"}, realmode={"rm"}, twoballs={"twb"},
@@ -115,88 +115,141 @@ clubhouse.documentCommands = {
   ["command.32"] = "!setsync",
 }
 
-function clubhouse.documentText(name,key,id,text,x,y,width,height,size,color,face,align)
-  local rtl=clubhouse.language(name)=="ar"
-  text=clubhouse.escape(text)
-  if rtl then text=text:gsub("(![%w_]+)","\226\128\170%1\226\128\172") end
-  text=text:gsub("\n","<br>")
-  clubhouse.area(name,key,id,"<p align='"..(align or (rtl and "right" or "left")).."'><font face='"..
-    (face or (rtl and "Arial" or "Verdana")).."' size='"..(size or 11).."' color='"..(color or "#DDD2BB").."'>"..text.."</font></p>",x,y,width,height)
+function clubhouse.documentText(name, key, id, text, x, y, width, height, size, color, face, align)
+  local rtl = clubhouse.language(name) == "ar"
+  text = clubhouse.escape(text)
+  if rtl then
+    text = text:gsub("(![%w_]+)", "\226\128\170%1\226\128\172")
+  end
+  text = text:gsub("\n", "<br>")
+  clubhouse.area(name, key, id,
+    "<p align='" .. (align or (rtl and "right" or "left")) .. "'><font face='" ..
+    (face or (rtl and "Arial" or "Verdana")) .. "' size='" .. (size or 11) ..
+    "' color='" .. (color or "#DDD2BB") .. "'>" .. text .. "</font></p>",
+    x, y, width, height)
 end
 
 -- Separators sit on the existing artwork; no opaque tiles or inset boxes.
-function clubhouse.documentRule(name,key,id,x,y,width)
-  clubhouse.area(name,key,id,"<p align='center'><font face='Verdana' size='8' color='#82663C'>"..string.rep("─",math.floor(width/8)).."</font></p>",x,y-8,width,20)
+function clubhouse.documentRule(name, key, id, x, y, width)
+  clubhouse.area(name, key, id,
+    "<p align='center'><font face='Verdana' size='8' color='#82663C'>" ..
+    string.rep("─", math.floor(width / 8)) .. "</font></p>",
+    x, y - 8, width, 20)
 end
 
-function clubhouse.documentCard(name,key,id,title,body,x,y,width,height,command,aliases)
-  clubhouse.documentText(name,key,id+1,title,x+10,y+4,width-20,21,13,"#E5C991",
-    command and "Consolas" or (clubhouse.language(name)=="ar" and "Arial" or "Georgia"),command and "left" or nil)
-  local bodyY=aliases and 45 or 26
+function clubhouse.documentCard(name, key, id, title, body, x, y, width, height, command, aliases)
+  clubhouse.documentText(name, key, id + 1, title,
+    x + 10, y + 4, width - 20, 21, 13, "#E5C991",
+    command and "Consolas" or (clubhouse.language(name) == "ar" and "Arial" or "Georgia"),
+    command and "left" or nil)
+  local bodyY = aliases and 45 or 26
   if aliases then
-    clubhouse.documentText(name,key,id+3,aliases,x+10,y+25,width-20,20,10,"#9CAEAA")
+    clubhouse.documentText(name, key, id + 3, aliases,
+      x + 10, y + 25, width - 20, 20, 10, "#9CAEAA")
   end
-  clubhouse.documentText(name,key,id+2,body,x+10,y+bodyY,width-20,height-bodyY-2,11)
+  clubhouse.documentText(name, key, id + 2, body,
+    x + 10, y + bodyY, width - 20, height - bodyY - 2, 11)
 end
 
-function clubhouse.helpDocument(name,page)
-  local s=clubhouse.screens.help;local r=s.regions.body
-  local x,y=s.x+r.x,s.y+r.y
-  clubhouse.documentText(name,"help",s.base+40,string.format("%02d",page).."  /  "..clubhouse.text(name,"docs.help."..page),x,y,r.width,25,15,"#E5C991",clubhouse.language(name)=="ar" and "Arial" or "Georgia","center")
-  clubhouse.documentRule(name,"help",s.base+41,x+10,y+26,r.width-20)
-  for index,key in ipairs(clubhouse.documentPages[page]) do
-    local column=(index-1)%2
-    if clubhouse.language(name)=="ar" then column=1-column end
-    local command=clubhouse.documentCommands[key]
-    local aliases=command and clubhouse.documentAliases[command:match("^!([%w_]+)")]
-    if aliases then
-      aliases=clubhouse.text(name,#aliases==1 and "docs.alias" or "docs.aliases",{aliases="!"..table.concat(aliases," / !")})
+function clubhouse.helpDocument(name, page)
+  local s = clubhouse.screens.help;
+  local r = s.regions.body
+  local x, y = s.x + r.x, s.y + r.y
+  clubhouse.documentText(name, "help", s.base + 40,
+    string.format("%02d", page) .. "  /  " .. clubhouse.text(name, "docs.help." .. page),
+    x, y, r.width, 25, 15, "#E5C991",
+    clubhouse.language(name) == "ar" and "Arial" or "Georgia", "center")
+  clubhouse.documentRule(name, "help", s.base + 41, x + 10, y + 26, r.width - 20)
+  for index, key in ipairs(clubhouse.documentPages[page]) do
+    local column = (index - 1) % 2
+    if clubhouse.language(name) == "ar" then
+      column = 1 - column
     end
-    clubhouse.documentCard(name,"help",s.base+50+(index-1)*3,command or clubhouse.text(name,key..".title"),clubhouse.text(name,key),
-      x+column*307,y+31+math.floor((index-1)/2)*82,295,command and 81 or 74,command~=nil,aliases)
+    local command = clubhouse.documentCommands[key]
+    local aliases = command and clubhouse.documentAliases[command:match("^!([%w_]+)")]
+    if aliases then
+      aliases = clubhouse.text(name, #aliases == 1 and "docs.alias" or "docs.aliases",
+        { aliases = "!" .. table.concat(aliases, " / !") })
+    end
+    clubhouse.documentCard(name, "help", s.base + 50 + (index - 1) * 3,
+      command or clubhouse.text(name, key .. ".title"), clubhouse.text(name, key),
+      x + column * 307, y + 31 + math.floor((index - 1) / 2) * 82,
+      295, command and 81 or 74, command ~= nil, aliases)
   end
 end
 
 function clubhouse.realDocument(name)
-  local s=clubhouse.screens.real_rules;local r=s.regions.body
-  for index,item in ipairs({"transform","serve","out_no_touch","out_touch","outside","force"}) do
-    local column=(index-1)%2
-    if clubhouse.language(name)=="ar" then column=1-column end
-    local key="docs.real."..item
-    clubhouse.documentCard(name,"real_rules",s.base+50+(index-1)*3,clubhouse.text(name,key..".title"),clubhouse.text(name,key),
-      s.x+r.x+column*307,s.y+r.y+math.floor((index-1)/2)*70,295,62,false)
+  local s = clubhouse.screens.real_rules;
+  local r = s.regions.body
+  for index, item in ipairs({ "transform", "serve", "out_no_touch", "out_touch", "outside", "force" }) do
+    local column = (index - 1) % 2
+    if clubhouse.language(name) == "ar" then
+      column = 1 - column
+    end
+    local key = "docs.real." .. item
+    clubhouse.documentCard(name, "real_rules", s.base + 50 + (index - 1) * 3,
+      clubhouse.text(name, key .. ".title"), clubhouse.text(name, key),
+      s.x + r.x + column * 307, s.y + r.y + math.floor((index - 1) / 2) * 70,
+      295, 62, false)
   end
 end
 
 function clubhouse.creditsDocument(name)
-  local key="credits";local s=clubhouse.screens[key];local r=s.regions.body
-  local x,y=s.x+r.x,s.y+r.y
-  local rtl=clubhouse.language(name)=="ar"
-  local left=x+(rtl and 408 or 0);local right=x+204;local thanks=x+(rtl and 0 or 408)
-  local function panel(id,heading,px,py,height)
-    clubhouse.documentRule(name,key,id,px+10,py+29,174)
-    clubhouse.documentText(name,key,id+1,heading,px+10,py+6,174,22,13,"#E5C991",rtl and "Arial" or "Georgia")
+  local key = "credits";
+  local s = clubhouse.screens[key];
+  local r = s.regions.body
+  local x, y = s.x + r.x, s.y + r.y
+  local rtl = clubhouse.language(name) == "ar"
+  local left = x + (rtl and 408 or 0);
+  local right = x + 204;
+  local thanks = x + (rtl and 0 or 408)
+  local function panel(id, heading, px, py, height)
+    clubhouse.documentRule(name, key, id, px + 10, py + 29, 174)
+    clubhouse.documentText(name, key, id + 1, heading,
+      px + 10, py + 6, 174, 22, 13, "#E5C991", rtl and "Arial" or "Georgia")
   end
-  panel(s.base+40,clubhouse.text(name,"docs.credits.creation"),left,y,77)
-  clubhouse.documentText(name,key,s.base+42,"Refletz#6472",left+10,y+31,174,23,15,"#F2E5CD")
-  clubhouse.documentText(name,key,s.base+43,"Soristl",left+10,y+55,174,20,10,"#9CAEAA")
-  panel(s.base+50,clubhouse.text(name,"docs.credits.development"),left,y+72,130)
-  for i,entry in ipairs({{"Refletz#6472","main"},{"Myzk#5789","second"},{"Tanarchosl#4785","second"}}) do
-    local top=y+101+(i-1)*32
-    clubhouse.documentText(name,key,s.base+52+(i-1)*2,entry[1],left+10,top,174,19,12,"#F2E5CD")
-    clubhouse.documentText(name,key,s.base+53+(i-1)*2,clubhouse.text(name,"docs.credits."..entry[2]),left+10,top+16,174,18,10,"#9CAEAA")
+  panel(s.base + 40, clubhouse.text(name, "docs.credits.creation"), left, y, 77)
+  clubhouse.documentText(name, key, s.base + 42, "Refletz#6472",
+    left + 10, y + 31, 174, 23, 15, "#F2E5CD")
+  clubhouse.documentText(name, key, s.base + 43, "Soristl",
+    left + 10, y + 55, 174, 20, 10, "#9CAEAA")
+
+  panel(s.base + 50, clubhouse.text(name, "docs.credits.development"), left, y + 72, 130)
+  for i, entry in ipairs({
+    { "Refletz#6472", "main" },
+    { "Myzk#5789", "second" },
+    { "Tanarchosl#4785", "second" }
+  }) do
+    local top = y + 101 + (i - 1) * 32
+    clubhouse.documentText(name, key, s.base + 52 + (i - 1) * 2, entry[1],
+      left + 10, top, 174, 19, 12, "#F2E5CD")
+    clubhouse.documentText(name, key, s.base + 53 + (i - 1) * 2,
+      clubhouse.text(name, "docs.credits." .. entry[2]),
+      left + 10, top + 16, 174, 18, 10, "#9CAEAA")
   end
-  panel(s.base+60,clubhouse.text(name,"credits.original_translation"),right,y,202)
-  for i,entry in ipairs({{"BR / EN","Refletz#6472 (Soristl)"},{"AR","Ionut_eric_pro#1679"},{"FR","Rowed#4415"},{"PL","Prestige#5656"}}) do
-    local top=y+35+(i-1)*40
-    clubhouse.documentText(name,key,s.base+62+(i-1)*2,entry[1],right+10,top,174,20,10,"#E5C991")
-    clubhouse.documentText(name,key,s.base+63+(i-1)*2,entry[2],right+10,top+18,174,21,12,"#F2E5CD")
+
+  panel(s.base + 60, clubhouse.text(name, "credits.original_translation"), right, y, 202)
+  for i, entry in ipairs({
+    { "BR / EN", "Refletz#6472 (Soristl)" },
+    { "AR", "Ionut_eric_pro#1679" },
+    { "FR", "Rowed#4415" },
+    { "PL", "Prestige#5656" }
+  }) do
+    local top = y + 35 + (i - 1) * 40
+    clubhouse.documentText(name, key, s.base + 62 + (i - 1) * 2, entry[1],
+      right + 10, top, 174, 20, 10, "#E5C991")
+    clubhouse.documentText(name, key, s.base + 63 + (i - 1) * 2, entry[2],
+      right + 10, top + 18, 174, 21, 12, "#F2E5CD")
   end
-  panel(s.base+70,clubhouse.text(name,"docs.credits.thanks"),thanks,y,202)
-  for i,entry in ipairs({{"Hufdasr#0000","uploads"},{"Mckeydown#0000","host"}}) do
-    local top=y+35+(i-1)*72
-    clubhouse.documentText(name,key,s.base+72+(i-1)*2,entry[1],thanks+10,top,174,22,12,"#F2E5CD")
-    clubhouse.documentText(name,key,s.base+73+(i-1)*2,clubhouse.text(name,"docs.credits."..entry[2]),thanks+10,top+23,174,43,10,"#9CAEAA")
+
+  panel(s.base + 70, clubhouse.text(name, "docs.credits.thanks"), thanks, y, 202)
+  for i, entry in ipairs({ { "Hufdasr#0000", "uploads" }, { "Mckeydown#0000", "host" } }) do
+    local top = y + 35 + (i - 1) * 72
+    clubhouse.documentText(name, key, s.base + 72 + (i - 1) * 2, entry[1],
+      thanks + 10, top, 174, 22, 12, "#F2E5CD")
+    clubhouse.documentText(name, key, s.base + 73 + (i - 1) * 2,
+      clubhouse.text(name, "docs.credits." .. entry[2]),
+      thanks + 10, top + 23, 174, 43, 10, "#9CAEAA")
   end
 end
 

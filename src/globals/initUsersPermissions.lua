@@ -1,15 +1,7 @@
-function initUsersPermissions()
-  local mapXML = tfm.get.room.xmlMapInfo.xml
-  print(#mapXML)
-
-  local pTag = string.match(mapXML, '<C><P%s+([^>]+)/')
-  local users = string.match(pTag, 'USER_PERMISSIONS="([^"]+)"')
-
-  -- USER_PERMISSIONS = {}
-  for entry in users:gmatch("[^,]+") do
-    local user, level = entry:match("%s*(.-)%s*=%s*(%d+)")
-    level = tonumber(level)
-
+function initUsersPermissions(config)
+  config = config or readLobbyConfig()
+  if not config then return false end
+  for user, level in pairs(config.permissions) do
     if user and level then
       if user == roomCreator.name then
         if roomCreator.adminRevoked then
@@ -21,4 +13,5 @@ function initUsersPermissions()
       USER_PERMISSIONS[user] = level
     end
   end
+  return true
 end

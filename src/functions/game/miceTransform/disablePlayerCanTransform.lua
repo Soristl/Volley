@@ -1,6 +1,6 @@
 function disablePlayerCanTransform(name)
   playerCanTransform[name] = false
-  playersCanTransform = addTimer(function(i)
+  playersCanTransform = addPlayerRoundTimer(name, function(i)
     if i == 1 then
       playerCanTransform[name] = true
     end

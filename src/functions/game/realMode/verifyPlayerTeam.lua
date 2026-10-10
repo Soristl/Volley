@@ -1,43 +1,30 @@
+do
+local touchRules = {
+  {team="red", quantity="redQuantitySpawn", limit="redLimitSpawn", server="redPlayerServe", last="lastPlayerRed"},
+  {team="blue", quantity="blueQuantitySpawn", limit="blueLimitSpawn", server="bluePlayerServe", last="lastPlayerBlue"},
+}
+
 function verifyPlayerTeam(name)
-  if playerOutOfCourt[name] then
-    return
-  end
+  if playerOutOfCourt[name] then return end
 
-  for i = 1, #playersRed do
-    if playersRed[i].name == name then
-      if gameStats.redQuantitySpawn == gameStats.redLimitSpawn then
-        return false
-      end
-      if gameStats.redQuantitySpawn < gameStats.redLimitSpawn then
-        if gameStats.redLimitSpawn == 1 and name ~= gameStats.redPlayerServe and gameStats.lastPlayerRed == name then
-          return false
+  -- Keep red before blue and read the current rosters after team changes.
+  for _, rule in ipairs(touchRules) do
+    local roster = gameState.teams[rule.team]
+    for i = 1, #roster do
+      if roster[i].name == name then
+        local quantity, limit = gameStats[rule.quantity], gameStats[rule.limit]
+        if quantity == limit then return false end
+        if quantity < limit then
+          if limit == 1 and name ~= gameStats[rule.server] and gameStats[rule.last] == name then
+            return false
+          end
+          gameStats[rule.quantity] = quantity + 1
+          gameStats[rule.last] = name
+          showTheScore()
+          return true
         end
-        gameStats.redQuantitySpawn = gameStats.redQuantitySpawn + 1
-        gameStats.lastPlayerRed = name
-        showTheScore()
-
-        return true
       end
     end
   end
-
-  for i = 1, #playersBlue do
-    if playersBlue[i].name == name then
-      if gameStats.blueQuantitySpawn == gameStats.blueLimitSpawn then
-        return false
-      end
-
-      if gameStats.blueQuantitySpawn < gameStats.blueLimitSpawn then
-        if gameStats.blueLimitSpawn == 1 and name ~= gameStats.bluePlayerServe and gameStats.lastPlayerBlue == name then
-          return false
-        end
-
-        gameStats.blueQuantitySpawn = gameStats.blueQuantitySpawn + 1
-        gameStats.lastPlayerBlue = name
-        showTheScore()
-
-        return true
-      end
-    end
-  end
+end
 end

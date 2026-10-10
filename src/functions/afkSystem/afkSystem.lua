@@ -1,70 +1,31 @@
 function afkSystem()
-  local timestampNow = os.time()
-  local playersAfkList = {}
-  local countPlayers = 0
-
-  for name, data in pairs(tfm.get.room.playerList) do
-    countPlayers = countPlayers + 1
-
-    local playerAfkTime = timestampNow - playersAfk[name]
-
-    if playerAfkTime >= (10 * 60 * 1000) then
-      playersAfkList[#playersAfkList + 1] = { name = name, timestamp = playerAfkTime }
+  local now = os.time()
+  local inactive, connected = {}, 0
+  for name in pairs(tfm.get.room.playerList) do
+    connected = connected + 1
+    local last = playersAfk[name]
+    -- A player may appear in the host list before their arrival is initialized.
+    -- Start their inactivity clock instead of subtracting an absent timestamp.
+    if type(last) ~= 'number' or last ~= last or math.abs(last) == math.huge then
+      last = now
+      playersAfk[name] = now
+    end
+    local elapsed = now - last
+    if elapsed >= 10 * 60 * 1000 then
+      inactive[#inactive + 1] = { name=name, timestamp=elapsed }
     end
   end
 
-  table.sort(playersAfkList, function(a, b) return a.timestamp > b.timestamp end)
-
-  local maxPlayers = tfm.get.room.maxPlayers
-
-  local countDifference = 0
-
-  local count = 3
-
-  if maxPlayers >= 17 and maxPlayers <= 20 then
-    count = 4
-  end
-
-  for i = 0, count do
-    if (countPlayers + i) == maxPlayers then
-      if i == 0 then
-        countDifference = count
-      elseif i == 1 then
-        countDifference = count - 1
-        print(countDifference)
-      elseif i == 2 then
-        countDifference = count - 2
-      elseif i == 3 then
-        countDifference = count - 3
-      elseif i == 4 then
-        countDifference = count - 4
-      end
-    end
-  end
-
-  if maxPlayers >= 17 and maxPlayers <= 20 then
-    if countDifference <= 4 then
-      for i = 1, countDifference do
-        if playersAfkList[i] ~= nil then
-          print('<bv>You have been kicked out of the room for being inactive for too long.<n>')
-          tfm.exec.chatMessage('<bv>You have been kicked out of the room for being inactive for too long.<n>',
-            playersAfkList[i].name)
-          tfm.exec.kickPlayer(playersAfkList[i].name)
-        end
-      end
-    end
-
-    return
-  end
-
-  if countDifference <= 3 then
-    for i = 1, countDifference do
-      if playersAfkList[i] ~= nil then
-        print('<bv>You have been kicked out of the room for being inactive for too long.<n>')
-        tfm.exec.chatMessage('<bv>You have been kicked out of the room for being inactive for too long.<n>',
-          playersAfkList[i].name)
-        tfm.exec.kickPlayer(playersAfkList[i].name)
-      end
-    end
+  local capacity = tfm.get.room.maxPlayers
+  local reserve = capacity >= 17 and capacity <= 20 and 4 or 3
+  local needed = reserve - (capacity - connected)
+  -- Preserve the existing admission policy, including over-capacity rooms.
+  if connected > capacity or needed <= 0 or #inactive == 0 then return end
+  table.sort(inactive, function(a, b) return a.timestamp > b.timestamp end)
+  local message = '<bv>You have been kicked out of the room for being inactive for too long.<n>'
+  for index = 1, math.min(needed, #inactive) do
+    print(message)
+    tfm.exec.chatMessage(message, inactive[index].name)
+    tfm.exec.kickPlayer(inactive[index].name)
   end
 end

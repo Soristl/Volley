@@ -1,6 +1,7 @@
 local LATENCY_GRADES = { "Perfect", "Good", "Fair", "Bad", "Terrible" }
 
 function getSyncGrade(latency)
+  if getSyncLatency(latency) == nil then return 'Unknown' end
   -- Inlineable by Lua JIT if used often, but clear here
 
   -- math.floor(latency / 50) + 1 maps:

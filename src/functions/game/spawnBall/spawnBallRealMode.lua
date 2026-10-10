@@ -1,38 +1,14 @@
 function spawnBallRealMode(team)
-  gameStats.reduceForce = true
-  if team == "red" then
-    gameStats.teamWithOutAce = "blue"
-
-    ballOnGame = false
-    tfm.exec.removeObject(ball_id)
-    gameStats.redServe = true
-
-    if gameStats.customBall then
-      ball_id = tfm.exec.addShamanObject(balls[gameStats.customBallId].id, 700, 50, 0, 0, -5, true)
-      addBallSkin(ball_id)
-    else
-      ball_id = tfm.exec.addShamanObject(6, 700, 50, 0, 0, -5, true)
-    end
-
-    ballOnGame = true
-    showTheScore()
-    gameStats.canTransform = true
-
-    return
-  elseif team == "blue" then
-    gameStats.teamWithOutAce = "red"
-    ballOnGame = false
-    tfm.exec.removeObject(ball_id)
-    gameStats.blueServe = true
-    if gameStats.customBall then
-      ball_id = tfm.exec.addShamanObject(balls[gameStats.customBallId].id, 1900, 50, 0, 0, -5, true)
-      addBallSkin(ball_id)
-    else
-      ball_id = tfm.exec.addShamanObject(6, 1900, 50, 0, 0, -5, true)
-    end
-
-    gameStats.canTransform = true
-    ballOnGame = true
-    showTheScore()
+  if not gameStats.realMode or gameState.phase ~= 'gameStart' or (team ~= 'red' and team ~= 'blue') then return end
+  if endRealMatchIfTeamEmpty() then return end
+  local server=gameStats[team .. 'PlayerServe']
+  if not server or not tfm.get.room.playerList[server] or playerLeft[server] or searchPlayerTeam(server) ~= team then
+    if not choosePlayerServe(team) then return end
   end
+  gameStats.redServe,gameStats.blueServe=team=='red',team=='blue'
+  gameStats.reduceForce=true
+  gameStats.teamWithOutAce=team=='red' and 'blue' or 'red'
+  gameBalls.spawn(1,team=='red' and 700 or 1900,50)
+  gameStats.canTransform=true
+  showTheScore()
 end

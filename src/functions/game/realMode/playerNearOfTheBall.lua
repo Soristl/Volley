@@ -1,8 +1,10 @@
 function playerNearOfTheBall(name, x, y)
-  if ballOnGame then
+  local ball = gameState.balls[1].id and tfm.get.room.objectList[gameState.balls[1].id]
+  if not ball then return end
+  if gameState.balls[1].active then
     resetQuantityTeams()
-    local ballX = tfm.get.room.objectList[ball_id].x + tfm.get.room.objectList[ball_id].vx
-    local ballY = tfm.get.room.objectList[ball_id].y + tfm.get.room.objectList[ball_id].vy
+    local ballX = ball.x + ball.vx
+    local ballY = ball.y + ball.vy
 
     if (ballX + 15) >= 1250 and (ballX - 15) <= 1350 and x >= 1250 and x <= 1350 and ballY <= 297 then
       local team = searchPlayerTeam(name)

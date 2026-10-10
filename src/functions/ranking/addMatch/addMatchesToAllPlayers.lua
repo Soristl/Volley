@@ -1,43 +1,24 @@
 function addMatchesToAllPlayers()
-  local mode = verifyMode()
-
-  if mode == "Normal mode" then
-    for name, value in pairs(playerInGame) do
-      if value then
-        playersNormalMode[name].matches = playersNormalMode[name].matches + 1
-        playersNormalMode[name].winRatio = winRatioPercentage(playersNormalMode[name].wins,
-          playersNormalMode[name].matches)
-      end
-    end
-  elseif mode == "4 teams mode" then
-    for name, value in pairs(playerInGame) do
-      if value then
-        playersFourTeamsMode[name].matches = playersFourTeamsMode[name].matches + 1
-        playersFourTeamsMode[name].winRatio = winRatioPercentage(playersFourTeamsMode[name].wins,
-          playersFourTeamsMode[name].matches)
-      end
-    end
-  elseif mode == "3 teams mode" then
-    for name, value in pairs(playerInGame) do
-      if value then
-        playersThreeTeamsMode[name].matches = playersThreeTeamsMode[name].matches + 1
-        playersThreeTeamsMode[name].winRatio = winRatioPercentage(playersThreeTeamsMode[name].wins,
-          playersThreeTeamsMode[name].matches)
-      end
-    end
-  elseif mode == "2 teams mode" then
-    for name, value in pairs(playerInGame) do
-      if value then
-        playersTwoTeamsMode[name].matches = playersTwoTeamsMode[name].matches + 1
-        playersTwoTeamsMode[name].winRatio = winRatioPercentage(playersTwoTeamsMode[name].wins,
-          playersTwoTeamsMode[name].matches)
-      end
-    end
-  elseif mode == "Real mode" then
-    for name, value in pairs(playerInGame) do
-      if value then
-        playersRealMode[name].matches = playersRealMode[name].matches + 1
-        playersRealMode[name].winRatio = winRatioPercentage(playersRealMode[name].wins, playersRealMode[name].matches)
+  local handlers = {
+    ["Normal mode"] = addMatchToPlayer,
+    ["2 teams mode"] = addMatchToPlayerTwoTeamsMode,
+    ["3 teams mode"] = addMatchToPlayerThreeTeamsMode,
+    ["4 teams mode"] = addMatchToPlayerFourTeamsMode,
+    ["Real mode"] = addMatchToPlayerRealMode,
+  }
+  local addMatch = handlers[verifyMode()]
+  if not addMatch then return end
+  -- Joining assigns a roster slot before gameplay can begin. Departed names
+  -- remain in playerInGame as false, so scan the bounded rosters instead of
+  -- the room's entire session history. Keep pending departures in the roster
+  -- eligible until their gameplay flag is cleared, as before.
+  local seen = {}
+  for _, roster in pairs(gameState.teams) do
+    for _, slot in ipairs(roster) do
+      local name = slot.name
+      if playerInGame[name] and not seen[name] then
+        seen[name] = true
+        addMatch(name)
       end
     end
   end

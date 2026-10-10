@@ -1,21 +1,5 @@
-local KEYS = {
-  LEFT        = 0,
-  UP          = 1,
-  RIGHT       = 2,
-  DOWN        = 3,
-  -- Z        = 90
-  -- X        = 88
-  -- C        = 67
-  -- V        = 86
-  -- AFK      = { [0] = true, [1] = true, [2] = true, [3] = true },
-  PROFILE     = 80,
-  RANK        = 76,
-  TRANSFORM   = 32,
-  CONSUMABLES = { [55] = true, [56] = true, [57] = true, [48] = true },
-  FORCE       = { [49] = true, [50] = true, [51] = true, [52] = true },
-  SPAWN_ITEM  = 77
-}
-
+do
+-- KEYS is shared with bindKeys and page input from configuration/keybinds.lua.
 local CONSUMABLES = {
   [55] = { id = 65, name = "pufferfish" },
   [56] = { id = 80, name = "paper plane" },
@@ -29,6 +13,17 @@ local FORCE_CONFIG = {
   [51] = { value = -0.45, msg = "Your strength has been reduced by 45%" },
   [52] = { value = -1, msg = "Your strength has been reduced by 100%" }
 }
+
+local TRANSFORM_TEAMS = {
+  {key="red", color=0xEF4444},
+  {key="blue", color=0x3B82F6},
+  {key="yellow", color=0xF59E0B},
+  {key="green", color=0x109267}
+}
+
+local function finiteNumber(value)
+  return type(value) == "number" and value == value and value > -math.huge and value < math.huge
+end
 
 --[[
   These helper functions should
@@ -63,7 +58,7 @@ local function handleConsumables(name, key, x, y, offsetX)
     playerConsumable[name] = false
 
     -- Cooldown reset (player-specific timer)
-    addTimer(function()
+    addPlayerRoundTimer(name, function()
       playerConsumable[name] = true
       tfm.exec.chatMessage("<bv>You can spawn a new consumable<n>", name)
     end, 5000, 1, "enablePlayerConsumable_" .. name)
@@ -78,7 +73,7 @@ local function handleConsumables(name, key, x, y, offsetX)
     playerConsumables[name] = playerConsumables[name] or {}
     table.insert(playerConsumables[name], id)
 
-    addTimer(function()
+    addPlayerRoundTimer(name, function()
       local queue = playerConsumables[name]
       if queue and #queue > 0 then
         local removedId = table.remove(queue, 1)
@@ -105,8 +100,8 @@ local function handleRealMode(name, key, x)
       local warning =
       "<bv>you are outside the court you have 7 seconds to make an action, otherwise you will not be able to use the TRANSFORM key outside the court<n>"
       tfm.exec.chatMessage(warning, name)
+      addPlayerRoundTimer(name, function() playerOutOfCourt[name] = true end, 7000, 1, "delay_" .. name)
     end
-    addTimer(function() playerOutOfCourt[name] = true end, 7000, 1, "delay_" .. name)
   else
     removeTimer("delay_" .. name)
     showOutOfCourtText[name] = false
@@ -129,35 +124,33 @@ local function getPlayerTransformColor(name)
     for index, team in ipairs(teamsPlayersOnGame) do
       for _, player in ipairs(team) do
         if player.name == name then
-          return getTeamsColorsName[index] or 0x81348A
+          return gameTeams.color(gameTeams.keyAt(index)) or 0x81348A
         end
       end
     end
   end
 
-  local teams = {
-    { playersRed, 0xEF4444 },
-    { playersBlue, 0x3B82F6 },
-    { playersYellow, 0xF59E0B },
-    { playersGreen, 0x109267 }
-  }
-  for _, team in ipairs(teams) do
-    for _, player in ipairs(team[1]) do
-      if player.name == name then return team[2] end
+  for _, team in ipairs(TRANSFORM_TEAMS) do
+    for _, player in ipairs(gameState.teams[team.key]) do
+      if player.name == name then return team.color end
     end
   end
   return 0x81348A
 end
 
-local function handlePlayerTransform(name, x, y)
+local function handlePlayerTransform(name, x, y, player, data)
+  -- Validate before consuming a serve, killing the mouse or allocating a ground.
+  local ping = player.ping or 10
+  if not finiteNumber(data.transformDuration) or data.transformDuration < 0 or not finiteNumber(ping)
+    or (gameStats.realMode and not finiteNumber(playerForce[name])) then return end
   local additionalForce = 0
-  playerPressSpace[name] = true
 
   -- 1. Calculate launch force based on real-mode state
   -- NOTE: Conditions are evaluated top-down. Later matches override earlier ones.
   if gameStats.realMode then
     local team = searchPlayerTeam(name)
     local canSpawn = verifyPlayerTeam(name)
+    if not canSpawn then return end
 
     -- Base team force
     if team == "red" and gameStats.redQuantitySpawn >= 0 then
@@ -174,9 +167,6 @@ local function handlePlayerTransform(name, x, y)
       gameStats.blueServe = false
       additionalForce = 0.34
     end
-
-    -- Block transformation if team spawn limit is reached
-    if not canSpawn then return end
 
     -- Max spawn quantity override
     if gameStats.redQuantitySpawn == 3 then
@@ -196,6 +186,7 @@ local function handlePlayerTransform(name, x, y)
   end
 
   -- 2. Execute transformation
+  playerPressSpace[name] = true
   playerCanTransform[name] = false
   playerPhysicId[name] = countId
   tfm.exec.killPlayer(name)
@@ -218,15 +209,15 @@ local function handlePlayerTransform(name, x, y)
   local groundId = playerPhysicId[name]
 
   -- 3. Schedule cleanup & respawn sequence (ping-compensated)
-  local ping = tfm.get.room.playerList[name].ping or 10
   -- Compensate for input latency: subtract ~1x ping from the base duration
   -- so high-ping clients perceive the same ~2s window as low-ping clients.
   -- Clamped to prevent timers from firing before network packets arrive.
-  local transformDuration = players[name].transformDuration * 1000
+  local transformDuration = data.transformDuration * 1000
   local transformCooldown = math.max(100, 400 - (ping / 2))
 
-  addTimer(function()
+  addPlayerRoundTimer(name, function()
     tfm.exec.removePhysicObject(groundId)
+    if playerPhysicId[name] == groundId then playerPhysicId[name] = 0 end
     playerPressSpace[name] = false
     tfm.exec.respawnPlayer(name)
     setCrownToPlayer(name)
@@ -236,7 +227,7 @@ local function handlePlayerTransform(name, x, y)
     end
 
     -- Re-enable transform ability after compensated cooldown
-    addTimer(function()
+    addPlayerRoundTimer(name, function()
       playerCanTransform[name] = true
     end, transformCooldown, 1, "delayOnTransform_" .. name)
   end, transformDuration, 1, "removeGround_" .. name)
@@ -256,11 +247,19 @@ end
   -- Vit0rg
 ]]
 function eventKeyboard(name, key, down, x, y, xv, yv)
-  if playerBan[name] then return end
-  -- Shouldn't the player data be memoized?
+  if type(name) ~= "string" or not finiteNumber(key) or key % 1 ~= 0 or type(down) ~= "boolean"
+    or playerBan[name] or playerLeft[name] then return end
   local player = tfm.get.room.playerList[name]
-  if not player then return end
+  local data = players[name]
+  if type(player) ~= "table" or type(data) ~= "table" or type(data.offsets) ~= "table" then return end
+  if lobbyTransition and lobbyTransition.blocksInput() then
+    if key>=0 and key<=3 then playersAfk[name]=os.time() end
+    return
+  end
   if clubhouse.pageInputKey(name,key,down) then return end
+  local offsets = data.offsets
+  if not finiteNumber(x) or not finiteNumber(y) or not finiteNumber(xv) or not finiteNumber(yv)
+    or not finiteNumber(offsets.x) or not finiteNumber(offsets.y) then return end
   if key == KEYS.PROFILE or key == KEYS.RANK then
     if not down then return end
     local closing=key==KEYS.PROFILE and isOpenProfile[name] or key==KEYS.RANK and openRank[name]
@@ -268,9 +267,8 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
   end
 
   -- 1. Movement & Offset Calculation
-  local _offsets = { x = players[name].offsets.x, y = players[name].offsets.y }
-  local offsetX = (xv < 0 and -_offsets.x) or (xv > 0 and _offsets.x) or 0
-  local offsetY = (yv < 0 and -_offsets.y) or (yv > 0 and _offsets.y) or 0
+  local offsetX = (xv < 0 and -offsets.x) or (xv > 0 and offsets.x) or 0
+  local offsetY = (yv < 0 and -offsets.y) or (yv > 0 and offsets.y) or 0
 
   player.x = offsetX + x
   player.y = offsetY + y
@@ -309,7 +307,7 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
   end
 
   -- 5. Game-Specific Logic
-  if not playerInGame[name] or mode ~= "gameStart" then return end
+  if not playerInGame[name] or gameState.phase ~= "gameStart" or gameStats.isGamePaused or not isGameplayMapReady() then return end
 
   -- Track direction
   if gameStats.skillsTree then
@@ -325,10 +323,11 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
   end
 
   if gameStats.realMode then
-    handleRealMode(name, key, x)
+    if not handleRealMode(name, key, x) then return end
   end
 
   if key == KEYS.TRANSFORM and gameStats.canTransform and playerCanTransform[name] and not playerOutOfCourt[name] and not isPlayerDead[name] then
-    handlePlayerTransform(name, player.x, player.y)
+    handlePlayerTransform(name, player.x, player.y, player, data)
   end
+end
 end

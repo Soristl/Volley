@@ -1,4 +1,10 @@
 function eventNewPlayer(name)
+  if type(name) ~= 'string' or not tfm.get.room.playerList[name] then return end
+  lobbyTransition.leave(name) -- A reconnect invalidates work for the former connection.
+  clearPlayerTimers(name, false)
+  clearPlayerGameplay(name)
+  removePlayerTrophy(name)
+  gameCrowns.clearPlayer(name)
   -- Client images and textareas are lost on disconnect: discard cached handles.
   clubhouse.clearPlayer(name)
   clubhouse.ballSkins.clearPlayer(name)
@@ -8,10 +14,9 @@ function eventNewPlayer(name)
     playerBanHistory[name] = "VOLLEY SYSTEM"
     playerBan[name] = true
 
-    tfm.exec.kickPlayer(name)
   end
 
-  setPlayerData(name)
+  local keysBound = setPlayerData(name)
 
   if tfm.get.room.isTribeHouse then
     if tfm.get.room.name:sub(3) == tfm.get.room.playerList[name].tribeName then
@@ -33,14 +38,7 @@ function eventNewPlayer(name)
   isOpenProfile[name] = false
   playerTrophyImage[name] = 0
   if playerAchievements[name] == nil then
-    playerAchievements[name] = {
-      [1] = { image = "img@193d6763c82", quantity = 0 },
-      [2] = { image = '19636907e9e.png', quantity = 0 },
-      [3] = { image = "197d9272515.png", quantity = 0 },
-      [4] = { image = "1984ac78d52.png", quantity = 0 },
-      [5] = { image = "1984ac773d3.png", quantity = 0 },
-      [6] = { image = "19fa0498eb4.png", quantity = 0 }
-    }
+    playerAchievements[name] = newPlayerAchievements()
   end
 
   settings[name] = false
@@ -62,7 +60,6 @@ function eventNewPlayer(name)
   playersAfk[name] = os.time()
   playerPressSpace[name] = false
 
-  showCrownToAllPlayers()
   if canVote[name] == nil then
     canVote[name] = true
   end
@@ -88,22 +85,18 @@ function eventNewPlayer(name)
     playerBanHistory[name] = ""
   end
 
-  if gameStats.killSpec or killSpecPermanent then
-    tfm.exec.killPlayer(name)
-  else
-    tfm.exec.respawnPlayer(name)
-  end
-
   if playersNormalMode[name] == nil then
     --[[
       This could all be inside one single table:
       --Vit0rg
     ]]
-    playersNormalMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
-    playersFourTeamsMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0, winsYellow = 0, winsGreen = 0 }
-    playersThreeTeamsMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0, winsGreen = 0 }
-    playersTwoTeamsMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
-    playersRealMode[name] = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
+    playersNormalMode[name] = newPlayerStats(name)
+    playersFourTeamsMode[name] = newPlayerStats(name, 4)
+    playersThreeTeamsMode[name] = newPlayerStats(name, 3)
+    playersTwoTeamsMode[name] = newPlayerStats(name)
+    playersRealMode[name] = newPlayerStats(name)
+    -- Even an unranked insertion can change pairs ordering for exact ties.
+    rankingCache.invalidateAll()
 
     --[[
       This could also  all be inside one single table:
@@ -121,24 +114,27 @@ function eventNewPlayer(name)
   playerCanTransform[name] = true
   playerInGame[name] = false
   playerPhysicId[name] = 0
-  local keys = { 32, 0, 1, 2, 3, 49, 50, 51, 52, 55, 56, 57, 48, 77, 76, 80 }
-
-  for i = 1, #keys do
-    system.bindKeyboard(name, keys[i], true, true)
+  -- A kick is asynchronous. Finish safe data initialization, then stop
+  -- before respawning, drawing UI or granting room ownership.
+  if playerBan[name] or (timestamp ~= 0 and
+      (tfm.get.room.playerList[name].registrationDate or 0) > timestamp) then
+    playerLeft[name] = true
+    clearPlayerTimers(name, true)
+    if playerBan[name] and not name:find('*', 1, true) then
+      tfm.exec.chatMessage("<bv>You have been banned from the room by the admin " .. playerBanHistory[name] .. "<n>", name)
+    end
+    tfm.exec.kickPlayer(name)
+    return
   end
 
+  -- First-time initialization already binds keys; reconnects still need them.
+  if not keysBound then bindKeys(name) end
   tfm.exec.setNameColor(name, 0xD1D5DB)
 
-  if timestamp ~= 0 then
-    if tfm.get.room.playerList[name].registrationDate > timestamp then
-      print("kick "..name.."")
-      tfm.exec.kickPlayer(name)
-    end
-  end
-
-  if playerBan[name] then
-    tfm.exec.chatMessage("<bv>You have been banned from the room by the admin " .. playerBanHistory[name] .. "<n>", name)
-    tfm.exec.kickPlayer(name)
+  if gameStats.killSpec or killSpecPermanent then
+    tfm.exec.killPlayer(name)
+  else
+    tfm.exec.respawnPlayer(name)
   end
 
   assignRoomCreator(name)
@@ -147,28 +143,41 @@ function eventNewPlayer(name)
     isPlayerDead[name] = false
   end
 
+  if lobbyTransition.blocksInput() then
+    lobbyTransition.enqueue(name)
+    tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
+    tfm.exec.chatMessage("<j>#Volley Version: " .. gameVersion .. "<n>", name)
+    tfm.exec.chatMessage("<ce>Join our #Volley Discord server: https://discord.com/invite/pWNTesmNhu<n>", name)
+    return
+  end
+
   ui.addWindow(23, "<p align='center'><font size='13px'><a href='event:menuOpen'>Menu", name, 5, 15, 100, 30, 0.2, false, false, _)
   tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
 
-  if mode == "startGame" then
+  if gameState.phase == "startGame" then
     clubhouse.lobby(name)
-    eventNewGameShowLobbyTexts()
+    eventNewGameShowLobbyTexts(name)
 
     ui.addWindow(30, "<p align='center'><font size='13px'><a href='event:selectMap'>Select a map/ball", name, 10, 370, 150, 30,
       1, false, false, _)
 
-    if USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
-      ui.addWindow(31, "<p align='center'><font size='13px'><a href='event:settings'>Room settings", name, 180, 370, 150,
-        30, 1, false, false, _)
-    end
-  elseif mode ~= "startGame" then
+    clubhouse.launcher(name,31)
+  elseif gameState.phase ~= "startGame" then
     tfm.exec.chatMessage("<ch>If you don't want to see the ranking crowns, type the command !crown false<n>", name)
-    showTheScore()
+    -- Transitional maps can leave every viewer's score pending a redraw.
+    if not isGameplayMapReady() or getTimerId('delayToToggleMap') then
+      showTheScore()
+    else
+      showTheScore(name)
+    end
     teleportPlayersToSpecWithSpecificSpawn(name)
 
     tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage2, name)
     canVote[name] = true
   end
+  showCrownToAllPlayers(name)
+  mapBackgrounds.showBorders(name)
+  mapBackgrounds.show(name)
   clubhouse.ballSkins.show(name)
   tfm.exec.chatMessage("<j>#Volley Version: " .. gameVersion .. "<n>", name)
   tfm.exec.chatMessage("<ce>Join our #Volley Discord server: https://discord.com/invite/pWNTesmNhu<n>", name)
