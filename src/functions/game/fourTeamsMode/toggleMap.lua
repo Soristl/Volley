@@ -15,179 +15,57 @@ function toggleMap()
 
     if gameStats.teamsMode then
       if mapsToTest[2] ~= "" then
+        configMap.mapSelected = mapsToTest[2]
         tfm.exec.newGame(mapsToTest[2])
         print(mapsToTest[2])
-        local foundMap = addTimer(function(i)
-          if i == 1 then
-            foundBallSpawnsOnMap(mapsToTest[2], false)
-            foundMiceSpawnsOnMap(mapsToTest[2], false)
-          end
-        end, 1000)
       else
         if gameStats.isCustomMap then
+          configMap.mapSelected = customMapsFourTeamsMode[gameStats.customMapIndex][2]
           tfm.exec.newGame(customMapsFourTeamsMode[gameStats.customMapIndex][2])
-          local foundMap = addTimer(function(i)
-            if i == 1 then
-              foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][2], false)
-              foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][2], false)
-            end
-          end, 1000)
         elseif gameStats.totalVotes >= 2 then
+          configMap.mapSelected = customMapsFourTeamsMode[gameStats.mapIndexSelected][2]
           tfm.exec.newGame(customMapsFourTeamsMode[gameStats.mapIndexSelected][2])
-          local foundMap = addTimer(function(i)
-            if i == 1 then
-              foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][2], false)
-              foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][2], false)
-            end
-          end, 1000)
         else
+          configMap.mapSelected = customMapsFourTeamsMode[34][2]
           tfm.exec.newGame(customMapsFourTeamsMode[34][2])
         end
       end
     elseif gameStats.threeTeamsMode then
       if mapsToTest[2] ~= "" then
+        configMap.mapSelected = mapsToTest[2]
         tfm.exec.newGame(mapsToTest[2])
-        local foundMap = addTimer(function(i)
-          if i == 1 then
-            foundBallSpawnsOnMap(mapsToTest[2], false)
-            foundMiceSpawnsOnMap(mapsToTest[2], false)
-          end
-        end, 1000)
       else
         if gameStats.isCustomMap then
+          configMap.mapSelected = customMapsThreeTeamsMode[gameStats.customMapIndex][2]
           tfm.exec.newGame(customMapsThreeTeamsMode[gameStats.customMapIndex][2])
-          local foundMap = addTimer(function(i)
-            if i == 1 then
-              foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.customMapIndex][2], false)
-              foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.customMapIndex][2], false)
-            end
-          end, 1000)
         elseif gameStats.totalVotes >= 2 then
+          configMap.mapSelected = customMapsThreeTeamsMode[gameStats.mapIndexSelected][2]
           tfm.exec.newGame(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2])
-          local foundMap = addTimer(function(i)
-            if i == 1 then
-              foundBallSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2], false)
-              foundMiceSpawnsOnMap(customMapsThreeTeamsMode[gameStats.mapIndexSelected][2], false)
-            end
-          end, 1000)
         else
+          configMap.mapSelected = customMaps[6][2]
           tfm.exec.newGame(customMaps[6][2])
         end
       end
     end
-    
-    local delayMS = 2500
-
-    if globalSettings.minimalist then
-      delayMS = 6500
-    end
-
-    showTheScore()
-    delaySpawnBall = addTimer(function(i)
-      if i == 1 then
-        updateBoundariesFromMap()
-        teleportPlayersWithTypeMap(true)
-        spawnInitialBall()
-        showTheScore()
-
-        tfm.exec.addPhysicObject (99999, 800, webY, {
-          type = 15,
-          width = 3000,
-          height = 100,
-          miceCollision = false,
-          groundCollision = false
-        })
-      end
-    end, delayMS)
-
-    if globalSettings.minimalist then
-      addTimer(function(i) 
-        gameStats.canTransform = true
-      end, delayMS + 1500)
-    end
-    
-    tfm.exec.addPhysicObject (99999, 800, webY, {
-      type = 15,
-      width = 3000,
-      height = 100,
-      miceCollision = false,
-      groundCollision = false
-    })
-
-    showCrownToAllPlayers()
 
     return
   elseif gameStats.typeMap == "small" then
     ui.removeTextArea(8998991)
     ui.removeTextArea(899899)
     if mapsToTest[3] ~= '' then
+      configMap.mapSelected = mapsToTest[3]
       tfm.exec.newGame(mapsToTest[3])
-      local foundMap = addTimer(function(i)
-        if i == 1 then
-          foundBallSpawnsOnMap(mapsToTest[3], false)
-          foundMiceSpawnsOnMap(mapsToTest[3], false)
-        end
-      end, 1000)
     else
       if gameStats.isCustomMap then
+        configMap.mapSelected = customMapsFourTeamsMode[gameStats.customMapIndex][5]
         tfm.exec.newGame(customMapsFourTeamsMode[gameStats.customMapIndex][5])
-        local foundMap = addTimer(function(i)
-          if i == 1 then
-            foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][5], false)
-            foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.customMapIndex][5], false)
-          end
-        end, 1000)
       elseif gameStats.totalVotes >= 2 then
+        configMap.mapSelected = customMapsFourTeamsMode[gameStats.mapIndexSelected][5]
         tfm.exec.newGame(customMapsFourTeamsMode[gameStats.mapIndexSelected][5])
-        local foundMap = addTimer(function(i)
-          if i == 1 then
-            foundBallSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][5], false)
-            foundMiceSpawnsOnMap(customMapsFourTeamsMode[gameStats.mapIndexSelected][5], false)
-          end
-        end, 1000)
       else
+        configMap.mapSelected = customMaps[6][1]
         tfm.exec.newGame(customMaps[6][1])
       end
     end
-
-    showTheScore()
-
-    local delayMS = 2500
-
-    if globalSettings.minimalist then
-      delayMS = 6500
-    end
-    
-    delaySpawnBall = addTimer(function(i)
-      if i == 1 then
-        updateBoundariesFromMap()
-        spawnInitialBall()
-        teleportPlayersWithTypeMap(false)
-
-        tfm.exec.addPhysicObject (99999, 800, webY, {
-          type = 15,
-          width = 3000,
-          height = 100,
-          miceCollision = false,
-          groundCollision = false
-        })
-      end
-    end, delayMS)
-
-    if globalSettings.minimalist then
-      addTimer(function(i) 
-        gameStats.canTransform = true
-      end, delayMS + 1500)
-    end
-
-    tfm.exec.addPhysicObject (99999, 800, webY, {
-      type = 15,
-      width = 3000,
-      height = 100,
-      miceCollision = false,
-      groundCollision = false
-    })
-
-    showCrownToAllPlayers()
   end
 end

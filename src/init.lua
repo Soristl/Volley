@@ -5,6 +5,9 @@ function init()
   spawnBallArea1200 = {}
   spawnBallArea1600 = {}
 
+  configMap.mapSelected = ""
+  configMap.isLargeMap = false
+
   lobbySpawn = {}
 
   playersSpawn400 = {}

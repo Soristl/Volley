@@ -99,6 +99,7 @@ local playerPhysicId = {}
 local playerLanguage = {}
 local killSpecPermanent = false
 local autosync = true
+local configMap = { mapSelected = "", isLargeMap = false }
 
 local x = { 100, 280, 280, 640, 460, 460, 100, 100, 280, 640, 460, 640 }
 local y = { 100, 100, 160, 100, 100, 160, 160, 220, 220, 160, 220, 220 }

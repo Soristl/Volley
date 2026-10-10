@@ -1,9 +1,7 @@
 function startGame()
+  mode = "gameStart"
   gameStats.canTransform = false
-  if not globalSettings.minimalist then
-    disablePlayersCanTransform(3500)
-  end
-  
+
   addMatchesToAllPlayers()
   selectMap()
 
@@ -24,31 +22,5 @@ function startGame()
 
   globalSettings.minimalistToggleMap = true
 
-  delaySpawnBall = addTimer(function(i)
-    if i == 1 then
-      updateBoundariesFromMap()
-      teleportPlayers()
-      spawnInitialBall()
-      verifyIsPoint()
-      showCrownToAllPlayers()
-
-      tfm.exec.addPhysicObject (99999, 800, webY, 
-      {
-        type = 15,
-        width = 3000,
-        height = 100,
-        miceCollision = false,
-        groundCollision = false   
-      })
-    end
-  end, delayMS)
-
-  if globalSettings.minimalist then
-    addTimer(function(i) 
-      gameStats.canTransform = true
-    end, delayMS + 1500)
-  end
-
-  mode = "gameStart"
   tfm.exec.chatMessage("<ch>If you don't want to see the ranking crowns, type the command !crown false<n>", nil)
 end
