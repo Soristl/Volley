@@ -4511,12 +4511,12 @@ end
 function mapBackgrounds.prepare()
   local info = tfm.get.room.xmlMapInfo
   if not info or type(info.xml) ~= 'string' then return false end
-  floorVisuals.setXML(info.xml, info.mapCode, gameState.map.sourceTarget or tfm.get.room.currentMap)
+  floorVisuals.setXML(info.xml, info.mapCode, mapLoad.getSourceTarget() or tfm.get.room.currentMap)
   for name in pairs(hidden) do floorVisuals.show(name) end
   local params = info.xml:match('<P%s+[^>]*>') or ''
   local width = tonumber(mapXml.attribute(params, 'L')) or 800
   local height = tonumber(mapXml.attribute(params, 'H')) or 400
-  local code = tostring(gameState.map.sourceTarget or tfm.get.room.currentMap)
+  local code = tostring(mapLoad.getSourceTarget() or tfm.get.room.currentMap)
   if code:sub(1, 1) ~= '@' then code = '@' .. code end
   local entry = published[code] or catalog[geometryKey(info.xml)]
   -- Scene metadata follows every geometry and published-code alias.
@@ -4549,7 +4549,7 @@ function mapBackgrounds.prepare()
     end
   end
   if not noBorders then drawCourtBorders(info.xml, width, height, entry and entry.borderSearchMargin) end
-  if globalSettings.minimalist then status = "minimalist enabled"; return false end
+  if roomConfig.settings.minimalist then status = "minimalist enabled"; return false end
   if not entry then status = "no complete background for this map"; return false end
   if width ~= entry.width or height ~= entry.height then
     status = "map dimensions differ from the export"; return false
@@ -4562,7 +4562,7 @@ function mapBackgrounds.prepare()
 end
 
 function mapBackgrounds.diagnose(name)
-  local code = tostring(gameState.map.sourceTarget or tfm.get.room.currentMap)
+  local code = tostring(mapLoad.getSourceTarget() or tfm.get.room.currentMap)
   if code:sub(1,1) == '<' then code = 'XML' end
   tfm.exec.chatMessage('<j>BACKGROUND: map=' .. code .. ' status=' .. status ..
     ' images=' .. tostring(sent) .. '/' .. tostring(active and #active.pieces or 0) .. '<n>', name)

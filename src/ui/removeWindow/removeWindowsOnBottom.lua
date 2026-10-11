@@ -1,4 +1,4 @@
-function removeWindowsOnBottom()
-  closeWindow(30, nil)
-  closeWindow(31, nil)
+function clubhouse.removeBottomWindows()
+  clubhouse.closeLegacyWindow(30, nil)
+  clubhouse.closeLegacyWindow(31, nil)
 end

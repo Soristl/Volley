@@ -1,13 +1,13 @@
-function lobbyMapConfig(config)
-  config = config or readLobbyConfig()
+function roomConfig.applyAccessRules(config)
+  config = config or roomConfig.readLobby()
   if not config then return false end
-  timestamp = config.timestamp
+  roomConfig.statisticsCutoff = config.timestamp
   for user in pairs(config.bans) do
-    playerBanHistory[user] = "VOLLEY SYSTEM"
-    playerBan[user] = true
+    playerState.banHistory[user] = "VOLLEY SYSTEM"
+    playerState.ban[user] = true
   end
   for name, data in pairs(tfm.get.room.playerList) do
-    if playerBan[name] or (timestamp ~= 0 and (data.registrationDate or 0) > timestamp) then
+    if playerState.ban[name] or (roomConfig.statisticsCutoff ~= 0 and (data.registrationDate or 0) > roomConfig.statisticsCutoff) then
       tfm.exec.kickPlayer(name)
     end
   end

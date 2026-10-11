@@ -1,45 +1,45 @@
 do
 local function applyHalfCourtBoundaries(mapWidth)
   local half = math.floor(mapWidth / 2)
-  gameStats.redX = half - 1
-  gameStats.blueX = half + 1
+  gameState.match.court.redX = half - 1
+  gameState.match.court.blueX = half + 1
 end
 
 local function applyFullCourtBoundaries(mapWidth)
-  if gameStats.teamsMode then
+  if gameState.match.mode.teamsMode then
     local zoneWidth = math.floor(mapWidth / 4)
-    gameStats.yellowX = zoneWidth - 1
-    gameStats.redX = zoneWidth * 2 - 1
-    gameStats.blueX = zoneWidth * 3 - 1
-    gameStats.greenX = zoneWidth * 3 + 1
-  elseif gameStats.threeTeamsMode then
+    gameState.match.court.yellowX = zoneWidth - 1
+    gameState.match.court.redX = zoneWidth * 2 - 1
+    gameState.match.court.blueX = zoneWidth * 3 - 1
+    gameState.match.court.greenX = zoneWidth * 3 + 1
+  elseif gameState.match.mode.threeTeamsMode then
     local zoneWidth = math.floor(mapWidth / 3)
-    gameStats.redX = zoneWidth - 1
-    gameStats.blueX = zoneWidth * 2 - 1
-    gameStats.greenX = zoneWidth * 2 + 1
-  elseif gameStats.twoTeamsMode then
+    gameState.match.court.redX = zoneWidth - 1
+    gameState.match.court.blueX = zoneWidth * 2 - 1
+    gameState.match.court.greenX = zoneWidth * 2 + 1
+  elseif gameState.match.mode.twoTeamsMode then
     local zoneWidth = math.floor(mapWidth / 4)
-    gameStats.blueX = zoneWidth - 1
-    gameStats.redX = zoneWidth * 2 - 1
-    gameStats.blueX2 = zoneWidth * 3 - 1
-    gameStats.redX2 = zoneWidth * 3 + 1
+    gameState.match.court.blueX = zoneWidth - 1
+    gameState.match.court.redX = zoneWidth * 2 - 1
+    gameState.match.court.blueX2 = zoneWidth * 3 - 1
+    gameState.match.court.redX2 = zoneWidth * 3 + 1
   end
 end
 
 local function applyReducedCourtBoundaries(mapWidth)
-  if gameStats.teamsMode then
+  if gameState.match.mode.teamsMode then
     local zoneWidth = math.floor(mapWidth / 3)
-    gameStats.yellowX = zoneWidth - 1
-    gameStats.redX = zoneWidth * 2 - 1
-    gameStats.greenX = zoneWidth * 2 + 1
-  elseif gameStats.threeTeamsMode then
+    gameState.match.court.yellowX = zoneWidth - 1
+    gameState.match.court.redX = zoneWidth * 2 - 1
+    gameState.match.court.greenX = zoneWidth * 2 + 1
+  elseif gameState.match.mode.threeTeamsMode then
     applyHalfCourtBoundaries(mapWidth)
   end
 end
 
 function gameMaps.refreshBoundaries()
   groundProfile.refresh()
-  if gameStats.realMode then return end
+  if gameState.match.mode.realMode then return end
   local xmlInfo = tfm.get.room.xmlMapInfo
   if not xmlInfo or not xmlInfo.xml or xmlInfo.xml == "" then return end
   local xml = xmlInfo.xml
@@ -50,11 +50,11 @@ function gameMaps.refreshBoundaries()
   local mapWidth = mapXml.number(mapXml.attribute(params, 'L'))
   if not mapWidth or mapWidth <= 0 then mapWidth = 800 end
 
-  if gameStats.typeMap == "large4v4" then
+  if gameState.match.court.typeMap == "large4v4" then
     applyFullCourtBoundaries(mapWidth)
-  elseif gameStats.typeMap == "large3v3" then
+  elseif gameState.match.court.typeMap == "large3v3" then
     applyReducedCourtBoundaries(mapWidth)
-  elseif gameStats.typeMap == "small" then
+  elseif gameState.match.court.typeMap == "small" then
     applyHalfCourtBoundaries(mapWidth)
   else
     applyHalfCourtBoundaries(mapWidth)

@@ -1,5 +1,5 @@
-function teamBlueIndex(index)
-  if gameStats.threeTeamsMode then
+function gameTeams.blueSeatIndex(index)
+  if gameState.match.mode.threeTeamsMode then
     return index
   end
 

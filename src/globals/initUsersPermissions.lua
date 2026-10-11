@@ -1,16 +1,16 @@
-function initUsersPermissions(config)
-  config = config or readLobbyConfig()
+function roomConfig.applyPermissions(config)
+  config = config or roomConfig.readLobby()
   if not config then return false end
   for user, level in pairs(config.permissions) do
     if user and level then
-      if user == roomCreator.name then
-        if roomCreator.adminRevoked then
+      if user == roomConfig.creator.name then
+        if roomConfig.creator.adminRevoked then
           level = level > 2 and level or 1
         else
           level = math.max(level, 2)
         end
       end
-      USER_PERMISSIONS[user] = level
+      roomConfig.permissions[user] = level
     end
   end
   return true

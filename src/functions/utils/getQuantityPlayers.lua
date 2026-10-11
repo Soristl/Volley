@@ -1,6 +1,6 @@
-function getQuantityPlayers()
-  if gameStats.typeMap == 'large4v4' then return quantityPlayers() end
+function gameTeams.layoutCounts()
+  if gameState.match.court.typeMap == 'large4v4' then return gameTeams.countsByTeam() end
   local counts={}
-  for index,roster in ipairs(teamsPlayersOnGame) do counts[index]=gameTeams.count(roster) end
+  for index,roster in ipairs(gameState.teamLayout.remaining) do counts[index]=gameTeams.count(roster) end
   return counts
 end

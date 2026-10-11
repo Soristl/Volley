@@ -1,4 +1,4 @@
-function foundMiceSpawnsOnMap(map, isLargeMap)
+function gameMaps.readPlayerSpawns(map, isLargeMap)
   gameState.court.lobbySpawns = {}
   gameState.court.playerSpawns[1] = {}
   gameState.court.playerSpawns[2] = {}
@@ -14,14 +14,14 @@ function foundMiceSpawnsOnMap(map, isLargeMap)
       local teams = {}
       for i = 1, 4 do teams[i] = mapXml.attribute(tag, 'team' .. i) end
       if mapXml.attribute(tag, 'lobby') ~= nil then
-        setConfigLobbySpawn(x, y)
+        gameMaps.addLobbySpawn(x, y)
       else
-        setConfigPlayersSpawn(isLargeMap, x, y, priority, teams)
+        gameMaps.addPlayerSpawn(isLargeMap, x, y, priority, teams)
       end
     end
   end
 
-  foundWebSpawnOnMap(map)
-  foundPointsAreaOnMap(map)
-  foundMicePlayersConfig(map)
+  gameMaps.readWebSpawns(map)
+  gameMaps.readPointAreas(map)
+  gameMaps.readPlayerLimits(map)
 end

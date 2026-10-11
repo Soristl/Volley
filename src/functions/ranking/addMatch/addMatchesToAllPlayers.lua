@@ -1,12 +1,12 @@
-function addMatchesToAllPlayers()
+function sessionRanking.addMatchesForRound()
   local handlers = {
-    ["Normal mode"] = addMatchToPlayer,
-    ["2 teams mode"] = addMatchToPlayerTwoTeamsMode,
-    ["3 teams mode"] = addMatchToPlayerThreeTeamsMode,
-    ["4 teams mode"] = addMatchToPlayerFourTeamsMode,
-    ["Real mode"] = addMatchToPlayerRealMode,
+    ["Normal mode"] = sessionRanking.addNormalMatch,
+    ["2 teams mode"] = sessionRanking.addTwoTeamMatch,
+    ["3 teams mode"] = sessionRanking.addThreeTeamMatch,
+    ["4 teams mode"] = sessionRanking.addFourTeamMatch,
+    ["Real mode"] = sessionRanking.addRealMatch,
   }
-  local addMatch = handlers[verifyMode()]
+  local addMatch = handlers[gameTeams.modeLabel()]
   if not addMatch then return end
   -- Joining assigns a roster slot before gameplay can begin. Departed names
   -- remain in playerInGame as false, so scan the bounded rosters instead of
@@ -16,7 +16,7 @@ function addMatchesToAllPlayers()
   for _, roster in pairs(gameState.teams) do
     for _, slot in ipairs(roster) do
       local name = slot.name
-      if playerInGame[name] and not seen[name] then
+      if playerState.inGame[name] and not seen[name] then
         seen[name] = true
         addMatch(name)
       end

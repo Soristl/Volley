@@ -4,7 +4,7 @@ function commandHandlers.resolveAdminTarget(target)
   for player in pairs(tfm.get.room.playerList) do
     if string.lower(player) == lowerTarget then return player end
   end
-  for player in pairs(USER_PERMISSIONS) do
+  for player in pairs(roomConfig.permissions) do
     if string.lower(player) == lowerTarget then return player end
   end
 end
@@ -14,11 +14,11 @@ function commandHandlers.cmdAdmin(args)
   local target = commandHandlers.resolveAdminTarget(args[2])
 
   if not target or not tfm.get.room.playerList[target] or target:find("*", 1, true)
-    or (USER_PERMISSIONS[target] or 1) > 1 then return end
+    or (roomConfig.permissions[target] or 1) > 1 then return end
 
-  USER_PERMISSIONS[target] = 2
-  if target == roomCreator.name then
-    roomCreator.adminRevoked = false
+  roomConfig.permissions[target] = 2
+  if target == roomConfig.creator.name then
+    roomConfig.creator.adminRevoked = false
   end
   tfm.exec.chatMessage("<bv>" .. target .. " made admin by " .. name .. " <n> ", nil)
 end
@@ -26,18 +26,18 @@ end
 function commandHandlers.cmdUnadmin(args)
   local name = args[1]
   local target = args[2]
-  local userLevel = USER_PERMISSIONS[name] or 1
+  local userLevel = roomConfig.permissions[name] or 1
 
   if not target then return end
   if string.lower(target) == "all" then
     if userLevel < 3 then return end
-    for admin, permission in pairs(USER_PERMISSIONS) do
+    for admin, permission in pairs(roomConfig.permissions) do
       if permission == 2 then
-        USER_PERMISSIONS[admin] = 1
-        if admin == roomCreator.name then
-          roomCreator.adminRevoked = true
+        roomConfig.permissions[admin] = 1
+        if admin == roomConfig.creator.name then
+          roomConfig.creator.adminRevoked = true
         end
-        closeWindow(31, admin)
+        clubhouse.closeLegacyWindow(31, admin)
       end
     end
     tfm.exec.chatMessage("<rose>Admin list reset by " .. name .. " <n> ", nil)
@@ -45,19 +45,19 @@ function commandHandlers.cmdUnadmin(args)
   end
 
   target = commandHandlers.resolveAdminTarget(target)
-  if not target or target:find("*", 1, true) or (USER_PERMISSIONS[target] or 1) ~= 2 then
+  if not target or target:find("*", 1, true) or (roomConfig.permissions[target] or 1) ~= 2 then
     return
   end
-  if target == roomCreator.name and userLevel < 3 then
+  if target == roomConfig.creator.name and userLevel < 3 then
     tfm.exec.chatMessage("<rose>Only temporary permanent and permanent admins can remove the Room Creator's admin rights.<n>", name)
     return
   end
 
-  USER_PERMISSIONS[target] = 1
-  if target == roomCreator.name then
-    roomCreator.adminRevoked = true
+  roomConfig.permissions[target] = 1
+  if target == roomConfig.creator.name then
+    roomConfig.creator.adminRevoked = true
   end
-  closeWindow(31, target)
+  clubhouse.closeLegacyWindow(31, target)
   tfm.exec.chatMessage("<vi>" .. target .. " removed from admin by " .. name .. " <n> ", nil)
 end
 
@@ -72,33 +72,33 @@ function commandHandlers.cmdRandomMap(args)
 
   if gameState.phase ~= "startGame" then return end
 
-  if gameStats.realMode then
-    commandNotAvailable({ " <bv>Not available in Real Mode<n> ", name })
+  if gameState.match.mode.realMode then
+    roomConfig.commandUnavailable({ " <bv>Not available in Real Mode<n> ", name })
     return
   end
 
-  gameStats.isCustomMap = isRandom == "true"
-  gameStats.randomMap = isRandom == "true"
+  gameState.match.maps.isCustomMap = isRandom == "true"
+  gameState.match.maps.randomMap = isRandom == "true"
 
   if isRandom == "false" then
-    gameStats.customMapIndex = 0
+    gameState.match.maps.customMapIndex = 0
     tfm.exec.chatMessage(
       "<bv>Random map deactivated by:" .. name .. " <n> ", nil)
     return
   end
 
-  local list = ((gameStats.twoTeamsMode or gameStats.teamsMode) and customMapsFourTeamsMode) or
-      (gameStats.threeTeamsMode and customMapsThreeTeamsMode) or
+  local list = ((gameState.match.mode.twoTeamsMode or gameState.match.mode.teamsMode) and customMapsFourTeamsMode) or
+      (gameState.match.mode.threeTeamsMode and customMapsThreeTeamsMode) or
       customMaps
 
-  local _, indices = availableMaps()
+  local _, indices = gameMaps.availableEntries()
   if #indices == 0 then
-    gameStats.isCustomMap, gameStats.randomMap = false, false
+    gameState.match.maps.isCustomMap, gameState.match.maps.randomMap = false, false
     tfm.exec.chatMessage('<j>No maps available at the selected size.<n>', name)
     return
   end
   local index = indices[math.random(1, #indices)]
-  gameStats.customMapIndex = index
+  gameState.match.maps.customMapIndex = index
   local mapInfo = list[index]
   tfm.exec.chatMessage('<bv>' .. mapInfo[3] .. ' (by ' .. mapInfo[4] ..
     ') selected randomly<n> ', nil)
@@ -125,17 +125,17 @@ function commandHandlers.cmdRandomBall(args)
     return
   end
 
-  gameStats.customBall = isRandom == "true"
+  gameState.match.balls.customBall = isRandom == "true"
 
   if isRandom == "true" then
     local index = math.random(1, #balls)
-    gameStats.customBallId = index
+    gameState.match.balls.customBallId = index
     tfm.exec.chatMessage("<bv>Random ball: " .. balls[index].name ..
       " enabled by " .. name .. " <n> ", nil)
     return
   end
 
-  gameStats.customBallId = 11
+  gameState.match.balls.customBallId = 11
   tfm.exec.chatMessage("<bv>Random ball deactivated by " .. name .. " <n> ",
     nil)
 end
@@ -146,8 +146,8 @@ function commandHandlers.cmdCustomMap(args)
 
   if gameState.phase ~= "startGame" then return end
 
-  if gameStats.realMode then
-    commandNotAvailable({ "<bv>Not available in Real Mode<n> ", name })
+  if gameState.match.mode.realMode then
+    roomConfig.commandUnavailable({ "<bv>Not available in Real Mode<n> ", name })
     return
   end
 
@@ -157,14 +157,14 @@ function commandHandlers.cmdCustomMap(args)
   end
 
   if isCustomMap == "false" then
-    gameStats.isCustomMap = false
-    gameStats.randomMap = false
-    gameStats.customMapIndex = 1
+    gameState.match.maps.isCustomMap = false
+    gameState.match.maps.randomMap = false
+    gameState.match.maps.customMapIndex = 1
     return
   end
 
-  local list = (gameStats.twoTeamsMode or gameStats.teamsMode) and customMapsFourTeamsMode or
-      gameStats.threeTeamsMode and customMapsThreeTeamsMode or
+  local list = (gameState.match.mode.twoTeamsMode or gameState.match.mode.teamsMode) and customMapsFourTeamsMode or
+      gameState.match.mode.threeTeamsMode and customMapsThreeTeamsMode or
       customMaps
 
   local index = tonumber(isCustomMap)
@@ -174,13 +174,13 @@ function commandHandlers.cmdCustomMap(args)
     return
   end
 
-  if not isMapAvailable(index) then
+  if not gameMaps.isAvailable(index) then
     tfm.exec.chatMessage('<j>This map is unavailable at the selected size.<n>', name)
     return
   end
-  gameStats.isCustomMap = true
-  gameStats.randomMap = false
-  gameStats.customMapIndex = index
+  gameState.match.maps.isCustomMap = true
+  gameState.match.maps.randomMap = false
+  gameState.match.maps.customMapIndex = index
   local mapInfo = list[index]
   tfm.exec.chatMessage(' <vp>' .. mapInfo[3] .. '<n2> (by ' .. mapInfo[4] ..
     ') selected by <d>' .. name .. ' <n> ', nil)
@@ -211,14 +211,14 @@ function commandHandlers.cmdCustomBall(args)
   -- I started doing it, but gonna leave it to
   -- someone else. @Vit0rg
 
-  gameStats.customBall = true
-  gameStats.customBallId = index
-  tfm.exec.chatMessage(" <bv>Ball: " .. balls[gameStats.customBallId].name ..
+  gameState.match.balls.customBall = true
+  gameState.match.balls.customBallId = index
+  tfm.exec.chatMessage(" <bv>Ball: " .. balls[gameState.match.balls.customBallId].name ..
     " selected by " .. name .. " <n> ", nil)
 end
 
 function commandHandlers.cmdTwoBalls(args)
-  if gameState.phase ~= "startGame" or gameStats.realMode then return end
+  if gameState.phase ~= "startGame" or gameState.match.mode.realMode then return end
   local name = args[1]
   local toggle = args[2]
 
@@ -227,15 +227,15 @@ function commandHandlers.cmdTwoBalls(args)
     return
   end
 
-  gameStats.twoBalls = (toggle == "true")
+  gameState.match.balls.twoBalls = (toggle == "true")
   tfm.exec.chatMessage("<n>Two balls " ..
-    (gameStats.twoBalls and "<vp>enabled<n2>" or
+    (gameState.match.balls.twoBalls and "<vp>enabled<n2>" or
       "<r>disabled<n2>") .. " by " .. name .. " <n> ",
     nil)
 end
 
 function commandHandlers.cmdThreeBalls(args)
-  if gameState.phase ~= "startGame" or not gameStats.threeTeamsMode then return end
+  if gameState.phase ~= "startGame" or not gameState.match.mode.threeTeamsMode then return end
   local name = args[1]
   local toggle = args[2]
 
@@ -244,9 +244,9 @@ function commandHandlers.cmdThreeBalls(args)
     return
   end
 
-  gameStats.threeBalls = (toggle == "true")
+  gameState.match.balls.threeBalls = (toggle == "true")
   tfm.exec.chatMessage("<n>Three balls " ..
-    (gameStats.threeBalls and "<vp>enabled<n2>" or
+    (gameState.match.balls.threeBalls and "<vp>enabled<n2>" or
       "<r>disabled<n2>") .. " by " .. name .. " <n> ",
     nil)
 end
@@ -262,7 +262,7 @@ function commandHandlers.cmdSetPlayerForce(args)
     return
   end
 
-  gameStats.physicObjectForce = force
+  gameState.match.rules.physicObjectForce = force
   tfm.exec.chatMessage(
     "<n>Player force set to <bv>" .. force .. "<n2> by " .. name .. " <n> ",
     name)
@@ -272,7 +272,7 @@ function commandHandlers.cmdConsumables(args)
   if gameState.phase ~= "startGame" then return end
   local name = args[1]
 
-  if gameStats.teamsMode or gameStats.twoTeamsMode or gameStats.threeTeamsMode or gameStats.realMode then
+  if gameState.match.mode.teamsMode or gameState.match.mode.twoTeamsMode or gameState.match.mode.threeTeamsMode or gameState.match.mode.realMode then
     tfm.exec
         .chatMessage("<j>Consumables only work in normal mode<n> ", name)
     return
@@ -284,9 +284,9 @@ function commandHandlers.cmdConsumables(args)
     return
   end
 
-  gameStats.consumables = (toggle == "true")
+  gameState.match.rules.consumables = (toggle == "true")
   tfm.exec.chatMessage(" <n>Consumables " ..
-    (gameStats.consumables and "<vp>enabled<n2>" or
+    (gameState.match.rules.consumables and "<vp>enabled<n2>" or
       "<r>disabled<n2>") .. " by " .. name .. " <n> ",
     nil)
 end
@@ -352,29 +352,29 @@ function commandHandlers.cmdSetTeamMode(args)
 
 
   local enabling = toggle == 'true'
-  if gameStats[_mode] == enabling then
+  if gameState.match.mode[_mode] == enabling then
     tfm.exec.chatMessage('<j>Mode already ' .. (enabling and 'enabled: ' or 'disabled: ') .. modeLabels[_mode], name)
     return
   end
 
   if enabling and commandHandlers.checkModeConflict({ name, _mode }) then return end
 
-  gameStats.canJoin = false
-  gameStats.isCustomMap = false
-  gameStats.customMapIndex = 0
+  gameState.match.round.canJoin = false
+  gameState.match.maps.isCustomMap = false
+  gameState.match.maps.customMapIndex = 0
 
-  gameStats[_mode] = enabling
+  gameState.match.mode[_mode] = enabling
   if enabling then
-    gameStats.consumables = false
-    gameStats.setMapName = ''
+    gameState.match.rules.consumables = false
+    gameState.match.maps.setMapName = ''
   end
-  if gameStats.realMode then gameStats.twoBalls = false end
-  if not gameStats.threeTeamsMode then gameStats.threeBalls = false end
+  if gameState.match.mode.realMode then gameState.match.balls.twoBalls = false end
+  if not gameState.match.mode.threeTeamsMode then gameState.match.balls.threeBalls = false end
 
   gameState.lives = newModeLives(_mode, enabling)
-  resetMapsToTest()
-  resetMapsList()
-  updateLobbyTextAreas(nil,name)
+  gameMaps.resetTestMaps()
+  mapVoting.resetMapList()
+  clubhouse.refreshLobbyPlayers(nil,name)
 
   tfm.exec.chatMessage(" <n>" .. modeLabels[_mode] ..
     (toggle == 'true' and " <vp>enabled<n2>" or

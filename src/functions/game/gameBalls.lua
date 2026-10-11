@@ -56,7 +56,7 @@ end
 function gameBalls.spawn(index,x,y,active)
   if index~=1 and index~=2 and index~=3 then return nil end
   gameBalls.remove(index)
-  local skin=gameStats.customBall and balls[gameStats.customBallId] or nil
+  local skin=gameState.match.balls.customBall and balls[gameState.match.balls.customBallId] or nil
   local id=tfm.exec.addShamanObject(skin and skin.id or 6,x,y or 50,0,0,-5,true)
   gameBalls.set(index,id,id~=nil and active~=false)
   gameBalls.rememberPointPosition(index,x,y or 50)
@@ -71,8 +71,8 @@ function gameBalls.activate(index)
 end
 
 function gameBalls.quantity()
-  if gameStats.realMode then return 1 end
-  return (gameStats.threeTeamsMode and gameStats.threeBalls) and 3 or gameStats.twoBalls and 2 or 1
+  if gameState.match.mode.realMode then return 1 end
+  return (gameState.match.mode.threeTeamsMode and gameState.match.balls.threeBalls) and 3 or gameState.match.balls.twoBalls and 2 or 1
 end
 
 function gameBalls.isActive(index)

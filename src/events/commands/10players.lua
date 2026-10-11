@@ -10,7 +10,7 @@ function commandHandlers.cmdSetTransformDuration(args)
     return
   end
 
-  players[name].transformDuration = duration or 5
+  playerState.data[name].transformDuration = duration or 5
   tfm.exec.chatMessage('<pt>Transformation duration set to: <n>' .. duration .. ' second(s)', name)
   return 0
 end
@@ -30,7 +30,7 @@ end
 
 function commandHandlers.cmdCommands(args)
   local name = args[1]
-  local userLevel = USER_PERMISSIONS[name] or 1
+  local userLevel = roomConfig.permissions[name] or 1
 
   -- Let's assume cumulative (show L1, L2 if admin, etc.)
   local finalBuffer = {}
@@ -55,10 +55,10 @@ end
 function commandHandlers.cmdJoin(args)
   local name = args[1]
 
-  if playerInGame[name] or gameState.phase ~= "gameStart" or isPlayerDead[name] then return end
-  if messagePlayerIsBanned(name) then return end
-  if not isGameplayMapReady() or
-      ((gameStats.teamsMode or gameStats.threeTeamsMode) and not gameStats.canTransform) then
+  if playerState.inGame[name] or gameState.phase ~= "gameStart" or playerState.dead[name] then return end
+  if roomConfig.sendBanMessage(name) then return end
+  if not mapLoad.isReady() or
+      ((gameState.match.mode.teamsMode or gameState.match.mode.threeTeamsMode) and not gameState.match.round.canTransform) then
     tfm.exec.chatMessage('<j>Please wait until the court is ready before joining.<n>', name)
     return
   end
@@ -66,20 +66,20 @@ function commandHandlers.cmdJoin(args)
   local player = tfm.get.room.playerList[name]
   if player.isDead then tfm.exec.respawnPlayer(name) end
 
-  showCrownToAllPlayers()
+  gameCrowns.showAll()
 
-  if gameStats.threeTeamsMode then
-    chooseTeamThreeTeamsMode(name)
+  if gameState.match.mode.threeTeamsMode then
+    gameTeams.joinThree(name)
     return
   end
 
-  if gameStats.teamsMode then
-    chooseTeamTeamsMode(name)
+  if gameState.match.mode.teamsMode then
+    gameTeams.joinFour(name)
     return
   end
 
-  if not gameStats.teamsMode then
-    chooseTeam(name)
+  if not gameState.match.mode.teamsMode then
+    gameTeams.joinStandard(name)
     return
   end
 
@@ -88,16 +88,16 @@ end
 
 function commandHandlers.cmdLeave(args)
   local name = args[1]
-  if not playerInGame[name] or gameState.phase ~= "gameStart" or isPlayerDead[name] then return end
-  if messagePlayerIsBanned(name) then return end
+  if not playerState.inGame[name] or gameState.phase ~= "gameStart" or playerState.dead[name] then return end
+  if roomConfig.sendBanMessage(name) then return end
 
-  if (gameStats.threeTeamsMode or gameStats.teamsMode) and
-      gameStats.canTransform then
+  if (gameState.match.mode.threeTeamsMode or gameState.match.mode.teamsMode) and
+      gameState.match.round.canTransform then
     gameTeams.leaveMulti(name)
     return
   end
 
-  if not gameStats.teamsMode and not gameStats.threeTeamsMode then
+  if not gameState.match.mode.teamsMode and not gameState.match.mode.threeTeamsMode then
     gameTeams.leaveStandard(name)
     return
   end
@@ -119,7 +119,7 @@ function commandHandlers.cmdLang(args)
   }
 
   if translations[langCode] then
-    playerLanguage[name].tr = translations[langCode]
+    playerState.language[name].tr = translations[langCode]
     clubhouse.refresh(name)
   end
 end
@@ -130,8 +130,8 @@ function commandHandlers.cmdAdmins(args)
   local buffer_temp = {}
   local buffer_regular = {}
 
-  for admin, permission in pairs(USER_PERMISSIONS) do
-    if permission == 2 and admin ~= roomCreator.name then
+  for admin, permission in pairs(roomConfig.permissions) do
+    if permission == 2 and admin ~= roomConfig.creator.name then
       buffer_regular[#buffer_regular + 1] = admin
     end
     if permission == 3 then
@@ -144,9 +144,9 @@ function commandHandlers.cmdAdmins(args)
 
   local lines = {}
 
-  if roomCreator.name then
-    local status = (USER_PERMISSIONS[roomCreator.name] or 1) < 2 and " (admin removed)" or ""
-    lines[#lines + 1] = " <vp>> Room Creator:\n" .. roomCreator.name .. status
+  if roomConfig.creator.name then
+    local status = (roomConfig.permissions[roomConfig.creator.name] or 1) < 2 and " (admin removed)" or ""
+    lines[#lines + 1] = " <vp>> Room Creator:\n" .. roomConfig.creator.name .. status
   end
 
   if #buffer_permas > 0 then
@@ -170,13 +170,13 @@ end
 function commandHandlers.cmdMaps(args)
   local name = args[1]
 
-  if gameStats.realMode then
+  if gameState.match.mode.realMode then
     tfm.exec.chatMessage("<j>Map voting is unavailable in Real Mode.<n>", name)
     return
   end
 
   local str = " <vp>Volley maps\n"
-  local mapList, indices = availableMaps()
+  local mapList, indices = gameMaps.availableEntries()
 
   local lines = {}
   local line = { [1] = '<vp>', [2] = 0, [3] = '<n> - ', [4] = '' }
@@ -212,16 +212,16 @@ end
 function commandHandlers.cmdVoteMap(args)
   local name = args[1]
 
-  if messagePlayerIsBanned(name) then return end
+  if roomConfig.sendBanMessage(name) then return end
 
   -- canVote works as a sparse dictionary, instead of
   -- being a global, it should be attached to a global
   -- player variable. @Vit0rg
 
-  if gameState.phase ~= "startGame" or not canVote[name] then return end
+  if gameState.phase ~= "startGame" or not gameState.voting.eligible[name] then return end
 
-  if gameStats.realMode then
-    commandNotAvailable({ "votemap", name })
+  if gameState.match.mode.realMode then
+    roomConfig.commandUnavailable({ "votemap", name })
     return
   end
 
@@ -232,7 +232,7 @@ function commandHandlers.cmdVoteMap(args)
     return
   end
 
-  local maps = configSelectMap()
+  local maps = gameMaps.selectionCatalog()
   indexMap = math.abs(math.floor(indexMap))
 
   if indexMap < 1 or indexMap > #maps then
@@ -241,22 +241,22 @@ function commandHandlers.cmdVoteMap(args)
     return
   end
 
-  if not isMapAvailable(indexMap) then
+  if not gameMaps.isAvailable(indexMap) then
     tfm.exec.chatMessage('<j>This map is unavailable at the selected size.<n>', name)
     return
   end
 
-  canVote[name] = false
-  mapsVotes[indexMap] = (mapsVotes[indexMap] or 0) + 1
-  gameStats.totalVotes = gameStats.totalVotes + 1
+  gameState.voting.eligible[name] = false
+  gameState.voting.counts[indexMap] = (gameState.voting.counts[indexMap] or 0) + 1
+  gameState.match.maps.totalVotes = gameState.match.maps.totalVotes + 1
 
   clubhouse.refreshMapVotes(indexMap,name)
 
-  verifyMostMapVoted()
+  mapVoting.selectMostVoted()
 
   tfm.exec.chatMessage(
     " <bv>" .. name .. " voted for " .. maps[indexMap][3] .. " (" ..
-    mapsVotes[indexMap] .. " votes)<n> ", nil)
+    gameState.voting.counts[indexMap] .. " votes)<n> ", nil)
 end
 
 function commandHandlers.cmdCrown(args)
@@ -266,13 +266,13 @@ function commandHandlers.cmdCrown(args)
   -- data, not a random global variable.
   -- @Vit0rg
   if args[2] == "true" then
-    showCrownImages[name] = true
-    showCrownToAllPlayers(name)
+    playerState.crownVisible[name] = true
+    gameCrowns.showAll(name)
     return
   end
 
   if args[2] == "false" then
-    showCrownImages[name] = false
+    playerState.crownVisible[name] = false
     gameCrowns.clearViewer(name)
     return
   end
@@ -289,8 +289,7 @@ function commandHandlers.cmdProfile(args)
     tfm.exec.chatMessage("<rose>" .. clubhouse.profileText(name)[reason] .. "<n>", name)
     return
   end
-  if uiState.profileKeyTime[name] and os.time() - uiState.profileKeyTime[name] < 2000 then return end
-  uiState.profileKeyTime[name] = os.time()
+  if not panelInput.consumeProfileOpening(name) then return end
   clubhouse.closeWindows(name)
   clubhouse.profile(name, target)
 end
@@ -300,7 +299,7 @@ function commandHandlers.cmdDiscord(args)
 
   local msg = "Official Volley Discord:" ..
       "<vp>https://discord.com/invite/pWNTesmNhu"
-  if USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 2 then
+  if roomConfig.permissions[name] and roomConfig.permissions[name] > 2 then
     tfm.exec.chatMessage(msg, nil)
   else
     tfm.exec.chatMessage(msg, name)

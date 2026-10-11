@@ -1,6 +1,6 @@
 function ui.addTrophie(id, event, player, playerTarget, x, y, width, height, alpha)
   local index = tonumber(event:sub(8))
-  local trophy = playerAchievements[playerTarget] and playerAchievements[playerTarget][index]
+  local trophy = playerState.achievements[playerTarget] and playerState.achievements[playerTarget][index]
   if not trophy then return end
   id = tostring(id)
   if clubhouse.images[clubhouse.interiors.profile] then alpha = 0 end

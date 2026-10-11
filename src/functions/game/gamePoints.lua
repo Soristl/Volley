@@ -8,8 +8,8 @@ do
     local markers = spawnAreas()[area]
     if markers and #markers > 0 then
       local marker = markers[math.random(1, #markers)]
-      spawnBall(marker.x, index, marker.y)
-    else spawnBall(fallback, index) end
+      gameBalls.spawnAndRefresh(marker.x, index, marker.y)
+    else gameBalls.spawnAndRefresh(fallback, index) end
   end
 
   -- Clip the shared trajectory interval without creating a closure per zone.
@@ -52,31 +52,18 @@ do
   end
 
   local function boundaries(mode, size)
-    if mode == 'normal' then return {gameStats.redX,gameStats.blueX} end
-    if mode == 'two' then return {gameStats.blueX,gameStats.redX,gameStats.blueX2,gameStats.redX2} end
+    if mode == 'normal' then return {gameState.match.court.redX,gameState.match.court.blueX} end
+    if mode == 'two' then return {gameState.match.court.blueX,gameState.match.court.redX,gameState.match.court.blueX2,gameState.match.court.redX2} end
     if size == 'large4v4' then
-      if mode == 'three' then return {gameStats.redX,gameStats.blueX,gameStats.greenX} end
-      return {gameStats.yellowX,gameStats.redX,gameStats.blueX,gameStats.greenX}
+      if mode == 'three' then return {gameState.match.court.redX,gameState.match.court.blueX,gameState.match.court.greenX} end
+      return {gameState.match.court.yellowX,gameState.match.court.redX,gameState.match.court.blueX,gameState.match.court.greenX}
     end
-    if mode == 'three' then return {gameStats.redX,gameStats.blueX} end
-    return size == 'large3v3' and {gameStats.yellowX,gameStats.redX,gameStats.greenX}
-      or {gameStats.redX,gameStats.blueX}
+    if mode == 'three' then return {gameState.match.court.redX,gameState.match.court.blueX} end
+    return size == 'large3v3' and {gameState.match.court.yellowX,gameState.match.court.redX,gameState.match.court.greenX}
+      or {gameState.match.court.redX,gameState.match.court.blueX}
   end
 
-  -- Geometry owns the point before team eligibility is checked. Eliminated
-  -- courts must not transfer their faults to the next surviving team.
-  function gamePoints.detect(mode, x, y, index, xmlOnly, size, requestedArea, previous)
-    size = size or gameStats.typeMap
-    local count = courtCount(mode, size)
-    local areas, custom = pointAreas(), false
-    for area=1,count do if #areas[area] > 0 then custom = true end end
-    if xmlOnly and not custom then return nil end
-    if not custom then
-      local crossing = groundProfile.crossing(previous, x, y)
-      if crossing then x = crossing
-      elseif not isBallOnGround(gameBalls.id(index)) then return nil end
-    end
-    local limits = not custom and boundaries(mode, size)
+  local function selectPointArea(areas, count, custom, limits, x, y, previous)
     local selected, firstEntry
     for area=1,count do
       local entry
@@ -94,6 +81,24 @@ do
         selected, firstEntry = area, entry
       end
     end
+    return selected
+  end
+
+  -- Geometry owns the point before team eligibility is checked. Eliminated
+  -- courts must not transfer their faults to the next surviving team.
+  function gamePoints.detect(mode, x, y, index, xmlOnly, size, requestedArea, previous)
+    size = size or gameState.match.court.typeMap
+    local count = courtCount(mode, size)
+    local areas, custom = pointAreas(), false
+    for area=1,count do if #areas[area] > 0 then custom = true end end
+    if xmlOnly and not custom then return nil end
+    if not custom then
+      local crossing = groundProfile.crossing(previous, x, y)
+      if crossing then x = crossing
+      elseif not gameBalls.isOnGround(gameBalls.id(index)) then return nil end
+    end
+    local limits = not custom and boundaries(mode, size)
+    local selected = selectPointArea(areas, count, custom, limits, x, y, previous)
     if not selected or (requestedArea and selected ~= requestedArea) then return nil end
     if mode == 'four' or mode == 'three' then
       local lives = gameLives.forTeam(courtKey(selected, size == 'large4v4'))
@@ -113,31 +118,31 @@ do
     gameBalls.deactivateAll()
     gameBalls.remove(index)
     clubhouse.showScores()
-    showMessageWinner()
-    if mode == 'real' then realModeWinner(key); sessionRanking.update.real()
-    elseif mode == 'two' then twoTeamsModeWinner(key); sessionRanking.update.two()
-    else normalModeTeamWinner(key); sessionRanking.update.normal() end
-    beginEndGame()
+    clubhouse.showWinner()
+    if mode == 'real' then sessionRanking.recordRealWin(key); sessionRanking.update.real()
+    elseif mode == 'two' then sessionRanking.recordTwoTeamWin(key); sessionRanking.update.two()
+    else sessionRanking.recordNormalWin(key); sessionRanking.update.normal() end
+    matchLifecycle.finishMatch()
   end
 
   local function scorePoint(mode, area, index)
     local key = mode == 'two' and (area % 2 == 1 and 'red' or 'blue') or (area == 1 and 'blue' or 'red')
     announcePoint(key)
-    if gameState.scores[key] >= gameStats.winscore then finishPoints(mode, key, index); return end
+    if gameState.scores[key] >= gameState.match.rules.winscore then finishPoints(mode, key, index); return end
     if mode == 'two' then
       local destination = ({2,1,4,3})[area]
       respawn(index, destination, destination*400-200)
-    elseif gameStats.gameMode == '3v3' then
+    elseif gameState.match.mode.gameMode == '3v3' then
       local destination = key == 'red' and 1 or 2
       respawn(index, destination, destination*400-200)
-    elseif gameStats.gameMode == '4v4' then
+    elseif gameState.match.mode.gameMode == '4v4' then
       respawn(index, key == 'red' and 2 or 4, key == 'red' and 400 or 800)
     else respawn(index, 0, key == 'red' and 400 or 1400) end
   end
 
   local function lifeSummary(full)
     local entries = {}
-    local count = full and #gameTeams.keys() or #teamsPlayersOnGame
+    local count = full and #gameTeams.keys() or #gameState.teamLayout.remaining
     for area=1,count do
       local key = courtKey(area, full)
       entries[#entries+1] = gameTeams.label(key) .. ' ' .. gameLives.forTeam(key)
@@ -149,13 +154,13 @@ do
     gameBalls.deactivateAll()
     gameBalls.remove(index)
     clubhouse.showScores()
-    if #teamsPlayersOnGame == 1 then
-      showMessageWinner()
+    if #gameState.teamLayout.remaining == 1 then
+      clubhouse.showWinner()
       local key = gameTeams.keyAt(1)
-      if mode == 'three' then threeTeamsModeWinner(key, teamsPlayersOnGame[1]); sessionRanking.update.three()
-      else fourTeamsModeWinner(key, teamsPlayersOnGame[1]); sessionRanking.update.four() end
+      if mode == 'three' then sessionRanking.recordThreeTeamWin(key, gameState.teamLayout.remaining[1]); sessionRanking.update.three()
+      else sessionRanking.recordFourTeamWin(key, gameState.teamLayout.remaining[1]); sessionRanking.update.four() end
     end
-    beginEndGame()
+    matchLifecycle.finishMatch()
   end
 
   local function loseLife(mode, area, index, size)
@@ -170,11 +175,11 @@ do
       tfm.exec.chatMessage(gameTeams.message(key, 'lost all their lives'), nil)
       local remaining = gameTeams.refreshRemaining()
       if remaining <= 1 then finishLives(mode, index); return end
-      gameStats.typeMap = mode == 'three' and 'large3v3' or remaining == 3 and 'large3v3' or 'small'
-      gameStats.canTransform = false
-      removeTimer('delayToToggleMap')
-      delayToToggleMap = addRoundTimer(function()
-        if gameState.phase == 'gameStart' then toggleMap() end
+      gameState.match.court.typeMap = mode == 'three' and 'large3v3' or remaining == 3 and 'large3v3' or 'small'
+      gameState.match.round.canTransform = false
+      timers.remove('delayToToggleMap')
+      timers.handles.reduceCourt = timers.addRound(function()
+        if gameState.phase == 'gameStart' then matchLifecycle.reduceCourt() end
       end, 3000, 1, 'delayToToggleMap')
       return
     end
@@ -184,7 +189,7 @@ do
   end
 
   function gamePoints.apply(mode, area, index, size)
-    if mode == 'three' or mode == 'four' then loseLife(mode, area, index, size or gameStats.typeMap)
+    if mode == 'three' or mode == 'four' then loseLife(mode, area, index, size or gameState.match.court.typeMap)
     else scorePoint(mode, area, index) end
   end
 
@@ -205,24 +210,29 @@ do
     end
   end
 
+  local function realPointWinner(x, court, serve)
+    local key
+    if x <= 599 then key = (serve.redQuantitySpawn > 0 or serve.redServe) and 'blue' or 'red'
+    elseif x >= court.redX and x <= 1299 then key = 'blue'
+    elseif x >= 1301 and x <= court.blueX then key = 'red'
+    elseif x >= 2001 then key = (serve.blueQuantitySpawn > 0 or serve.blueServe) and 'red' or 'blue' end
+    return key
+  end
+
   -- Real Mode keeps its serve/ace rules and schedules the winner's next serve.
   function gamePoints.checkReal()
     local ball = tfm.get.room.objectList[gameBalls.id(1)]
     if not ball or not gameBalls.isActive(1) then return end
-    resetQuantityTeams()
-    if not isBallOnGround(gameBalls.id(1)) then return end
-    local key, x = nil, ball.x
-    if x <= 599 then key = (gameStats.redQuantitySpawn > 0 or gameStats.redServe) and 'blue' or 'red'
-    elseif x >= gameStats.redX and x <= 1299 then key = 'blue'
-    elseif x >= 1301 and x <= gameStats.blueX then key = 'red'
-    elseif x >= 2001 then key = (gameStats.blueQuantitySpawn > 0 or gameStats.blueServe) and 'red' or 'blue' end
+    realServe.resetTouchCounts()
+    if not gameBalls.isOnGround(gameBalls.id(1)) then return end
+    local key = realPointWinner(ball.x, gameState.match.court, gameState.match.real)
     if not key then return end
-    if key == 'red' then gameStats.aceBlue = false else gameStats.aceRed = false end
+    if key == 'red' then gameState.match.real.aceBlue = false else gameState.match.real.aceRed = false end
     announcePoint(key)
-    if gameState.scores[key] >= gameStats.winscore then finishPoints('real', key, 1)
+    if gameState.scores[key] >= gameState.match.rules.winscore then finishPoints('real', key, 1)
     else
       gameBalls.deactivate(1)
-      gameStats.canTransform = false
+      gameState.match.round.canTransform = false
       realServe.schedule(key)
       clubhouse.showScores()
     end

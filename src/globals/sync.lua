@@ -1,10 +1,10 @@
-function getSyncLatency(value)
+function roomSync.latency(value)
   if type(value) == 'number' and value >= 0 and value < math.huge then return value end
 end
 
-function requestPlayerSync(target, requester)
+function roomSync.requestPlayer(target, requester)
   if not tfm.get.room.playerList[target] or target:find('*',1,true)
-    or playerBan[target] or playerLeft[target] then
+    or playerState.ban[target] or playerState.left[target] then
     tfm.exec.chatMessage('<j>This player is not available for sync.<n>', requester)
     return false
   end
@@ -16,13 +16,13 @@ function requestPlayerSync(target, requester)
   return true
 end
 
-function refletzSyncSystem(requester)
+function roomSync.refresh(requester)
   local lowestSync = math.huge
   local bestPlayer
 
   for n, data in pairs(tfm.get.room.playerList) do
-    local latency = getSyncLatency(data.averageLatency)
-    if not n:find('*', 1, true) and not playerBan[n] and not playerLeft[n]
+    local latency = roomSync.latency(data.averageLatency)
+    if not n:find('*', 1, true) and not playerState.ban[n] and not playerState.left[n]
       and latency ~= nil then
       if latency < lowestSync or (latency == lowestSync and (not bestPlayer or n < bestPlayer)) then
         lowestSync = latency

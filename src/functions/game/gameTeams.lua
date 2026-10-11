@@ -20,14 +20,14 @@ do
 end
 
 function gameTeams.keyAt(index)
-  return gameTeams.keyForRoster(teamsPlayersOnGame[index])
+  return gameTeams.keyForRoster(gameState.teamLayout.remaining[index])
 end
 
 function gameTeams.mode()
-  if gameStats.teamsMode then return 'four' end
-  if gameStats.threeTeamsMode then return 'three' end
-  if gameStats.twoTeamsMode then return 'two' end
-  if gameStats.realMode then return 'real' end
+  if gameState.match.mode.teamsMode then return 'four' end
+  if gameState.match.mode.threeTeamsMode then return 'three' end
+  if gameState.match.mode.twoTeamsMode then return 'two' end
+  if gameState.match.mode.realMode then return 'real' end
   return 'normal'
 end
 
@@ -43,16 +43,16 @@ function gameTeams.eliminate(roster)
     if name and name ~= '' and not seen[name] then
       seen[name] = true
       removed = removed + 1
-      playerInGame[name] = false
+      playerState.inGame[name] = false
       gameCrowns.clearSubject(name)
-      clearPlayerTimers(name)
-      clearPlayerGameplay(name)
+      timers.clearPlayer(name)
+      playerRuntime.clearGameplay(name)
       gameTeams.releaseSpawn(name)
       -- Empty roster slots and disconnected players are not API targets.
       local player = tfm.get.room.playerList[name]
-      if player and not playerLeft[name] and not playerBan[name] then
+      if player and not playerState.left[name] and not playerState.ban[name] then
         tfm.exec.setNameColor(name, 0xD1D5DB)
-        if killSpecPermanent then
+        if roomConfig.killSpectators then
           tfm.exec.killPlayer(name)
         else
           if player.isDead then tfm.exec.respawnPlayer(name) end
@@ -90,7 +90,7 @@ function gameTeams.count(roster, availableOnly)
   local count = 0
   for _, slot in ipairs(roster or {}) do
     if slot.name ~= '' and (not availableOnly or
-      (tfm.get.room.playerList[slot.name] and not playerLeft[slot.name])) then count = count + 1 end
+      (tfm.get.room.playerList[slot.name] and not playerState.left[slot.name])) then count = count + 1 end
   end
   return count
 end
@@ -128,8 +128,8 @@ function gameTeams.positions(key)
       if current == key then return {{index,mode == 'four' and (index*400-200) or (index*600-300)}} end
     end
   end
-  if gameStats.gameMode == '3v3' then return key=='red' and {{1,101}} or {{2,700}} end
-  if gameStats.gameMode == '4v4' then return key=='red' and {{2,301}} or {{4,900}} end
+  if gameState.match.mode.gameMode == '3v3' then return key=='red' and {{1,101}} or {{2,700}} end
+  if gameState.match.mode.gameMode == '4v4' then return key=='red' and {{2,301}} or {{4,900}} end
   return {{0,key=='red' and 401 or 1500}}
 end
 
@@ -137,8 +137,8 @@ function gameTeams.placeMember(name)
   local key,slot=gameTeams.find(name)
   if not key then return false end
   local mode=gameTeams.mode()
-  if (mode=='four' or mode=='three') and gameStats.typeMap~='large4v4' then
-    for index,roster in ipairs(teamsPlayersOnGame) do
+  if (mode=='four' or mode=='three') and gameState.match.court.typeMap~='large4v4' then
+    for index,roster in ipairs(gameState.teamLayout.remaining) do
       if gameTeams.keyForRoster(roster)==key then
         local width=mode=='three' and 600 or 400
         gameTeams.place(name,key,index,index*width-width/2)
@@ -150,7 +150,7 @@ function gameTeams.placeMember(name)
   local positions=gameTeams.positions(key)
   local position=positions[1]
   if mode=='two' then
-    local roles=key=='red' and twoTeamsPlayerRedPosition or twoTeamsPlayerBluePosition
+    local roles=key=='red' and gameState.teamLayout.roles.red or gameState.teamLayout.roles.blue
     if roles[slot]=='back' then position=positions[2] end
   end
   gameTeams.place(name,key,position[1],position[2])
@@ -164,14 +164,14 @@ do
     if mode == 'four' then return 3 end
     if mode == 'three' then return 4 end
     if mode == 'two' or mode == 'real' then return 6 end
-    return maxPlayers()
+    return gameTeams.teamCapacity()
   end
 
   local function chooseJoinSlot(mode, multi, reduced)
     local chosenKey, chosenRoster, chosenArea, smallest, emptySlot
     local rosters = not reduced and gameTeams.rosters()
     -- Keep court order and the first empty slot; only allocate the final choice.
-    for area, candidate in ipairs(reduced and teamsPlayersOnGame or gameTeams.keys()) do
+    for area, candidate in ipairs(reduced and gameState.teamLayout.remaining or gameTeams.keys()) do
       local key, roster
       if reduced then
         key, roster = gameTeams.keyForRoster(candidate), candidate
@@ -195,18 +195,6 @@ do
     return chosenKey and {key=chosenKey, roster=chosenRoster, area=chosenArea}, emptySlot
   end
 
-  local function recordJoin(name, key, mode)
-    playersOnGameHistoric[name] = playersOnGameHistoric[name] or {teams={}}
-    if playerHistoryOnMatch(key, name) then
-      local history = playersOnGameHistoric[name].teams
-      history[#history+1] = key
-    end
-    local addMatch = ({normal=addMatchToPlayer, two=addMatchToPlayerTwoTeamsMode,
-      three=addMatchToPlayerThreeTeamsMode, four=addMatchToPlayerFourTeamsMode,
-      real=addMatchToPlayerRealMode})[mode]
-    addMatch(name)
-  end
-
   local function assignJoinPosition(name, chosen, slot, mode, reduced)
     if reduced then
       local width = mode == 'three' and 600 or 400
@@ -216,30 +204,30 @@ do
     local positions = gameTeams.positions(chosen.key)
     local position = positions[1]
     if mode == 'two' then
-      local counts = getQuantityPlayersOnPosition(chosen.key)
+      local counts = gameTeams.countRoles(chosen.key)
       if counts.back < counts.middle then position = positions[2] end
-      local roles = chosen.key == 'red' and twoTeamsPlayerRedPosition or twoTeamsPlayerBluePosition
+      local roles = chosen.key == 'red' and gameState.teamLayout.roles.red or gameState.teamLayout.roles.blue
       roles[slot] = position[3]
     end
     gameTeams.place(name, chosen.key, position[1], position[2])
   end
 
   function gameTeams.join(name)
-    if not tfm.get.room.playerList[name] or playerLeft[name] or playerBan[name]
+    if not tfm.get.room.playerList[name] or playerState.left[name] or playerState.ban[name]
         or gameTeams.find(name) then return false end
     local mode = gameTeams.mode()
     local multi = mode == 'four' or mode == 'three'
-    local reduced = multi and gameStats.typeMap ~= 'large4v4'
+    local reduced = multi and gameState.match.court.typeMap ~= 'large4v4'
     local chosen, slot = chooseJoinSlot(mode, multi, reduced)
     if not chosen then
       tfm.exec.chatMessage('<bv>The teams are full<n>', name)
       return false
     end
     chosen.roster[slot].name = name
-    playerInGame[name] = true
-    recordJoin(name, chosen.key, mode)
+    playerState.inGame[name] = true
+    sessionRanking.recordTeamJoin(name, chosen.key, mode)
     assignJoinPosition(name, chosen, slot, mode, reduced)
-    disablePlayerCanTransform(name)
+    playerRuntime.delayPlayerTransform(name)
     return true
   end
 end
@@ -255,9 +243,9 @@ local TRANSFORM_TEAMS = {
 
 function gameTeams.transformColor(name)
   -- Remaining teams keep their colors when the court shrinks after elimination.
-  if (gameStats.teamsMode or gameStats.threeTeamsMode)
-    and (gameStats.typeMap == "large3v3" or gameStats.typeMap == "small") then
-    for index, team in ipairs(teamsPlayersOnGame) do
+  if (gameState.match.mode.teamsMode or gameState.match.mode.threeTeamsMode)
+    and (gameState.match.court.typeMap == "large3v3" or gameState.match.court.typeMap == "small") then
+    for index, team in ipairs(gameState.teamLayout.remaining) do
       for _, player in ipairs(team) do
         if player.name == name then
           return gameTeams.color(gameTeams.keyAt(index)) or 0x81348A

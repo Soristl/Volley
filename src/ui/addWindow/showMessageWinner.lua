@@ -1,3 +1,3 @@
-function showMessageWinner()
+function clubhouse.showWinner()
   clubhouse.winner()
 end

@@ -1,3 +1,3 @@
-function settingsPageTwo(name)
+function clubhouse.settingsPageTwo(name)
   clubhouse.settings(name)
 end

@@ -1,3 +1,3 @@
-function teleportOnePlayer(name)
+function gameTeams.placeStandardMember(name)
   return gameTeams.placeMember(name)
 end

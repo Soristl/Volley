@@ -16,7 +16,7 @@ local KEYS = {
   SPAWN_ITEM  = 77
 }
 
-function bindKeys(name)
+function playerRuntime.bindKeys(name)
   for k, v in pairs(KEYS) do
     if type(v) == "number" then
       system.bindKeyboard(name, v, true, true)

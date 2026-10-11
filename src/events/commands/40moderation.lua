@@ -8,7 +8,7 @@ function commandHandlers.cmdBroadcast(args)
 
   local message = "<vi>[#Volley Announcement]: " .. text
 
-  if USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 2 then
+  if roomConfig.permissions[name] and roomConfig.permissions[name] > 2 then
     tfm.exec.chatMessage(message, nil)
   end
 end
@@ -16,10 +16,10 @@ function commandHandlers.cmdPromoteInactivePerm(args)
   local name = args[1]
 
   -- If already an active permanent admin, do nothing
-  if USER_PERMISSIONS[name] == 5 then return end
+  if roomConfig.permissions[name] == 5 then return end
 
-  if USER_PERMISSIONS[name] == 4 then
-    USER_PERMISSIONS[name] = 5
+  if roomConfig.permissions[name] == 4 then
+    roomConfig.permissions[name] = 5
     tfm.exec.chatMessage("<vi>" ..
       "You reactivated permanent admin powers<n> ",
       name)
@@ -36,7 +36,7 @@ local function presentModerationTarget(args, usage)
     return
   end
   local target = commandHandlers.resolveAdminTarget(args[2])
-  if not target or not tfm.get.room.playerList[target] or playerLeft[target] then
+  if not target or not tfm.get.room.playerList[target] or playerState.left[target] then
     tfm.exec.chatMessage('<j>Player not found or already departed.<n>', name)
     return
   end
@@ -48,7 +48,7 @@ function commandHandlers.cmdKick(args)
   local target = presentModerationTarget(args, '<j>Usage: !kick Player#0000<n>')
   if not target then return end
 
-  if USER_PERMISSIONS[target] ~= nil and USER_PERMISSIONS[target] > 3 then return end
+  if roomConfig.permissions[target] ~= nil and roomConfig.permissions[target] > 3 then return end
 
   tfm.exec.kickPlayer(target)
   tfm.exec.chatMessage("<vi>" .. name .. " kicked " .. target .. " <n> ", nil)
@@ -66,7 +66,7 @@ function commandHandlers.cmdForceLeave(args)
   local target = presentModerationTarget(args, '<j>Usage: !fleave Player#0000<n>')
   if not target then return end
 
-  if gameState.phase ~= "gameStart" or not target or (USER_PERMISSIONS[target] or 1) == 5 then
+  if gameState.phase ~= "gameStart" or not target or (roomConfig.permissions[target] or 1) == 5 then
     return
   end
   if not gameTeams.find(target) then
@@ -74,15 +74,15 @@ function commandHandlers.cmdForceLeave(args)
     return
   end
 
-  if (gameStats.teamsMode or gameStats.threeTeamsMode) and
-      gameStats.canTransform then
+  if (gameState.match.mode.teamsMode or gameState.match.mode.threeTeamsMode) and
+      gameState.match.round.canTransform then
     gameTeams.leaveMulti(target)
     tfm.exec.chatMessage("<vi>" .. target .. " force leave by " .. name ..
       " <n> ", nil)
     return
   end
 
-  if not gameStats.teamsMode and not gameStats.threeTeamsMode then
+  if not gameState.match.mode.teamsMode and not gameState.match.mode.threeTeamsMode then
     gameTeams.leaveStandard(target);
     return tfm.exec.chatMessage("<vi>" .. target .. " force leave by " ..
       name .. " <n> ", nil)
@@ -97,7 +97,7 @@ function commandHandlers.resolveBanTarget(target)
   local known = commandHandlers.resolveAdminTarget(target)
   if known then return known end
   local lowerTarget = target:lower()
-  for player in pairs(playerBan) do
+  for player in pairs(playerState.ban) do
     if player:lower() == lowerTarget then return player end
   end
   -- Preserve the ability to ban an explicitly named offline player.
@@ -112,35 +112,22 @@ function commandHandlers.cmdBan(args)
   end
   local target = commandHandlers.resolveBanTarget(args[2])
 
-  if not gameStats.banCommandIsEnabled or not target or
-      (USER_PERMISSIONS[target] or 1) > 3 then
+  if not gameState.match.rules.banCommandIsEnabled or not target or
+      (roomConfig.permissions[target] or 1) > 3 then
     return
   end
 
   -- target must be attached to an id.
-  playerBan[target] = true
-  playerBanHistory[target] = name
-  if tfm.get.room.playerList[target] and not playerLeft[target] then
+  playerState.ban[target] = true
+  playerState.banHistory[target] = name
+  if tfm.get.room.playerList[target] and not playerState.left[target] then
     tfm.exec.chatMessage("<vi>Banned by " .. name .. " <n> ", target)
     tfm.exec.kickPlayer(target)
   end
   tfm.exec.chatMessage("<vi>" .. name .. " banned " .. target .. " <n> ", nil)
-  if not tfm.get.room.playerList[target] or playerLeft[target] then return end
+  if not tfm.get.room.playerList[target] or playerState.left[target] then return end
 
-  if gameState.phase == "startGame" then
-    gameTeams.releaseLobbySeat(target)
-  elseif gameStats.teamsMode or gameStats.threeTeamsMode then
-    -- Remove membership even during a terrain transition.
-    gameTeams.leaveMulti(target)
-  else
-    gameTeams.leaveStandard(target)
-  end
-
-  -- Host departure can arrive later. Cancel both previous player work and
-  -- the spectator respawn that leaving a team may just have scheduled.
-  clearPlayerTimers(target)
-  clearPlayerGameplay(target)
-  gameTeams.releaseSpawn(target)
+  playerRuntime.removeBannedPlayer(target)
 end
 
 function commandHandlers.cmdUnban(args)
@@ -151,9 +138,9 @@ function commandHandlers.cmdUnban(args)
   end
   local target = commandHandlers.resolveBanTarget(args[2])
 
-  if not target or not playerBan[target] then return end
+  if not target or not playerState.ban[target] then return end
 
-  playerBan[target] = false
+  playerState.ban[target] = false
   tfm.exec
       .chatMessage("<vi>" .. name .. " unbanned " .. target .. " <n> ", nil)
 end
@@ -162,14 +149,14 @@ function commandHandlers.cmdStopTimer(args)
   local name = args[1]
   if gameState.phase ~= "startGame" then return end
 
-  if not gameStats.stopTimer then
-    gameStats.stopTimer = true
+  if not gameState.match.round.stopTimer then
+    gameState.match.round.stopTimer = true
     tfm.exec.chatMessage("<vi>Stoptimer enabled by " .. name .. " <n> ", nil)
     return
   end
 
-  gameState.lobbyDeadline = os.time() + (gameStats.initTimer * 1000)
-  gameStats.stopTimer = false
+  gameState.lobbyDeadline = os.time() + (gameState.match.round.initTimer * 1000)
+  gameState.match.round.stopTimer = false
   tfm.exec.chatMessage("<vi>Stoptimer disabled by " .. name .. " <n> ", nil)
 end
 
@@ -183,14 +170,14 @@ function commandHandlers.cmdKillSpec(args)
     return
   end
 
-  killSpecPermanent = (kill == "true")
-  gameStats.killSpec = killSpecPermanent
+  roomConfig.killSpectators = (kill == "true")
+  gameState.match.rules.killSpec = roomConfig.killSpectators
 
-  if gameState.phase == "gameStart" and killSpecPermanent then
+  if gameState.phase == "gameStart" and roomConfig.killSpectators then
     for n, _ in pairs(tfm.get.room.playerList) do
-      if not playerInGame[n] then tfm.exec.killPlayer(n) end
+      if not playerState.inGame[n] then tfm.exec.killPlayer(n) end
     end
-  elseif gameState.phase == "gameStart" and isGameplayMapReady() then
+  elseif gameState.phase == "gameStart" and mapLoad.isReady() then
     -- Revive only dead spectators; active players keep their own respawn delay.
     -- During loading, the normal map placement restores spectators instead.
     gameTeams.placeSpectators(true)
@@ -199,28 +186,27 @@ end
 
 function commandHandlers.cmdPause(args)
   local name = args[1]
-  if gameState.phase ~= "gameStart" or gameStats.realMode then return end
+  if gameState.phase ~= "gameStart" or gameState.match.mode.realMode then return end
 
-  if not gameStats.isGamePaused then
-    if not isGameplayMapReady() or not gameStats.canTransform then
+  if not gameState.match.round.isGamePaused then
+    if not mapLoad.isReady() or not gameState.match.round.canTransform then
       tfm.exec.chatMessage('<j>Wait until the court is ready before pausing.<n>', name)
       return
     end
-    gameStats.isGamePaused = true
-    setGameplayTimersPaused(true)
+    gameState.match.round.isGamePaused = true
+    timers.setGameplayPaused(true)
 
     gameBalls.clear()
 
     tfm.exec.chatMessage("<vi>Game paused by " .. name .. " <n> ", nil)
-    durationTimerPause = math.max(0, math.ceil((duration - os.time()) / 1000))
+    gameRound.capturePausedTime()
     return
   end
 
-  duration = os.time() + durationTimerPause * 1000
-  tfm.exec.setGameTime(durationTimerPause, true)
-  gameStats.isGamePaused = false
-  setGameplayTimersPaused(false)
+  gameRound.resumeClock()
+  gameState.match.round.isGamePaused = false
+  timers.setGameplayPaused(false)
   -- A departure during pause may have queued a reduced court. Its map
   -- preparation owns the next ball; do not spawn one on the old terrain.
-  if isGameplayMapReady() and gameStats.canTransform then gameBalls.spawnInitial() end
+  if mapLoad.isReady() and gameState.match.round.canTransform then gameBalls.spawnInitial() end
 end

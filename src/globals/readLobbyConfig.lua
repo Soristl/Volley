@@ -1,6 +1,6 @@
 -- Validate all access rules before applying any of them. Empty lists are valid;
 -- missing attributes are not evidence that the room has no staff or bans.
-function readLobbyConfig()
+function roomConfig.readLobby()
   local info = tfm.get.room.xmlMapInfo
   local xml = info and info.xml
   if type(xml) ~= "string" then return nil, "XML unavailable" end

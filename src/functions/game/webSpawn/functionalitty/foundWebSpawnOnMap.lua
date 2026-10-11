@@ -1,4 +1,4 @@
-function foundWebSpawnOnMap(map)
+function gameMaps.readWebSpawns(map)
   local properties = mapXml.source(map):match('<P%s+[^>]*>') or ''
-  webY = mapXml.number(mapXml.attribute(properties, 'WEBY')) or 460
+  gameState.court.webY = mapXml.number(mapXml.attribute(properties, 'WEBY')) or 460
 end

@@ -117,17 +117,17 @@ function clubhouse.selectorActions(name,isBall,items,indices)
   local key=isBall and "selector_balls" or "selector"
   if not (clubhouse.views[name] and clubhouse.views[name][key]) then return end
   if not items then
-    if isBall then items,indices=clubhouse.ballItems(name) else items,indices=availableMaps() end
+    if isBall then items,indices=clubhouse.ballItems(name) else items,indices=gameMaps.availableEntries() end
   end
   local page=(isBall and uiState.selectBallPage or uiState.selectMapPage)[name] or 1
   local picking=not isBall and clubhouse.views[name][key].defaultMapPicker
-  local enabled=(USER_PERMISSIONS[name] or 1)>1 and (picking or uiState.customMapCommand[name]) and gameState.phase=="startGame" and not gameStats.realMode
+  local enabled=(roomConfig.permissions[name] or 1)>1 and (picking or uiState.customMapCommand[name]) and gameState.phase=="startGame" and not gameState.match.mode.realMode
   for i=1,5 do
     local index=(page-1)*5+i
     if items[index] then
       local selectedIndex=indices[index]
-      local selected=isBall and gameStats.customBall and gameStats.customBallId==selectedIndex or not isBall and gameStats.isCustomMap and gameStats.customMapIndex==selectedIndex
-      if picking then selected=items[index][3]==globalSettings.defaultMap end
+      local selected=isBall and gameState.match.balls.customBall and gameState.match.balls.customBallId==selectedIndex or not isBall and gameState.match.maps.isCustomMap and gameState.match.maps.customMapIndex==selectedIndex
+      if picking then selected=items[index][3]==roomConfig.settings.defaultMap end
       clubhouse.label(name,key,"select_"..i,clubhouse.text(name,selected and (isBall and "ball.selected" or "map.selected") or "action.select"),
         not selected and enabled and ((picking and "setDefaultMap:" or isBall and "setball" or "setmap")..selectedIndex) or nil,selected and "#DEC18A" or enabled and "#E3ECE7" or "#718B83")
     end
@@ -145,7 +145,7 @@ function clubhouse.refreshSelectorActions(isBall)
       local catalog=catalogs[category]
       if not catalog then
         local items,indices
-        if isBall then items,indices=clubhouse.ballItems(name,category) else items,indices=availableMaps() end
+        if isBall then items,indices=clubhouse.ballItems(name,category) else items,indices=gameMaps.availableEntries() end
         catalog={items,indices};catalogs[category]=catalog
       end
       clubhouse.selectorActions(name,isBall,catalog[1],catalog[2])
@@ -161,14 +161,14 @@ function clubhouse.refreshMapVotes(changedIndex,voter)
     local view=clubhouse.views[name] and clubhouse.views[name].selector
     if uiState.selectMapOpen[name] and view and not view.defaultMapPicker then
       -- Share one list for this refresh, only when a panel needs it.
-      if not items then items,indices=availableMaps() end
+      if not items then items,indices=gameMaps.availableEntries() end
       local page=uiState.selectMapPage[name] or 1
-      local enabled=canVote[name] and gameState.phase=="startGame" and not gameStats.realMode
+      local enabled=gameState.voting.eligible[name] and gameState.phase=="startGame" and not gameState.match.mode.realMode
       for i=1,5 do
         local index=(page-1)*5+i
         local mapIndex=indices[index]
         if items[index] and (name==voter or mapIndex==changedIndex) then
-          clubhouse.label(name,"selector","vote_"..i,clubhouse.text(name,"action.vote",{count=showMapVotes(items,mapIndex)}),
+          clubhouse.label(name,"selector","vote_"..i,clubhouse.text(name,"action.vote",{count=mapVoting.showVotes(items,mapIndex)}),
             enabled and "votemap"..mapIndex or nil,enabled and "#E3ECE7" or "#718B83")
         end
       end
@@ -176,16 +176,28 @@ function clubhouse.refreshMapVotes(changedIndex,voter)
   end
 end
 
+-- Selector refresh handles are private; cancellation does not reopen controls.
+do
+local selectionTimers = {}
+
 function clubhouse.selectionCooldown(name)
   uiState.customMapCommand[name]=false
-  if clubhouse.selectionTimers[name] then removeTimer(clubhouse.selectionTimers[name]) end
-  clubhouse.selectionTimers[name]=addTimer(function()
-    clubhouse.selectionTimers[name]=nil
+  if selectionTimers[name] then timers.remove(selectionTimers[name]) end
+  selectionTimers[name]=timers.add(function()
+    selectionTimers[name]=nil
     if not tfm.get.room.playerList[name] then return end
     uiState.customMapCommand[name]=true
     clubhouse.selectorActions(name,false)
     clubhouse.selectorActions(name,true)
   end,2000,1,"clubhouseSelection:"..name)
+end
+
+function clubhouse.cancelSelectionCooldown(name)
+  if selectionTimers[name] then
+    timers.remove(selectionTimers[name])
+    selectionTimers[name]=nil
+  end
+end
 end
 
 -- Arrows and the page picker use the same per-player page update.
@@ -203,8 +215,8 @@ do
 local function applyBallSelection(name, index)
   clubhouse.selectionCooldown(name)
 
-  gameStats.customBall = true
-  gameStats.customBallId = index
+  gameState.match.balls.customBall = true
+  gameState.match.balls.customBallId = index
 
   tfm.exec.chatMessage(" <bv>Ball: " .. balls[index].name ..
     " selected by " .. name .. " <n> ", nil)
@@ -213,14 +225,14 @@ local function applyBallSelection(name, index)
 end
 
 local function recordMapVote(name, index, maps)
-  if mapsVotes[index] == nil then
-    mapsVotes[index] = 0
+  if gameState.voting.counts[index] == nil then
+    gameState.voting.counts[index] = 0
   end
 
-  mapsVotes[index] = mapsVotes[index] + 1
-  canVote[name] = false
-  gameStats.totalVotes = gameStats.totalVotes + 1
-  verifyMostMapVoted()
+  gameState.voting.counts[index] = gameState.voting.counts[index] + 1
+  gameState.voting.eligible[name] = false
+  gameState.match.maps.totalVotes = gameState.match.maps.totalVotes + 1
+  mapVoting.selectMostVoted()
 
   clubhouse.refreshMapVotes(index,name)
 
@@ -230,23 +242,23 @@ local function recordMapVote(name, index, maps)
     " voted for the " ..
     maps[index][3] ..
     " map (" ..
-    tostring(mapsVotes[index]) .. " votes), type !maps to see the maps list and to vote !votemap (number)<n>",
+    tostring(gameState.voting.counts[index]) .. " votes), type !maps to see the maps list and to vote !votemap (number)<n>",
     nil)
 end
 
 local function applyMapSelection(name, index, maps)
   clubhouse.selectionCooldown(name)
 
-  gameStats.isCustomMap = true
-  gameStats.customMapIndex = index
+  gameState.match.maps.isCustomMap = true
+  gameState.match.maps.customMapIndex = index
 
   tfm.exec.chatMessage(
     '<bv>' ..
-    maps[gameStats.customMapIndex][3] ..
-    ' map (created by ' .. maps[gameStats.customMapIndex][4] .. ') selected by admin ' .. name .. '<n>', nil)
+    maps[gameState.match.maps.customMapIndex][3] ..
+    ' map (created by ' .. maps[gameState.match.maps.customMapIndex][4] .. ') selected by admin ' .. name .. '<n>', nil)
   print('<bv>' ..
-    maps[gameStats.customMapIndex][3] ..
-    ' map (created by ' .. maps[gameStats.customMapIndex][4] .. ') selected by admin ' .. name .. '<n>')
+    maps[gameState.match.maps.customMapIndex][3] ..
+    ' map (created by ' .. maps[gameState.match.maps.customMapIndex][4] .. ') selected by admin ' .. name .. '<n>')
 
   clubhouse.refreshSelectorActions(false)
 end
@@ -270,7 +282,7 @@ function clubhouse.selectorCallback(name, c)
   elseif string.sub(c, 1, 14) == "nextSelectBall" or string.sub(c, 1, 14) == "prevSelectBall" then
     local index = tonumber(string.sub(c, 15))
     clubhouse.selectorPage(name, true, index)
-  elseif string.sub(c, 1, 7) == "setball" and uiState.customMapCommand[name] and not gameStats.realMode and gameState.phase == "startGame" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+  elseif string.sub(c, 1, 7) == "setball" and uiState.customMapCommand[name] and not gameState.match.mode.realMode and gameState.phase == "startGame" and roomConfig.permissions[name] and roomConfig.permissions[name] > 1 then
     local index = tonumber(string.sub(c, 8))
 
     if index and balls[index] then
@@ -281,16 +293,16 @@ function clubhouse.selectorCallback(name, c)
     clubhouse.selectorPage(name, false, index)
   elseif string.sub(c, 1, 3) == "map" then
     tfm.exec.chatMessage('<bv>' .. string.sub(c, 4) .. '<n>', name)
-  elseif string.sub(c, 1, 7) == "votemap" and canVote[name] and not gameStats.realMode and gameState.phase == "startGame" then
+  elseif string.sub(c, 1, 7) == "votemap" and gameState.voting.eligible[name] and not gameState.match.mode.realMode and gameState.phase == "startGame" then
     local index = tonumber(string.sub(c, 8))
-    local maps = configSelectMap()
+    local maps = gameMaps.selectionCatalog()
 
-    if not index or not maps[index] or not isMapAvailable(index) then return true end
+    if not index or not maps[index] or not gameMaps.isAvailable(index) then return true end
     recordMapVote(name, index, maps)
-  elseif string.sub(c, 1, 6) == "setmap" and uiState.customMapCommand[name] and not gameStats.realMode and gameState.phase == "startGame" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+  elseif string.sub(c, 1, 6) == "setmap" and uiState.customMapCommand[name] and not gameState.match.mode.realMode and gameState.phase == "startGame" and roomConfig.permissions[name] and roomConfig.permissions[name] > 1 then
     local index = tonumber(string.sub(c, 7))
-    local maps = configSelectMap()
-    if not index or not maps[index] or not isMapAvailable(index) then return true end
+    local maps = gameMaps.selectionCatalog()
+    if not index or not maps[index] or not gameMaps.isAvailable(index) then return true end
 
     applyMapSelection(name, index, maps)
   else
@@ -310,7 +322,7 @@ function clubhouse.selector(name, isBall)
   local picking=not isBall and clubhouse.state(name,key).defaultMapPicker
   clubhouse.closeLabel(name,key,picking and "returnDefaultSettings" or nil)
   local items,indices
-  if isBall then items,indices=clubhouse.ballItems(name) else items,indices=availableMaps() end
+  if isBall then items,indices=clubhouse.ballItems(name) else items,indices=gameMaps.availableEntries() end
   local pages=math.max(1,math.ceil(#items/5))
   local state=isBall and uiState.selectBallPage or uiState.selectMapPage
   local page=math.max(1,math.min(pages,math.floor(tonumber(state[name]) or 1)));state[name]=page
@@ -328,8 +340,8 @@ function clubhouse.selector(name, isBall)
       local title=isBall and item.name or item[3]
       clubhouse.label(name,key,"name_"..i,clubhouse.shorten(title,isBall and 38 or 18),not isBall and ("map"..item[3]) or nil)
       if not isBall then
-        local vote=not picking and canVote[name] and gameState.phase=="startGame" and not gameStats.realMode
-        clubhouse.label(name,key,"vote_"..i,picking and "" or clubhouse.text(name,"action.vote",{count=showMapVotes(items,indices[index])}),vote and "votemap"..indices[index] or nil,vote and "#E3ECE7" or "#718B83")
+        local vote=not picking and gameState.voting.eligible[name] and gameState.phase=="startGame" and not gameState.match.mode.realMode
+        clubhouse.label(name,key,"vote_"..i,picking and "" or clubhouse.text(name,"action.vote",{count=mapVoting.showVotes(items,indices[index])}),vote and "votemap"..indices[index] or nil,vote and "#E3ECE7" or "#718B83")
       end
       local r=s.regions["preview_"..i];local image=isBall and (item.previewImage or item.image) or item[6]
       if image and image~="" then

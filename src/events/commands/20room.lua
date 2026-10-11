@@ -15,44 +15,44 @@ function commandHandlers.cmdTest(args)
   -- Maybe this will break, but the table initialization
   -- was redundant. @Vit0rg
   gameState.teams.yellow[1].name = "a"
-  eventNewGameShowLobbyTexts()
+  clubhouse.renderLobby()
 end
 
 function commandHandlers.cmdNP(args)
   local name = args[1]
   if not tfm.get.room.isTribeHouse or gameState.phase ~= "startGame" then return end
 
-  if gameStats.realMode or gameStats.setMapName == "extra-large" then
+  if gameState.match.mode.realMode or gameState.match.maps.setMapName == "extra-large" then
     tfm.exec.chatMessage(" <j>Not available in this mode<n> ", name)
     return
   end
 
-  local defaultMap = (gameStats.threeTeamsMode and
+  local defaultMap = (gameState.match.mode.threeTeamsMode and
         customMapsThreeTeamsMode[1][2]) or
-      (gameStats.teamsMode and
+      (gameState.match.mode.teamsMode and
         customMapsFourTeamsMode[34][2]) or
       customMaps[6][1]
 
 
   if commandHandlers.validateMap({ name, args[2], 1 }) then
-    mapsToTest[1] = args[2]
+    gameMaps.setTestMap(1, args[2])
   else
-    mapsToTest[1] = defaultMap
+    gameMaps.setTestMap(1, defaultMap)
   end
 
   if commandHandlers.validateMap({ name, args[3], 2 }) then
-    mapsToTest[2] = args[3]
+    gameMaps.setTestMap(2, args[3])
   else
-    mapsToTest[2] = defaultMap
+    gameMaps.setTestMap(2, defaultMap)
   end
 
   if commandHandlers.validateMap({ name, args[4], 3 }) then
-    mapsToTest[3] = args[4]
+    gameMaps.setTestMap(3, args[4])
   else
-    mapsToTest[3] = customMapsFourTeamsMode[34][5]
+    gameMaps.setTestMap(3, customMapsFourTeamsMode[34][5])
   end
 
-  for i = 1, #mapsToTest do tfm.exec.chatMessage(mapsToTest[i]..'\n', nil) end
+  gameMaps.announceTestMaps()
   tfm.exec.chatMessage("<vp>Test map(s) loaded<n> ", nil)
 end
 
@@ -66,9 +66,9 @@ function commandHandlers.cmdAutoSyncSystem(args)
     return
   end
 
-  autosync = (toggle == "true")
+  roomConfig.autoSync = (toggle == "true")
   tfm.exec.chatMessage("<n>Auto Sync System " ..
-    (autosync and "<vp>enabled<n2>" or
+    (roomConfig.autoSync and "<vp>enabled<n2>" or
       "<r>disabled<n2>") .. " by " .. name .. " <n> ",
     nil)
 
@@ -79,12 +79,12 @@ function commandHandlers.cmdSync(args)
 
   -- Auto-sync to lowest latency
   if #args == 2 then
-    refletzSyncSystem(name)
+    roomSync.refresh(name)
     return
   end
 
   -- Manual sync
-  if (USER_PERMISSIONS[name] < 3) then return end
+  if (roomConfig.permissions[name] < 3) then return end
 
   -- Using a global player list copy would make the lookup so
   -- much better. @Vit0rg
@@ -93,7 +93,7 @@ function commandHandlers.cmdSync(args)
 
   for n, _ in pairs(tfm.get.room.playerList) do
     if string.lower(n) == string.lower(target) then
-      if not requestPlayerSync(n, name) then return end
+      if not roomSync.requestPlayer(n, name) then return end
       tfm.exec.chatMessage("<vi>Sync set to " .. n .. " by " .. name ..
         " <n> ", nil)
       break
@@ -110,7 +110,7 @@ function commandHandlers.cmdLobby(args)
 
   gameBalls.clear()
 
-  removeTimer('verifyBallCoordinates')
+  timers.remove('verifyBallCoordinates')
 
   -- Cleanup UI
   ui.removeTextArea(0)
@@ -118,7 +118,7 @@ function commandHandlers.cmdLobby(args)
   ui.removeTextArea(899899)
   ui.removeTextArea(8998991)
 
-  beginEndGame()
+  matchLifecycle.finishMatch()
 
   -- One single state variable holding the mode
   -- name would prevent this crime against the
@@ -161,15 +161,13 @@ end
 
 function commandHandlers.cmdSetDuration(args)
   local name = args[1]
-  local durationSec = #args == 2 and durationDefault or tonumber(args[2])
+  local durationSec = #args == 2 and gameRound.defaultDuration() or tonumber(args[2])
   if not durationSec or durationSec ~= durationSec or durationSec < 1 or durationSec % 1 ~= 0
       or durationSec * 1000 == math.huge then
     tfm.exec.chatMessage("<j>Usage: !setduration <positive integer seconds>; omit to reset.<n>", name)
     return
   end
-  duration = os.time() + durationSec * 1000
-  durationTimerPause = durationSec
-  tfm.exec.setGameTime(durationTimerPause, true)
+  gameRound.setDuration(durationSec)
   tfm.exec.chatMessage("<bv>Duration set to " .. durationSec .. "s by " .. name .. "<n>", nil)
 end
 
@@ -183,11 +181,11 @@ function commandHandlers.cmdSetMaxPlayers(args)
   if maxPlayers >= 6 and maxPlayers <= 20 then
     tfm.exec.setRoomMaxPlayers(maxPlayers)
     tfm.exec.chatMessage("<bv>" ..
-      playerLanguage[name].tr.messageSetMaxPlayers ..
+      playerState.language[name].tr.messageSetMaxPlayers ..
       " " .. maxPlayers .. " by " .. name .. " <n> ",
       nil)
   else
-    tfm.exec.chatMessage(playerLanguage[name].tr.messageMaxPlayersAlert,
+    tfm.exec.chatMessage(playerState.language[name].tr.messageMaxPlayersAlert,
       name)
   end
 end
@@ -198,8 +196,8 @@ function commandHandlers.cmdSetMap(args)
 
   if gameState.phase ~= "startGame" then return end
 
-  if gameStats.teamsMode or gameStats.twoTeamsMode or gameStats.threeTeamsMode or gameStats.realMode then
-    commandNotAvailable({ "setmap", name })
+  if gameState.match.mode.teamsMode or gameState.match.mode.twoTeamsMode or gameState.match.mode.threeTeamsMode or gameState.match.mode.realMode then
+    roomConfig.commandUnavailable({ "setmap", name })
     return
   end
 
@@ -209,10 +207,10 @@ function commandHandlers.cmdSetMap(args)
     return
   end
 
-  resetMapsToTest()
+  gameMaps.resetTestMaps()
 
-  gameStats.setMapName = mapType
-  refreshMapSizeSelection()
+  gameState.match.maps.setMapName = mapType
+  gameMaps.refreshSizeSelection()
   tfm.exec.chatMessage(" <bv>" .. mapType .. " map selected by " .. name ..
     " <n> ", nil)
 end
@@ -224,17 +222,17 @@ function commandHandlers.cmdWinScore(args)
     tfm.exec.chatMessage("<j>Usage: !winscore <positive integer><n>", name)
     return
   end
-  if gameStats.teamsMode or gameStats.threeTeamsMode then return end
+  if gameState.match.mode.teamsMode or gameState.match.mode.threeTeamsMode then return end
   if gameState.phase == "startGame" then
-    if gameStats.realMode then return end
-  elseif gameState.phase ~= "gameStart" or (USER_PERMISSIONS[name] or 1) < 3 then
+    if gameState.match.mode.realMode then return end
+  elseif gameState.phase ~= "gameStart" or (roomConfig.permissions[name] or 1) < 3 then
     return
   end
   if winscore <= gameState.scores.red or winscore <= gameState.scores.blue then
     tfm.exec.chatMessage("<j>Winscore must exceed both teams' scores.<n>", name)
     return
   end
-  gameStats.winscore = winscore
+  gameState.match.rules.winscore = winscore
   tfm.exec.chatMessage("<bv>Winscore changed to <j>" .. winscore .. "<n2> by " .. name .. "<n>", nil)
 end
 
@@ -246,20 +244,20 @@ function commandHandlers.cmdSetScore(args)
   local newScore = tonumber(args[3])
 
   if not target
-     or (gameStats.teamsMode or gameStats.threeTeamsMode) then
+     or (gameState.match.mode.teamsMode or gameState.match.mode.threeTeamsMode) then
     return
   end
 
   -- Team Score
   local targets = { ['red'] = '<r>', ['blue'] = '<bv>' }
 
-  if gameStats.teamsMode and (USER_PERMISSIONS[name] < 3) then
-    commandNotAvailable({ "setscore", name })
+  if gameState.match.mode.teamsMode and (roomConfig.permissions[name] < 3) then
+    roomConfig.commandUnavailable({ "setscore", name })
     return
   end
 
-  if not newScore or newScore ~= newScore or newScore < 0 or newScore % 1 ~= 0 or newScore >= gameStats.winscore then
-    tfm.exec.chatMessage("<j>Invalid score. Must be lower than the winscore (" .. gameStats.winscore .. ")<n> ", name)
+  if not newScore or newScore ~= newScore or newScore < 0 or newScore % 1 ~= 0 or newScore >= gameState.match.rules.winscore then
+    tfm.exec.chatMessage("<j>Invalid score. Must be lower than the winscore (" .. gameState.match.rules.winscore .. ")<n> ", name)
     return
   end
 
@@ -278,8 +276,8 @@ function commandHandlers.cmdSetLifes(args)
   local name = args[1]
 
   if gameState.phase ~= "startGame"
-      or USER_PERMISSIONS[name] < 3
-      or (not gameStats.teamsMode and not gameStats.threeTeamsMode) then
+      or roomConfig.permissions[name] < 3
+      or (not gameState.match.mode.teamsMode and not gameState.match.mode.threeTeamsMode) then
     return
   end
 
@@ -291,7 +289,7 @@ function commandHandlers.cmdSetLifes(args)
     return
   end
 
-  gameState.lives = { [1] = { yellow = gameStats.threeTeamsMode and 0 or lifes }, [2] = { red = lifes }, [3] = { blue = lifes }, [4] = { green = lifes } }
+  gameState.lives = { [1] = { yellow = gameState.match.mode.threeTeamsMode and 0 or lifes }, [2] = { red = lifes }, [3] = { blue = lifes }, [4] = { green = lifes } }
 end
 
 function commandHandlers.cmdPassword(args)
@@ -299,7 +297,7 @@ function commandHandlers.cmdPassword(args)
   -- The dispatcher appends the command name after the actual arguments.
   if #args == 2 then
     tfm.exec.setRoomPassword("")
-    tfm.exec.chatMessage(playerLanguage[name].tr.passwordRemoved, nil)
+    tfm.exec.chatMessage(playerState.language[name].tr.passwordRemoved, nil)
     return
   end
   if #args > 4 or (#args == 4 and args[3] ~= "true" and args[3] ~= "false") then
@@ -307,7 +305,7 @@ function commandHandlers.cmdPassword(args)
     return
   end
   local secret = #args == 4 and args[3] == "true"
-  if secret and (USER_PERMISSIONS[name] or 1) <= 3 then
+  if secret and (roomConfig.permissions[name] or 1) <= 3 then
     tfm.exec.chatMessage("<j>A secret password requires permanent-admin permission.<n>", name)
     return
   end
@@ -315,6 +313,6 @@ function commandHandlers.cmdPassword(args)
   if secret then
     tfm.exec.chatMessage("<bv>" .. name .. " set a secret password.<n>", nil)
   else
-    tfm.exec.chatMessage("<bv>" .. playerLanguage[name].tr.newPassword .. " " .. args[2] .. " by " .. name .. "<n>", nil)
+    tfm.exec.chatMessage("<bv>" .. playerState.language[name].tr.newPassword .. " " .. args[2] .. " by " .. name .. "<n>", nil)
   end
 end

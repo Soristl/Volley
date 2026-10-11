@@ -1,8 +1,8 @@
-function disablePlayerCanTransform(name)
-  playerCanTransform[name] = false
-  playersCanTransform = addPlayerRoundTimer(name, function(i)
+function playerRuntime.delayPlayerTransform(name)
+  playerState.canTransform[name] = false
+  timers.handles.playerTransform = timers.addPlayerRound(name, function(i)
     if i == 1 then
-      playerCanTransform[name] = true
+      playerState.canTransform[name] = true
     end
   end, 2000, 1, "playersCanTransform")
 end

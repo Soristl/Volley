@@ -1,4 +1,4 @@
-function rankMode(mode)
+function sessionRanking.ranksForMode(mode)
   if mode == "Normal mode" then
     return sessionRanking.ranks.normal
   elseif mode == "4 teams mode" then

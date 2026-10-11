@@ -9,11 +9,11 @@ function sessionRanking.ensurePlayer(name)
       This could all be inside one single table:
       --Vit0rg
     ]]
-    sessionRanking.stats.normal[name] = newPlayerStats(name)
-    sessionRanking.stats.four[name] = newPlayerStats(name, 4)
-    sessionRanking.stats.three[name] = newPlayerStats(name, 3)
-    sessionRanking.stats.two[name] = newPlayerStats(name)
-    sessionRanking.stats.real[name] = newPlayerStats(name)
+    sessionRanking.stats.normal[name] = playerRuntime.createStats(name)
+    sessionRanking.stats.four[name] = playerRuntime.createStats(name, 4)
+    sessionRanking.stats.three[name] = playerRuntime.createStats(name, 3)
+    sessionRanking.stats.two[name] = playerRuntime.createStats(name)
+    sessionRanking.stats.real[name] = playerRuntime.createStats(name)
     -- Even an unranked insertion can change pairs ordering for exact ties.
     sessionRanking.cache.invalidateAll()
     return true
@@ -29,7 +29,7 @@ function sessionRanking.recordParticipation(stats, name)
   matchStatistics.participants[name] = true
   local player = stats[name]
   player.matches = player.matches + 1
-  player.winRatio = winRatioPercentage(player.wins, player.matches)
+  player.winRatio = sessionRanking.winPercentage(player.wins, player.matches)
   sessionRanking.cache.invalidate(stats)
 end
 
@@ -46,10 +46,19 @@ function sessionRanking.recordVictory(stats, team, roster)
       awarded[name] = true
       player.wins = player.wins + 1
       player[field] = player[field] + 1
-      player.winRatio = winRatioPercentage(player.wins, player.matches)
+      player.winRatio = sessionRanking.winPercentage(player.wins, player.matches)
       sessionRanking.cache.invalidate(stats)
     end
   end
   matchStatistics.finished = true
 end
+end
+
+-- Joining a team records session history before placement and transform recovery.
+function sessionRanking.recordTeamJoin(name, key, mode)
+  sessionRanking.recordTeamHistory(name, key)
+  local addMatch = ({normal=sessionRanking.addNormalMatch, two=sessionRanking.addTwoTeamMatch,
+    three=sessionRanking.addThreeTeamMatch, four=sessionRanking.addFourTeamMatch,
+    real=sessionRanking.addRealMatch})[mode]
+  addMatch(name)
 end

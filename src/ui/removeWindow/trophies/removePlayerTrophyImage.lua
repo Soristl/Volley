@@ -1,9 +1,9 @@
-function removePlayerTrophyImage(name)
-  local removeImage = addTimer(function(i)
+function clubhouse.scheduleTrophyRemoval(name)
+  local removeImage = timers.add(function(i)
     if i == 1 then
-      if playerTrophyImage[name] ~= 0 then
-        tfm.exec.removeImage(playerTrophyImage[name])
-        playerTrophyImage[name] = 0
+      if playerState.trophyImage[name] ~= 0 then
+        tfm.exec.removeImage(playerState.trophyImage[name])
+        playerState.trophyImage[name] = 0
       end
     end
   end, 10000, 1, "trophy" .. name .. "")

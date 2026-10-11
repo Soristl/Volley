@@ -1,3 +1,3 @@
-function searchPlayerTeam(name)
+function gameTeams.findRealMember(name)
   return gameTeams.find(name)
 end

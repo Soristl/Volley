@@ -1,15 +1,20 @@
--- Shared match state. Selected rules remain in gameStats/globalSettings;
--- team, score and ball operations use gameTeams/gameScores/gameBalls.
--- Loaded before timers: map readiness has one owner, shared by the scheduler.
+-- Match state is separate from persistent roomConfig.settings.
+-- gameState.match groups mode, rules, balls, maps, round, court and Real serve state.
+-- Team, score and ball operations use gameTeams/gameScores/gameBalls.
+-- Loaded before timers; map requests and readiness are private to mapLoad.
 gameState = {
   phase = "startGame",
-  map = { ready = true },
   -- Map-derived lists are replaced at their existing parse/reset boundaries.
   -- Slots follow XML team/spawn order, not a fixed court width.
   court = { playerSpawns = {}, ballSpawns = {}, pointAreas = {} },
   balls = { { active = false }, { active = false }, { active = false } },
   teams = { red = {}, blue = {}, yellow = {}, green = {} },
+  -- Court order and two-team roles share an owner, not roster identity.
+  -- Leaves stay nil until their original lobby reset assignments.
+  teamLayout = { roles = {} },
   scores = { red = 0, blue = 0 },
+  -- Counters and eligibility retain their individual initialization boundaries.
+  voting = {},
   revision = 0
 }
 
@@ -32,14 +37,6 @@ function gameState.resetLobby()
   gameState.rulesDeadline = nil
   gameState.endDeadline = nil
   gameState.lobbyDeadline = os.time() + 25000
-end
-
--- Loading and pause are separate from phase: a reduced court is still part
--- of the same match. Preserve the map table identity across round resets.
-function gameState.resetMap()
-  gameState.map.ready = true
-  gameState.map.target = nil
-  gameState.map.sourceTarget = nil
 end
 
 -- These lists are replaced at lobby initialization; keep their parent containers stable.

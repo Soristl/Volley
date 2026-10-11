@@ -54,7 +54,7 @@ local USER_PERMISSIONS = {
   ["Tanathree#0000"] = 1
 }
 ]]
-USER_PERMISSIONS = {}
+roomConfig.permissions = {}
 
 if branch == "test" then
   tfm.exec.chatMessage = print
@@ -77,7 +77,7 @@ else
 end
 
 -- Session ownership is separate from the existing permission levels.
-local roomCreator = { name = nil, adminRevoked = false, selectionClosed = false }
+roomConfig.creator = { name = nil, adminRevoked = false, selectionClosed = false }
 
 tfm.exec.disableAutoShaman(true)
 tfm.exec.disableAutoNewGame(true)
@@ -89,34 +89,46 @@ tfm.exec.setRoomMaxPlayers(16)
 system.disableChatCommandDisplay(nil, true)
 tfm.exec.disableMortCommand(true)
 
-local playerCanTransform = {}
-local playerForce = {}
-local playerBan = {}
-local playerBanHistory = {}
-local playerInGame = {}
-local countId = 100000 -- Player grounds: separate from XML grounds and 99990..99998 map helpers.
-local playerPhysicId = {}
-local playerLanguage = {}
-local killSpecPermanent = false
-local autosync = true
+playerState.canTransform = {}
+playerState.force = {}
+playerState.ban = {}
+playerState.banHistory = {}
+playerState.inGame = {}
+playerState.nextGroundId = 100000 -- Player grounds: separate from XML grounds and 99990..99998 map helpers.
+playerState.physicId = {}
+playerState.language = {}
+roomConfig.killSpectators = false
+roomConfig.autoSync = true
 
-local x = { 100, 280, 280, 640, 460, 460, 100, 100, 280, 640, 460, 640 }
-local y = { 100, 100, 160, 100, 100, 160, 160, 220, 220, 160, 220, 220 }
-local playerConsumable = {}
-local playerConsumableItem = {}
-local playerConsumables = {}
-local playerLeftRight = {}
-local playerConsumableKey = {}
-local gameStats = { gameMode = '' }
+roomConfig.lobbySlots.x = { 100, 280, 280, 640, 460, 460, 100, 100, 280, 640, 460, 640 }
+roomConfig.lobbySlots.y = { 100, 100, 160, 100, 100, 160, 160, 220, 220, 160, 220, 220 }
+playerState.consumables.ready = {}
+playerState.consumables.item = {}
+playerState.consumables.objects = {}
+playerState.lastDirection = {}
+playerState.consumables.key = {}
+-- Only the current mode exists before the first lobby reset. Other leaves stay nil.
+gameState.match = {
+    mode = {
+      gameMode = ''
+    },
+    rules = {},
+    balls = {},
+    maps = {},
+    round = {},
+    court = {},
+    real = {}
+  }
 -- Per-player interface navigation and presentation state. Keep each field
 -- initialized and cleared at its own lifecycle boundary; ranking pages survive rejoin.
 local uiState = {}
 uiState.pagesList = {}
-local mapsVotes = {}
-local canVote = {}
-local playerOutOfCourt = {}
-local showOutOfCourtText = {}
-local globalSettings = { mode = 'Normal mode', twoBalls = false, randomBall = false, randomMap = false, mapType = '', consumables = false, threeBalls = false, minimalist = false, minimalistToggleMap = true }
+gameState.voting.counts = {}
+gameState.voting.eligible = {}
+playerState.outOfCourt = {}
+playerState.outOfCourtText = {}
+-- Choices retained across rounds; gameState.match holds the active round values.
+roomConfig.settings = { mode = 'Normal mode', twoBalls = false, randomBall = false, randomMap = false, mapType = '', consumables = false, threeBalls = false, minimalist = false, minimalistToggleMap = true }
 uiState.settings = {}
 uiState.settingsMode = {}
 -- Session ranking owns statistics, sorted snapshots and match accounting.
@@ -126,7 +138,6 @@ uiState.settingsMode = {}
 local sessionRanking = { stats = {}, ranks = {}, update = {} }
 sessionRanking.stats.normal = {}
 sessionRanking.ranks.normal = {}
-local playersOnGameHistoric = {}
 uiState.pageNormalMode = {}
 uiState.playerRankingMode = {}
 sessionRanking.stats.four = {}
@@ -143,11 +154,9 @@ sessionRanking.stats.three = {}
 uiState.pageThreeTeamsMode = {}
 uiState.openRank = {}
 uiState.rankingState = {}
-local countMatches = 0
-local playerLastMatchCount = {}
-local playerLeft = {}
+playerState.left = {}
 
-local showCrownImages = {}
+playerState.crownVisible = {}
 local redCrown = { '1a078540734.png', '1a078542676.png', '1a078545557.png', '1a078547498.png', '1a0785493dc.png',
   '1a07854baed.png', '1a07854da2f.png', '1a07854f19f.png', '1a078550912.png', '1a078552083.png' }
 local blueCrown = { '1a078523255.png', '1a0785249c6.png', '1a078526139.png', '1a0785278ab.png', '1a07852901b.png',
@@ -158,12 +167,11 @@ local greenCrown = { '1a078531cc4.png', '1a078533435.png', '1a078534ba9.png', '1
   '1a0785391fd.png', '1a07853a96e.png', '1a07853c0e1.png', '1a07853d852.png', '1a07853efc2.png' }
 sessionRanking.crown = {}
 
-local playerAchievements = {}
+playerState.achievements = {}
 uiState.playerAchievementsImages = {}
-local playerTrophyImage = {}
+playerState.trophyImage = {}
 uiState.isOpenProfile = {}
-uiState.profileState = {}
-local timestamp = 0
+roomConfig.statisticsCutoff = 0
 
 uiState.selectMapOpen = {}
 uiState.selectMapPage = {}
@@ -177,13 +185,13 @@ gameState.court.playerSpawns[1] = {}
 gameState.court.playerSpawns[2] = {}
 gameState.court.playerSpawns[3] = {}
 gameState.court.playerSpawns[4] = {}
-local playersAfk = {}
+playerState.afk = {}
 uiState.pagePlayerSettings = {}
-local maxPageSettings = 2
-local threeTeamsMode = {id = {1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13}, x = {100, 280, 460, 640, 100, 280, 460, 640, 100, 280, 460, 640}, y = {100, 100, 100, 100, 160, 160, 160, 160, 220, 220, 220, 220}}
-local isPlayerDead = {}
-local playerPressSpace = {}
-local webY = 460
+roomConfig.maxSettingsPages = 2
+roomConfig.lobbySlots.threeTeams = {id = {1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13}, x = {100, 280, 460, 640, 100, 280, 460, 640, 100, 280, 460, 640}, y = {100, 100, 100, 100, 160, 160, 160, 160, 220, 220, 220, 220}}
+playerState.dead = {}
+playerState.pressSpace = {}
+gameState.court.webY = 460
 gameState.court.pointAreas[1] = {}
 gameState.court.pointAreas[2] = {}
 gameState.court.pointAreas[3] = {}
@@ -193,21 +201,17 @@ gameState.court.pointAreas[4] = {}
 
 -- local keys = {32, 0, 1, 2, 3, 49, 50, 51, 52, 55, 56, 57, 48, 77, 76, 80}
 
-GROUND_LINE_Y = 368
+gameState.court.groundLineY = 368
 
--- Here there is a crucial possible optimization, instead of
--- creating a new dictionary for everything, it will be better
--- to have a single "players" global variable.
--- The new players table has a copy of each player
--- inside the playerList, updated with the NewPlayer and PlayerLeft
--- loops.
+-- Player records retain skills and session data across reconnects.
+-- Gameplay, UI and ranking tables keep their separate reset lifetimes.
 
-local players = {}
-local function setPlayerData(name)
+playerState.data = {}
+function playerRuntime.initializeData(name)
   local playersList = tfm.get.room.playerList
-  if players[name] then return false end
+  if playerState.data[name] then return false end
 
-  players[name] = {
+  playerState.data[name] = {
     playerName = name,
 
     -- Related to skills:
@@ -231,13 +235,13 @@ local function setPlayerData(name)
     transformDuration = 3
   }
 
-  bindKeys(name)
+  playerRuntime.bindKeys(name)
   -- This copy makes possible to set custom keybinds
   -- players[name][KEYS] = KEYS
   return true
 end
 
-local function newPlayerAchievements()
+function playerRuntime.createAchievements()
   return {
     [1] = { image = "img@193d6763c82", quantity = 0 },
     [2] = { image = '19636907e9e.png', quantity = 0 },
@@ -248,24 +252,24 @@ local function newPlayerAchievements()
   }
 end
 
-local function newPlayerStats(name, teamCount)
+function playerRuntime.createStats(name, teamCount)
   local stats = { name = name, matches = 0, wins = 0, winRatio = 0, winsRed = 0, winsBlue = 0 }
   if teamCount == 4 then stats.winsYellow = 0 end
   if teamCount == 3 or teamCount == 4 then stats.winsGreen = 0 end
   return stats
 end
 
-local function initPlayersData()
+function playerRuntime.initializeSession()
   local playersList = tfm.get.room.playerList
 
   for key, _ in pairs(playersList) do
     if type(key) == "string" then
-      setPlayerData(key)
+      playerRuntime.initializeData(key)
     end
   end
 end
 
-initPlayersData()
+playerRuntime.initializeSession()
 
 for name, data in pairs(tfm.get.room.playerList) do
   uiState.customMapCommand[name] = true
@@ -276,54 +280,96 @@ for name, data in pairs(tfm.get.room.playerList) do
   uiState.selectBallPage[name] = 1
 
   uiState.isOpenProfile[name] = false
-  playerTrophyImage[name] = 0
+  playerState.trophyImage[name] = 0
 
-  if playerAchievements[name] == nil then
-    playerAchievements[name] = newPlayerAchievements()
+  if playerState.achievements[name] == nil then
+    playerState.achievements[name] = playerRuntime.createAchievements()
   end
 
   uiState.pagePlayerSettings[name] = 1
-  playersAfk[name] = os.time()
+  playerState.afk[name] = os.time()
   uiState.playerAchievementsImages[name] = {}
-  showCrownImages[name] = true
-  sessionRanking.stats.normal[name] = newPlayerStats(name)
+  playerState.crownVisible[name] = true
+  sessionRanking.stats.normal[name] = playerRuntime.createStats(name)
   uiState.pageNormalMode[name] = 1
-  sessionRanking.stats.four[name] = newPlayerStats(name, 4)
+  sessionRanking.stats.four[name] = playerRuntime.createStats(name, 4)
   uiState.pageFourTeamsMode[name] = 1
-  sessionRanking.stats.three[name] = newPlayerStats(name, 3)
+  sessionRanking.stats.three[name] = playerRuntime.createStats(name, 3)
   uiState.pageThreeTeamsMode[name] = 1
-  sessionRanking.stats.two[name] = newPlayerStats(name)
+  sessionRanking.stats.two[name] = playerRuntime.createStats(name)
   uiState.pageTwoTeamsMode[name] = 1
-  sessionRanking.stats.real[name] = newPlayerStats(name)
+  sessionRanking.stats.real[name] = playerRuntime.createStats(name)
   uiState.pageRealMode[name] = 1
   uiState.playerRankingMode[name] = "Normal mode"
-  playerLeft[name] = false
+  playerState.left[name] = false
   uiState.openRank[name] = false
   uiState.settings[name] = false
   uiState.settingsMode[name] = false
-  playerLanguage[name] = { tr = trad, name = name }
-  playerOutOfCourt[name] = false
-  playerCanTransform[name] = true
-  playerInGame[name] = false
-  playerPhysicId[name] = 0
-  playerBan[name] = false
-  playerBanHistory[name] = ""
-  showOutOfCourtText[name] = false
-  isPlayerDead[name] = false
-  playerPressSpace[name] = false
+  playerState.language[name] = { tr = trad, name = name }
+  playerState.outOfCourt[name] = false
+  playerState.canTransform[name] = true
+  playerState.inGame[name] = false
+  playerState.physicId[name] = 0
+  playerState.ban[name] = false
+  playerState.banHistory[name] = ""
+  playerState.outOfCourtText[name] = false
+  playerState.dead[name] = false
+  playerState.pressSpace[name] = false
 
-  tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
+  tfm.exec.chatMessage(playerState.language[name].tr.welcomeMessage, name)
   tfm.exec.chatMessage("<n>#Volley Version: <j>" .. gameVersion, name)
   tfm.exec.chatMessage("<n>Join our #Volley Discord server: <ce>https://discord.com/invite/pWNTesmNhu<n><br>", name)
 
   if tfm.get.room.isTribeHouse then
     if tfm.get.room.name:sub(3) == tfm.get.room.playerList[name].tribeName then
-      USER_PERMISSIONS[name] = USER_PERMISSIONS[name] or 2
+      roomConfig.permissions[name] = roomConfig.permissions[name] or 2
     end
   end
 end
 
-firstRun = true
-uiState.profileKeyTime = {}
-uiState.rankKeyTime = {}
-uiState.panelOpenTime = {}
+roomConfig.firstRun = true
+local panelInput = {}
+do
+  local profileKeyTime = {}
+  local rankKeyTime = {}
+  local panelOpenTime = {}
+
+  -- 2s anti-spam cooldown per panel-opening button (closing stays instant)
+  local panelOpening = {menuOpen=true,howToPlay=true,credits=true,realmode=true,
+    selectMap=true,selectBall=true,settings=true}
+  local function panelOpenBlocked(name, panel)
+    local times = panelOpenTime[name]
+    local lastOpen = times and times[panel]
+    return lastOpen and os.time() - lastOpen < 2000
+  end
+
+  function panelInput.consumeProfileOpening(name)
+    if profileKeyTime[name] and os.time() - profileKeyTime[name] < 2000 then return false end
+    profileKeyTime[name] = os.time()
+    return true
+  end
+
+  function panelInput.consumeRankingOpening(name)
+    if rankKeyTime[name] and os.time() - rankKeyTime[name] < 2000 then return false end
+    rankKeyTime[name] = os.time()
+    return true
+  end
+
+  function panelInput.acceptPanelInput(name, closing, callback)
+    -- Check both personal delays before recording an accepted opening.
+    -- A rejected retry must not postpone this player's next permitted click.
+    if panelOpening[callback] and panelOpenBlocked(name, callback) then return false end
+    if not clubhouse.allowInput(name, closing, callback) then return false end
+    if panelOpening[callback] then
+      panelOpenTime[name] = panelOpenTime[name] or {}
+      panelOpenTime[name][callback] = os.time()
+    end
+    return true
+  end
+
+  function panelInput.clearPlayer(name)
+    profileKeyTime[name]=nil
+    rankKeyTime[name]=nil
+    panelOpenTime[name]=nil
+  end
+end

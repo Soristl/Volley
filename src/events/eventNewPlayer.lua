@@ -2,9 +2,9 @@ do
 -- Forget handles and work belonging to the previous connection before resetting flags.
 local function clearPreviousConnection(name)
   lobbyTransition.leave(name) -- A reconnect invalidates work for the former connection.
-  clearPlayerTimers(name, false)
-  clearPlayerGameplay(name)
-  removePlayerTrophy(name)
+  timers.clearPlayer(name, false)
+  playerRuntime.clearGameplay(name)
+  clubhouse.removePlayerTrophy(name)
   gameCrowns.clearPlayer(name)
   -- Client images and textareas are lost on disconnect: discard cached handles.
   clubhouse.clearPlayer(name)
@@ -16,17 +16,17 @@ local function preparePlayerAccess(name)
   if string.match(name, "%*") then
     tfm.exec.chatMessage("<bv>This room does not allow guest accounts to enter. Create an account to enter the room.<n>",
       name)
-    playerBanHistory[name] = "VOLLEY SYSTEM"
-    playerBan[name] = true
+    playerState.banHistory[name] = "VOLLEY SYSTEM"
+    playerState.ban[name] = true
 
   end
 
-  local keysBound = setPlayerData(name)
+  local keysBound = playerRuntime.initializeData(name)
 
   if tfm.get.room.isTribeHouse then
     if tfm.get.room.name:sub(3) == tfm.get.room.playerList[name].tribeName then
-      if USER_PERMISSIONS[name] == nil then
-        USER_PERMISSIONS[name] = 2
+      if roomConfig.permissions[name] == nil then
+        roomConfig.permissions[name] = 2
       end
     end
   end
@@ -45,56 +45,46 @@ local function resetConnectionState(name)
   uiState.selectBallPage[name] = 1
 
   uiState.isOpenProfile[name] = false
-  playerTrophyImage[name] = 0
-  if playerAchievements[name] == nil then
-    playerAchievements[name] = newPlayerAchievements()
+  playerState.trophyImage[name] = 0
+  if playerState.achievements[name] == nil then
+    playerState.achievements[name] = playerRuntime.createAchievements()
   end
 
   uiState.settings[name] = false
   uiState.settingsMode[name] = false
 
   uiState.playerAchievementsImages[name] = {}
-  playerLeft[name] = false
-  playerLeftRight[name] = 0
-  playerConsumable[name] = true
-  playerConsumableKey[name] = 56
-  playerConsumableItem[name] = 80
-  playerForce[name] = 0
-  playerOutOfCourt[name] = false
+  playerState.left[name] = false
+  playerState.lastDirection[name] = 0
+  playerState.consumables.ready[name] = true
+  playerState.consumables.key[name] = 56
+  playerState.consumables.item[name] = 80
+  playerState.force[name] = 0
+  playerState.outOfCourt[name] = false
 
-  showOutOfCourtText[name] = false
+  playerState.outOfCourtText[name] = false
   uiState.openRank[name] = false
-  playerLanguage[name] = { tr = trad, name = name }
+  playerState.language[name] = { tr = trad, name = name }
   uiState.pagesList[name] = { helpPage = 1 }
-  playersAfk[name] = os.time()
-  playerPressSpace[name] = false
+  playerState.afk[name] = os.time()
+  playerState.pressSpace[name] = false
 end
 
 -- Preserve session choices and ranking pages when the same player reconnects.
 local function initializeSessionRecords(name)
-  if canVote[name] == nil then
-    canVote[name] = true
+  if gameState.voting.eligible[name] == nil then
+    gameState.voting.eligible[name] = true
   end
 
-  if showCrownImages[name] == nil then
-    showCrownImages[name] = true
+  if playerState.crownVisible[name] == nil then
+    playerState.crownVisible[name] = true
   end
 
-  if playersOnGameHistoric[name] == nil then
-    playersOnGameHistoric[name] = { teams = {} }
-  end
+  sessionRanking.prepareReconnect(name)
 
-  if playerLastMatchCount[name] == nil then
-    playerLastMatchCount[name] = countMatches
-  else
-    if playerLastMatchCount[name] ~= countMatches then
-      playersOnGameHistoric[name] = { teams = {} }
-    end
-  end
-
-  if playerBan[name] == nil then
-    playerBan[name] = false
-    playerBanHistory[name] = ""
+  if playerState.ban[name] == nil then
+    playerState.ban[name] = false
+    playerState.banHistory[name] = ""
   end
   if sessionRanking.ensurePlayer(name) then
     --[[
@@ -115,18 +105,18 @@ end
 local function showPlayerArrival(name)
   if lobbyTransition.blocksInput() then
     lobbyTransition.enqueue(name)
-    tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
+    tfm.exec.chatMessage(playerState.language[name].tr.welcomeMessage, name)
     tfm.exec.chatMessage("<j>#Volley Version: " .. gameVersion .. "<n>", name)
     tfm.exec.chatMessage("<ce>Join our #Volley Discord server: https://discord.com/invite/pWNTesmNhu<n>", name)
     return
   end
 
   ui.addWindow(23, "<p align='center'><font size='13px'><a href='event:menuOpen'>Menu", name, 5, 15, 100, 30, 0.2, false, false, _)
-  tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
+  tfm.exec.chatMessage(playerState.language[name].tr.welcomeMessage, name)
 
   if gameState.phase == "startGame" then
     clubhouse.lobby(name)
-    eventNewGameShowLobbyTexts(name)
+    clubhouse.renderLobby(name)
 
     ui.addWindow(30, "<p align='center'><font size='13px'><a href='event:selectMap'>Select a map/ball", name, 10, 370, 150, 30,
       1, false, false, _)
@@ -135,17 +125,17 @@ local function showPlayerArrival(name)
   elseif gameState.phase ~= "startGame" then
     tfm.exec.chatMessage("<ch>If you don't want to see the ranking crowns, type the command !crown false<n>", name)
     -- Transitional maps can leave every viewer's score pending a redraw.
-    if not isGameplayMapReady() or getTimerId('delayToToggleMap') then
+    if not mapLoad.isReady() or timers.find('delayToToggleMap') then
       clubhouse.showScores()
     else
       clubhouse.showScores(name)
     end
     gameTeams.placeSpectator(name)
 
-    tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage2, name)
-    canVote[name] = true
+    tfm.exec.chatMessage(playerState.language[name].tr.welcomeMessage2, name)
+    gameState.voting.eligible[name] = true
   end
-  showCrownToAllPlayers(name)
+  gameCrowns.showAll(name)
   mapBackgrounds.showBorders(name)
   mapBackgrounds.show(name)
   clubhouse.ballSkins.show(name)
@@ -160,36 +150,36 @@ function eventNewPlayer(name)
   resetConnectionState(name)
   initializeSessionRecords(name)
 
-  playerCanTransform[name] = true
-  playerInGame[name] = false
-  playerPhysicId[name] = 0
+  playerState.canTransform[name] = true
+  playerState.inGame[name] = false
+  playerState.physicId[name] = 0
   -- A kick is asynchronous. Finish safe data initialization, then stop
   -- before respawning, drawing UI or granting room ownership.
-  if playerBan[name] or (timestamp ~= 0 and
-      (tfm.get.room.playerList[name].registrationDate or 0) > timestamp) then
-    playerLeft[name] = true
-    clearPlayerTimers(name, true)
-    if playerBan[name] and not name:find('*', 1, true) then
-      tfm.exec.chatMessage("<bv>You have been banned from the room by the admin " .. playerBanHistory[name] .. "<n>", name)
+  if playerState.ban[name] or (roomConfig.statisticsCutoff ~= 0 and
+      (tfm.get.room.playerList[name].registrationDate or 0) > roomConfig.statisticsCutoff) then
+    playerState.left[name] = true
+    timers.clearPlayer(name, true)
+    if playerState.ban[name] and not name:find('*', 1, true) then
+      tfm.exec.chatMessage("<bv>You have been banned from the room by the admin " .. playerState.banHistory[name] .. "<n>", name)
     end
     tfm.exec.kickPlayer(name)
     return
   end
 
   -- First-time initialization already binds keys; reconnects still need them.
-  if not keysBound then bindKeys(name) end
+  if not keysBound then playerRuntime.bindKeys(name) end
   tfm.exec.setNameColor(name, 0xD1D5DB)
 
-  if gameStats.killSpec or killSpecPermanent then
+  if gameState.match.rules.killSpec or roomConfig.killSpectators then
     tfm.exec.killPlayer(name)
   else
     tfm.exec.respawnPlayer(name)
   end
 
-  assignRoomCreator(name)
+  roomConfig.assignCreator(name)
 
-  if isPlayerDead[name] == nil then
-    isPlayerDead[name] = false
+  if playerState.dead[name] == nil then
+    playerState.dead[name] = false
   end
 
   showPlayerArrival(name)

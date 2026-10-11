@@ -1,4 +1,4 @@
-function split(inputstr, sep)
+function textUtil.split(inputstr, sep)
   if sep == nil then
     sep = "%s"
   end

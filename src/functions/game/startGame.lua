@@ -1,30 +1,26 @@
 function gameRound.start()
   gameState.setPhase("gameStart")
-  clearRoundTimers()
-  beginGameplayMapLoad()
-  gameStats.canTransform = false
-  if not globalSettings.minimalist then
-    disablePlayersCanTransform(3500)
+  timers.clearRound()
+  mapLoad.begin()
+  gameState.match.round.canTransform = false
+  if not roomConfig.settings.minimalist then
+    playerRuntime.delayRoundTransforms(3500)
   end
   
-  addMatchesToAllPlayers()
-  selectMap()
+  sessionRanking.addMatchesForRound()
+  gameMaps.selectInitial()
 
-  duration = os.time() + durationTimerPause * 1000
+  gameRound.startClock()
 
-  local _timer = math.ceil((duration - os.time()) / 1000)
-
-  tfm.exec.setGameTime(_timer, true)
-
-  removeTextAreasOfLobby()
+  clubhouse.removeLobbyTextAreas()
   clubhouse.showScores()
 
-  globalSettings.minimalistToggleMap = true
+  roomConfig.settings.minimalistToggleMap = true
   gameMaps.prepareCourt(function()
     gameTeams.placeAll()
     gameBalls.spawnInitial()
-    verifyIsPoint()
-    showCrownToAllPlayers()
+    gamePoints.startChecking()
+    gameCrowns.showAll()
   end)
 
   tfm.exec.chatMessage("<ch>If you don't want to see the ranking crowns, type the command !crown false<n>", nil)

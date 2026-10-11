@@ -1,14 +1,14 @@
 function realServe.configureTeam(team)
-  gameStats.redQuantitySpawn = 0
-  gameStats.blueQuantitySpawn = 0
+  gameState.match.real.redQuantitySpawn = 0
+  gameState.match.real.blueQuantitySpawn = 0
   if team == "red" then
-    gameStats.redLimitSpawn = 1
-    gameStats.blueLimitSpawn = 3
+    gameState.match.real.redLimitSpawn = 1
+    gameState.match.real.blueLimitSpawn = 3
     clubhouse.showScores()
     return
   end
 
-  gameStats.redLimitSpawn = 3
-  gameStats.blueLimitSpawn = 1
+  gameState.match.real.redLimitSpawn = 3
+  gameState.match.real.blueLimitSpawn = 1
   clubhouse.showScores()
 end

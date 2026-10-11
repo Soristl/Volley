@@ -28,22 +28,22 @@ function commandHandlers.checkModeConflict(args)
   local name = args[1]
   local modeToEnable = args[2]
 
-  if gameStats.teamsMode and modeToEnable ~= "teamsMode" then
+  if gameState.match.mode.teamsMode and modeToEnable ~= "teamsMode" then
     tfm.exec.chatMessage("<bv>You should disable the 4 teams mode first<n>",
       name)
     return true
   end
-  if gameStats.twoTeamsMode and modeToEnable ~= "twoTeamsMode" then
+  if gameState.match.mode.twoTeamsMode and modeToEnable ~= "twoTeamsMode" then
     tfm.exec.chatMessage("<bv>You should disable the 2 teams mode first<n>",
       name)
     return true
   end
-  if gameStats.threeTeamsMode and modeToEnable ~= "threeTeamsMode" then
+  if gameState.match.mode.threeTeamsMode and modeToEnable ~= "threeTeamsMode" then
     tfm.exec.chatMessage("<bv>You should disable the 3 teams mode first<n>",
       name)
     return true
   end
-  if gameStats.realMode and modeToEnable ~= "realMode" then
+  if gameState.match.mode.realMode and modeToEnable ~= "realMode" then
     tfm.exec.chatMessage("<bv>You should disable the real mode first<n>",
       name)
     return true

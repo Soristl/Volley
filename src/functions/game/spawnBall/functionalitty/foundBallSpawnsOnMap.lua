@@ -1,4 +1,4 @@
-function foundBallSpawnsOnMap(map, isLargeMap)
+function gameMaps.readBallSpawns(map, isLargeMap)
   local tags_T131 = {}
   gameState.court.ballSpawns[1] = {}
   gameState.court.ballSpawns[2] = {}
@@ -18,7 +18,7 @@ function foundBallSpawnsOnMap(map, isLargeMap)
     local team3 = mapXml.attribute(tag, "team3")
     local team4 = mapXml.attribute(tag, "team4")
     if x and y then
-      gameState.addCourtBallSpawn(gameStats.threeTeamsMode, isLargeMap, x, y, team1, team2, team3, team4)
+      gameState.addCourtBallSpawn(gameState.match.mode.threeTeamsMode, isLargeMap, x, y, team1, team2, team3, team4)
     else
       print("[Volley] Ignoring ball spawn with invalid X or Y")
     end

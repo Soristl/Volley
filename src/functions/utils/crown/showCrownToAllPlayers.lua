@@ -34,13 +34,13 @@ do
     for key, roster in pairs(gameState.teams) do
       for _, slot in ipairs(roster) do
         local subject = slot.name
-        if subject ~= '' and (not player or subject == player) and playerInGame[subject]
-          and tfm.get.room.playerList[subject] and not playerLeft[subject] and not playerBan[subject] then
+        if subject ~= '' and (not player or subject == player) and playerState.inGame[subject]
+          and tfm.get.room.playerList[subject] and not playerState.left[subject] and not playerState.ban[subject] then
           for rank = 1, 10 do
             if sessionRanking.crown[rank] and sessionRanking.crown[rank].name == subject then
               for recipient in pairs(tfm.get.room.playerList) do
-                if (not viewer or recipient == viewer) and showCrownImages[recipient]
-                  and not playerLeft[recipient] and not playerBan[recipient] then
+                if (not viewer or recipient == viewer) and playerState.crownVisible[recipient]
+                  and not playerState.left[recipient] and not playerState.ban[recipient] then
                   images[recipient] = images[recipient] or {}
                   if not images[recipient][subject] then
                     images[recipient][subject] = tfm.exec.addImage(crowns[key][rank], '$' .. subject, -20, -93, recipient)
@@ -56,6 +56,6 @@ do
   end
 end
 
-function showCrownToAllPlayers(viewer)
+function gameCrowns.showAll(viewer)
   gameCrowns.refresh(viewer)
 end

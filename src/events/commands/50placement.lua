@@ -6,11 +6,11 @@ function commandHandlers.cmdListSync(args)
   local players = {}
 
   for player, data in pairs(tfm.get.room.playerList) do
-    local latency = getSyncLatency(data.averageLatency)
+    local latency = roomSync.latency(data.averageLatency)
     players[#players + 1] = {
       name = player,
       sync = latency or math.huge,
-      status = getSyncGrade(latency)
+      status = roomSync.grade(latency)
     }
   end
 
@@ -41,7 +41,7 @@ end
 
 function commandHandlers.cmdSetSync(args)
   local name = args[1]
-  windowUISync({ name })
+  clubhouse.syncWindow({ name })
 end
 
 function commandHandlers.cmdSyncTFM(args)
@@ -72,33 +72,33 @@ end
 -- Resolve the current court without changing membership or spawn occupancy.
 local function teleportCourt(color)
   local spawns, x
-  if gameStats.teamsMode or gameStats.threeTeamsMode then
+  if gameState.match.mode.teamsMode or gameState.match.mode.threeTeamsMode then
     local slot
-    if gameStats.typeMap == 'large4v4' then
-      local slots = gameStats.threeTeamsMode and teleportThreeSlots or teleportFourSlots
+    if gameState.match.court.typeMap == 'large4v4' then
+      local slots = gameState.match.mode.threeTeamsMode and teleportThreeSlots or teleportFourSlots
       slot = slots[color]
     else
       local roster = gameState.teams[color]
-      for i, team in ipairs(teamsPlayersOnGame or {}) do
+      for i, team in ipairs(gameState.teamLayout.remaining or {}) do
         if roster and team == roster then slot = i; break end
       end
     end
     if slot then
       spawns = teleportAreaSpawns(slot)
-      local width = gameStats.threeTeamsMode and 600 or 400
+      local width = gameState.match.mode.threeTeamsMode and 600 or 400
       x = width * (slot - 0.5)
     end
   elseif color == 'red' or color == 'blue' then
     local red = color == 'red'
-    if gameStats.realMode then
+    if gameState.match.mode.realMode then
       x = red and 900 or 1700
-    elseif gameStats.twoTeamsMode then
+    elseif gameState.match.mode.twoTeamsMode then
       spawns = red and gameState.court.playerSpawns[2] or gameState.court.playerSpawns[3]
       x = red and 600 or 1000
-    elseif gameStats.gameMode == '3v3' then
+    elseif gameState.match.mode.gameMode == '3v3' then
       spawns = red and gameState.court.playerSpawns[1] or gameState.court.playerSpawns[2]
       x = red and 101 or 700
-    elseif gameStats.gameMode == '4v4' then
+    elseif gameState.match.mode.gameMode == '4v4' then
       spawns = red and gameState.court.playerSpawns[2] or gameState.court.playerSpawns[4]
       x = red and 301 or 900
     else
@@ -132,8 +132,8 @@ function commandHandlers.cmdTeleport(args)
     tfm.exec.chatMessage('<j>Teleport is available during a match.<n>', name)
     return
   end
-  if not isGameplayMapReady() or
-      ((gameStats.teamsMode or gameStats.threeTeamsMode) and not gameStats.canTransform) then
+  if not mapLoad.isReady() or
+      ((gameState.match.mode.teamsMode or gameState.match.mode.threeTeamsMode) and not gameState.match.round.canTransform) then
     tfm.exec.chatMessage('<j>Please wait until the court is ready before teleporting.<n>', name)
     return
   end
@@ -144,7 +144,7 @@ function commandHandlers.cmdTeleport(args)
       if player:lower() == args[2]:lower() then target = player; break end
     end
   end
-  if not target or playerLeft[target] or playerBan[target] or tfm.get.room.playerList[target].isDead then
+  if not target or playerState.left[target] or playerState.ban[target] or tfm.get.room.playerList[target].isDead then
     tfm.exec.chatMessage('<j>Player not found or dead.<n>', name)
     return
   end

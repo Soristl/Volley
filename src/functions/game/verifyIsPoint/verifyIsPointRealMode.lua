@@ -1,3 +1,3 @@
-function verifyIsPointRealMode()
+function gamePoints.verifyReal()
   gamePoints.checkReal()
 end

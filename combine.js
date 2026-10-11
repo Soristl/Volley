@@ -14,6 +14,7 @@ function filesAt(input) {
 function assemble(input, options = {}) {
 	const files = input.flatMap(filesAt).filter(options.filter || (() => true))
 	if (!files.length) throw new Error("No source files")
+	if (options.validateFiles) options.validateFiles(files)
 	return files.map((file, index) => {
 		const source = fs.readFileSync(file, "utf8")
 		const before = options.delimeterBefore || ""

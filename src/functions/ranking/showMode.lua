@@ -100,12 +100,12 @@ local function showMode(mode, name, findMe)
   local rank = sessionRanking.cache.ensure(selected)
   local ownPosition = sessionRanking.cache.position(selected, name)
   local pages = math.max(1, math.ceil(#rank / 8))
-  local page = math.max(1, math.min(pages, rankPageMode(mode, name) or 1))
+  local page = math.max(1, math.min(pages, sessionRanking.pageForMode(mode, name) or 1))
   if findMe and ownPosition then page = math.ceil(ownPosition / 8) end
   rankingSetPage(name, selected, page)
   uiState.playerRankingMode[name] = mode
   state.mode, state.page, state.pages, state.targets = selected, page, pages, {}
-  local language = playerLanguage[name].tr
+  local language = playerState.language[name].tr
   local text = language.ranking or lang.en.ranking
   local profile = clubhouse.profileText(name)
   state.ownPosition = ownPosition
@@ -117,8 +117,7 @@ local function showMode(mode, name, findMe)
 end
 
 function clubhouse.openRanking(name)
-  if uiState.rankKeyTime[name] and os.time() - uiState.rankKeyTime[name] < 2000 then return end
-  uiState.rankKeyTime[name] = os.time()
+  if not panelInput.consumeRankingOpening(name) then return end
   clubhouse.closeWindows(name)
   uiState.openRank[name] = true
   uiState.rankingState[name] = {}
@@ -143,9 +142,8 @@ function clubhouse.rankingCallback(name, callback)
   elseif callback:sub(1, 13) == "rankingPlayer" then
     local row = tonumber(callback:sub(14))
     local target = row and state.targets[row]
-    if not target or not playerAchievements[target] then return end
-    if uiState.profileKeyTime[name] and os.time() - uiState.profileKeyTime[name] < 2000 then return end
-    uiState.profileKeyTime[name] = os.time()
+    if not target or not playerState.achievements[target] then return end
+    if not panelInput.consumeProfileOpening(name) then return end
     clubhouse.closeWindows(name)
     clubhouse.profile(name, target)
   end

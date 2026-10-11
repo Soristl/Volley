@@ -1,4 +1,4 @@
-function foundPointsAreaOnMap(map)
+function gameMaps.readPointAreas(map)
   local xml = mapXml.source(map)
   local properties = xml:match("<P%s+[^>]*>") or ""
   local function areas(key)

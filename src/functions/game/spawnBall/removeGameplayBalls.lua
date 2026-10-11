@@ -1,3 +1,3 @@
-function removeGameplayBalls()
+function gameBalls.removeGameplay()
   gameBalls.clear()
 end

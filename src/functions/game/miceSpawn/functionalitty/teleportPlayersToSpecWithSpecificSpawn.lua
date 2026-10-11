@@ -4,8 +4,8 @@ function gameTeams.placeSpectator(name)
 
     tfm.exec.movePlayer(name, gameState.court.lobbySpawns[index].x, gameState.court.lobbySpawns[index].y)
   else
-    if gameStats.threeTeamsMode then
-      if gameStats.typeMap == "large4v4" then
+    if gameState.match.mode.threeTeamsMode then
+      if gameState.match.court.typeMap == "large4v4" then
         tfm.exec.movePlayer(name, 900, 74)
       else
         tfm.exec.movePlayer(name, 600, 74)

@@ -3,6 +3,15 @@
 do -- Keep private timer locals out of the assembled chunk's 200-local limit.
 local timerState = { active = {}, labels = {}, nextId = 0, round = 0, disconnected = {} }
 
+-- Only mapLoad and its scheduler can mutate pending map readiness and identity.
+local mapState = { ready = true }
+
+local function resetMapState()
+  mapState.ready = true
+  mapState.target = nil
+  mapState.sourceTarget = nil
+end
+
 -- All removals share this path so label lookups and snapshots agree.
 local function deleteTimer(id)
   local timer = timerState.active[id]
@@ -33,7 +42,7 @@ local function sampleTimerTime(timer, now)
   local elapsed = math.max(0, now - timer.lastTime)
   timer.lastTime = now
   if not timer.isPaused and not (timer.round ~= nil and timerState.gameplayPaused)
-    and (not timer.map or timer.loading or gameState.map.ready) then
+    and (not timer.map or timer.loading or mapState.ready) then
     timer.currentTime = timer.currentTime + elapsed
   end
 end
@@ -45,7 +54,7 @@ end
 
 -- LuaJ may reject next(table, key) after that key has been removed.
 -- Collect matches without mutation, then delete after iteration has finished.
-function removeTimersMatching(field, value)
+function timers.removeMatching(field, value)
   if field == 'label' and type(value) == 'string' then
     local ids = timerState.labels[value]
     if not ids then return false end
@@ -63,35 +72,43 @@ function removeTimersMatching(field, value)
   return #pending > 0
 end
 
-function beginGameplayMapLoad()
-  clearMapPlayerGameplay()
-  removeTimersMatching('map', true)
-  gameState.map.ready = false
-  gameState.map.target = nil
-  gameState.map.sourceTarget = nil
+function mapLoad.begin()
+  playerRuntime.clearMapGameplay()
+  timers.removeMatching('map', true)
+  mapState.ready = false
+  mapState.target = nil
+  mapState.sourceTarget = nil
 end
 
-function isGameplayMapReady()
-  return gameState.map.ready
+function mapLoad.isReady()
+  return mapState.ready
 end
 
-function setGameplayTimersPaused(paused)
+function mapLoad.getTarget()
+  return mapState.target
+end
+
+function mapLoad.getSourceTarget()
+  return mapState.sourceTarget
+end
+
+function timers.setGameplayPaused(paused)
   sampleAllTimerTimes()
   timerState.gameplayPaused = paused
 end
 
-function loadGameplayMap(target, sourceTarget)
+function mapLoad.request(target, sourceTarget)
   if lobbyTransition and lobbyTransition.blocksInput() then lobbyTransition.cancel() end
-  gameState.map.target = target
+  mapState.target = target
   -- Reloaded XML still belongs to the published map that supplied its helpers.
-  gameState.map.sourceTarget = sourceTarget or target
+  mapState.sourceTarget = sourceTarget or target
   tfm.exec.newGame(target)
 end
 
-function gameplayMapMatches()
-  if gameState.map.ready then return true end
-  if gameState.map.target == nil then return false end
-  local target = tostring(gameState.map.target)
+function mapLoad.matches()
+  if mapState.ready then return true end
+  if mapState.target == nil then return false end
+  local target = tostring(mapState.target)
   local info = tfm.get.room.xmlMapInfo
   if not info or type(info.xml) ~= 'string' or info.xml == '' then return false end
   if target:sub(1,1) == '<' then
@@ -103,26 +120,26 @@ function gameplayMapMatches()
   return expected ~= nil and expected == actual
 end
 
-function finishGameplayMapLoad()
+function mapLoad.finish()
   sampleAllTimerTimes()
   gameMaps.applyPlayerCeiling()
   gameMaps.restorePlatformsWalls()
-  gameState.map.ready = true
+  mapState.ready = true
 end
 
-function addMapTimer(callback, ms, loops, label, ...)
-  local id = addRoundTimer(callback, ms, loops, label, ...)
+function timers.addMap(callback, ms, loops, label, ...)
+  local id = timers.addRound(callback, ms, loops, label, ...)
   timerState.active[id].map = true
   return id
 end
 
-function addMapLoadTimer(callback, ms, loops, label, ...)
-  local id = addMapTimer(callback, ms, loops, label, ...)
+function timers.addMapLoad(callback, ms, loops, label, ...)
+  local id = timers.addMap(callback, ms, loops, label, ...)
   timerState.active[id].loading = true
   return id
 end
 
-function addTimer(callback, ms, loops, label, ...)
+function timers.add(callback, ms, loops, label, ...)
   timerState.nextId = timerState.nextId + 1
   local id = timerState.nextId
   timerState.active[id] = {
@@ -139,27 +156,27 @@ function addTimer(callback, ms, loops, label, ...)
   return id
 end
 
-function addRoundTimer(callback, ms, loops, label, ...)
-  local id = addTimer(callback, ms, loops, label, ...)
+function timers.addRound(callback, ms, loops, label, ...)
+  local id = timers.add(callback, ms, loops, label, ...)
   timerState.active[id].round = timerState.round
   return id
 end
 
-function addPlayerRoundTimer(name, callback, ms, loops, label, ...)
+function timers.addPlayerRound(name, callback, ms, loops, label, ...)
   if timerState.disconnected[name] or not tfm.get.room.playerList[name] then return nil end
-  local id = addMapTimer(callback, ms, loops, label, ...)
+  local id = timers.addMap(callback, ms, loops, label, ...)
   timerState.active[id].player = name
   return id
 end
 
 -- nil preserves connection state (voluntary team leave); true/false marks a
 -- disconnect/arrival. Reject timers queued by cleanup after a disconnect.
-function clearPlayerTimers(name, disconnected)
+function timers.clearPlayer(name, disconnected)
   if disconnected ~= nil then timerState.disconnected[name] = disconnected or nil end
-  removeTimersMatching('player', name)
+  timers.removeMatching('player', name)
 end
 
-function getTimerId(label)
+function timers.find(label)
   if type(label) == 'string' then
     local ids = timerState.labels[label]
     return ids and ids[1]
@@ -171,8 +188,8 @@ function getTimerId(label)
   return first
 end
 
-function pauseTimer(id)
-  if type(id) == 'string' then id = getTimerId(id) end
+function timers.pause(id)
+  if type(id) == 'string' then id = timers.find(id) end
   local timer = timerState.active[id]
   if not timer then return false end
   sampleTimerTime(timer, os.time())
@@ -180,8 +197,8 @@ function pauseTimer(id)
   return true
 end
 
-function resumeTimer(id)
-  if type(id) == 'string' then id = getTimerId(id) end
+function timers.resume(id)
+  if type(id) == 'string' then id = timers.find(id) end
   local timer = timerState.active[id]
   if not timer or not timer.isPaused then return false end
   sampleTimerTime(timer, os.time())
@@ -189,31 +206,31 @@ function resumeTimer(id)
   return true
 end
 
-function removeTimer(id)
+function timers.remove(id)
   if type(id) == 'string' then
-    return removeTimersMatching('label', id)
+    return timers.removeMatching('label', id)
   end
   if id == nil then return false end
   return deleteTimer(id)
 end
 
-function clearRoundTimers()
+function timers.clearRound()
   timerState.gameplayPaused = false
-  gameState.resetMap()
+  resetMapState()
   timerState.round = timerState.round + 1
-  removeTimersMatching('round')
+  timers.removeMatching('round')
 end
 
-function clearTimers()
+function timers.clear()
   timerState.gameplayPaused = false
-  gameState.resetMap()
+  resetMapState()
   timerState.round = timerState.round + 1
   timerState.active = {}
   timerState.labels = {}
   timerState.snapshot = nil
 end
 
-function timersLoop()
+function timers.tick()
   local now = os.time()
   -- Each invocation keeps its own immutable list. Callbacks only invalidate
   -- the cache, so additions still wait for the next invocation (even nested).
@@ -222,7 +239,7 @@ function timersLoop()
     local timer = timerState.active[id]
     if timer then sampleTimerTime(timer, now) end
     if timer and not timer.isPaused and not (timer.round ~= nil and timerState.gameplayPaused)
-      and (not timer.map or timer.loading or gameState.map.ready) then
+      and (not timer.map or timer.loading or mapState.ready) then
       if timer.currentTime >= timer.time then
         -- Run at most once per host tick: never burst stale physics callbacks
         -- after a lag spike. Repeating timers restart from the actual callback.

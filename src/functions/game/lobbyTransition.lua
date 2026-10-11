@@ -13,7 +13,7 @@ do
     return tonumber((tostring(tfm.get.room.currentMap):gsub('^@',''))) == 7983549
   end
   local function eligible(name)
-    return tfm.get.room.playerList[name] and not playerLeft[name] and not playerBan[name]
+    return tfm.get.room.playerList[name] and not playerState.left[name] and not playerState.ban[name]
   end
   local function job(name)
     return {name=name, connection=connections[name], generation=transition.generation}
@@ -71,14 +71,14 @@ do
     transition.active=true;transition.priming=false;transition.stage='loading'
     if not primed then
       prepareQueue()
-      clearRoundTimers()
+      timers.clearRound()
     end
-    gameStats.canJoin=false
+    gameState.match.round.canJoin=false
     cleanup={};cleanupHead=1
     clubhouse.clearLobbyArtwork()
     clubhouse.joinAreas={};clubhouse.scoreAreas={}
     -- Registration of seats is immediate; their rendering remains guarded.
-    init(false,true)
+    matchLifecycle.resetLobby(false,true)
     return true
   end
   function transition.onMapLoaded()
@@ -92,9 +92,9 @@ do
     if transition.stage~='loading' or not isLobbyMap() then return false end
     groundProfile.reset();mapBackgrounds.newGame();gameBalls.forget()
     clubhouse.ballSkins.reset()
-    if autosync then refletzSyncSystem() end
+    if roomConfig.autoSync then roomSync.refresh() end
     transition.stage='render'
-    gameStats.initTimer=25;gameStats.canJoin=false
+    gameState.match.round.initTimer=25;gameState.match.round.canJoin=false
     gameState.lobbyDeadline=math.huge
     transition.renderingShared=true;clubhouse.lobby();transition.renderingShared=nil
     nextAt=os.time()+TICK_MS
@@ -113,12 +113,7 @@ do
         if valid(item) then
           -- Keep victory, score, podium, crowns and the court visible until
           -- the map changes. clearPlayer would remove those views too early.
-          clubhouse.closeWindows(item.name,true)
-          clubhouse.closePageInput(item.name)
-          if clubhouse.selectionTimers[item.name] then
-            removeTimer(clubhouse.selectionTimers[item.name])
-            clubhouse.selectionTimers[item.name]=nil
-          end
+          clubhouse.prepareLobbyPlayer(item.name)
         end
         if os.time()-now>=ELAPSED_LIMIT_MS then break end
       end
@@ -133,15 +128,7 @@ do
       if valid(item) and pending[item.name]==item.connection then
         transition.renderingName=item.name
         gameCrowns.clearViewer(item.name)
-        local viewers=clubhouse.lobbyArtworkViewers
-        local sharedArtwork=viewers and viewers[item.name] and
-          not (clubhouse.lobbyArtworkPlayers and clubhouse.lobbyArtworkPlayers[item.name])
-        clubhouse.clearPlayer(item.name)
-        -- clearPlayer also forgets artwork ownership. A viewer of the current
-        -- broadcast still has those three images; only late arrivals need copies.
-        if sharedArtwork then viewers[item.name]=true end
-        clubhouse.closeWindows(item.name)
-        clubhouse.lobby(item.name)
+        clubhouse.rebuildLobbyPlayer(item.name)
         transition.renderingName=nil
         pending[item.name]=nil
       end
@@ -150,7 +137,7 @@ do
     if renderHead>#render then
       transition.active=false;transition.stage=nil
       cleanup={};render={};connections={};pending={}
-      gameStats.canJoin=true;gameStats.initTimer=25
+      gameState.match.round.canJoin=true;gameState.match.round.initTimer=25
       gameState.lobbyDeadline=os.time()+25000
     end
   end

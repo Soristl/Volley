@@ -1,4 +1,5 @@
 do
+local profileState = {}
 -- Fixed profile metadata stays private; text and player data are read on render.
 local roleTags = {[2]="ch", [3]="j", [4]="vi", [5]="vi"}
 local trophyIds = {27, 28, 29, 32, 33, 34}
@@ -8,7 +9,7 @@ local function profileEscape(text)
 end
 
 function clubhouse.profileText(name)
-  local language = playerLanguage[name] and playerLanguage[name].tr
+  local language = playerState.language[name] and playerState.language[name].tr
   return (language and language.profile) or lang.en.profile
 end
 
@@ -17,7 +18,7 @@ function clubhouse.resolveProfileTarget(query)
   local lower = query:lower()
   local hasDiscriminator = query:find("#", 1, true)
   local candidate, count = nil, 0
-  for target in pairs(playerAchievements) do
+  for target in pairs(playerState.achievements) do
     if target:lower() == lower then return target end
     if not hasDiscriminator and target:gsub("#%d+$", ""):lower() == lower then
       candidate, count = target, count + 1
@@ -55,7 +56,7 @@ local function drawProfileStatistics(name, index, text, matches, wins, position)
 end
 
 function clubhouse.updateProfileMode(name, index)
-  local state = uiState.profileState[name]
+  local state = profileState[name]
   if not state or not uiState.isOpenProfile[name] or not index or index % 1 ~= 0 or index < 1 or index > 5 then return end
   state.mode = index
   local text = clubhouse.profileText(name)
@@ -72,13 +73,13 @@ function clubhouse.updateProfileMode(name, index)
 end
 
 function clubhouse.showProfileTrophy(name, index)
-  local state = uiState.profileState[name]
+  local state = profileState[name]
   if not state or not uiState.isOpenProfile[name] or not index or index % 1 ~= 0 or index < 1 or index > 6 then return end
-  local trophy = playerAchievements[state.target] and playerAchievements[state.target][index]
+  local trophy = playerState.achievements[state.target] and playerState.achievements[state.target][index]
   if not trophy then return end
   state.trophy = index
   local text = clubhouse.profileText(name)
-  local description = playerLanguage[name].tr.msgsTrophies[index]
+  local description = playerState.language[name].tr.msgsTrophies[index]
   if not description or description == "" then description = text.trophy .. " " .. index end
   local quantity = trophy.quantity or 0
   local detail = quantity > 0 and string.format(text.quantity, quantity) or text.locked
@@ -90,26 +91,26 @@ function clubhouse.showProfileTrophy(name, index)
 end
 
 function clubhouse.equipProfileTrophy(name)
-  local state = uiState.profileState[name]
+  local state = profileState[name]
   if not state or state.target ~= name or not state.trophy then return end
-  local trophy = playerAchievements[name] and playerAchievements[name][state.trophy]
+  local trophy = playerState.achievements[name] and playerState.achievements[name][state.trophy]
   if not trophy or (trophy.quantity or 0) < 1 then return end
-  removePlayerTrophy(name)
+  clubhouse.removePlayerTrophy(name)
   clubhouse.closeWindows(name)
-  playerTrophyImage[name] = tfm.exec.addImage(trophy.image, "$" .. name, -20, -105, nil)
+  playerState.trophyImage[name] = tfm.exec.addImage(trophy.image, "$" .. name, -20, -105, nil)
   tfm.exec.playEmote(name, 0)
-  removePlayerTrophyImage(name)
+  clubhouse.scheduleTrophyRemoval(name)
 end
 
 local function drawProfileIdentity(name, playerTarget, text)
   local nick, tag = playerTarget:match("^(.-)(#%d+)$")
   profileArea(8703, "<font face='Georgia' size='23' color='#F2E5CD'>" .. profileEscape(clubhouse.shorten(nick or playerTarget, 28)) .. "</font><font size='11' color='#ADAB94'>" .. profileEscape(tag or "") .. "</font>", name, 94, 68, 430, 30)
-  local level = USER_PERMISSIONS[playerTarget] or 1
+  local level = roomConfig.permissions[playerTarget] or 1
   local role = text.roles[level] or text.roles[1]
   local roleColors = tfm.exec.chatMessage_colors
   local roleTag = roleTags[level] or "n"
   local roleLabel = "<font size='10' color='" .. roleColors[roleTag] .. "'>" .. role .. "</font>"
-  if roomCreator.name == playerTarget then
+  if roomConfig.creator.name == playerTarget then
     roleLabel = "<font size='10' color='" .. roleColors.vp .. "'>Room Creator · </font>" .. roleLabel
   end
   if playerTarget == "Myzk#5789" or playerTarget == "Tanarchosl#4785" or playerTarget == "Refletz#6472" then
@@ -122,28 +123,48 @@ end
 local function drawProfileTrophies(name, playerTarget, text)
   local collected = 0
   for i = 1, 6 do
-    if (playerAchievements[playerTarget][i].quantity or 0) > 0 then collected = collected + 1 end
+    if (playerState.achievements[playerTarget][i].quantity or 0) > 0 then collected = collected + 1 end
     ui.addTrophie(trophyIds[i], "trophie" .. i, name, playerTarget, 94 + (i - 1) * 106, 250, 82, 50, 1)
   end
   profileArea(8718, "<font face='Georgia' size='11' color='#DEC18A'>" .. text.trophies .. "</font><font size='10' color='#ADAB94'>   " .. collected .. "/6</font>", name, 109, 228, 576, 18)
 end
 
 function clubhouse.profile(name, playerTarget)
-  if not playerAchievements[playerTarget] then return end
-  local previous = uiState.profileState[name]
+  if not playerState.achievements[playerTarget] then return end
+  local previous = profileState[name]
   local refresh = previous and previous.target==playerTarget and clubhouse.views[name] and clubhouse.views[name].profile
   if not refresh then clubhouse.closeProfile(name) end
   uiState.isOpenProfile[name] = true
-  uiState.profileState[name] = refresh and previous or { target = playerTarget }
+  profileState[name] = refresh and previous or { target = playerTarget }
   local text = clubhouse.profileText(name)
   clubhouse.panel(name, "profile")
   clubhouse.closeLabel(name, "profile", "profileClose")
   drawProfileIdentity(name, playerTarget, text)
   drawProfileTrophies(name, playerTarget, text)
   profileArea(8720, "<font size='10' color='#ADAB94'>" .. text.session .. "</font>", name, 94, 333, 610, 18)
-  local index = gameStats.twoTeamsMode and 2 or gameStats.threeTeamsMode and 3 or gameStats.teamsMode and 4 or gameStats.realMode and 5 or 1
+  local index = gameState.match.mode.twoTeamsMode and 2 or gameState.match.mode.threeTeamsMode and 3 or gameState.match.mode.teamsMode and 4 or gameState.match.mode.realMode and 5 or 1
   clubhouse.updateProfileMode(name, refresh and previous.mode or index)
   clubhouse.showProfileTrophy(name, refresh and previous.trophy or 1)
   clubhouse.endUpdate(name, "profile")
+end
+
+function clubhouse.closeProfile(name, skipRestore)
+  if not profileState[name] and not uiState.isOpenProfile[name] and #(uiState.playerAchievementsImages[name] or {})==0 then return end
+  clubhouse.clear(name, "profile")
+  uiState.isOpenProfile[name] = false
+
+  -- Profile and trophy text areas are all owned by the profile view.
+  profileState[name] = nil
+
+  for i = 1, #(uiState.playerAchievementsImages[name] or {}) do
+    tfm.exec.removeImage(uiState.playerAchievementsImages[name][i])
+  end
+
+  uiState.playerAchievementsImages[name] = {}
+  if not skipRestore then clubhouse.restoreLobbyControls(name) end
+end
+
+function clubhouse.closeActiveProfile(name)
+  if profileState[name] then clubhouse.closeProfile(name) end
 end
 end

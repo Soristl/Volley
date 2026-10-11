@@ -38,7 +38,6 @@ clubhouse.strings["navigation.erase"]={en="Erase",fr="Effacer",br="Apagar",pl="U
 
 -- Each player's last accepted input; one player's clicks never throttle another.
 clubhouse.inputAt = {}
-clubhouse.selectionTimers = {}
 function clubhouse.allowInput(name, closing, callback)
   if not tfm.get.room.playerList[name] then return false end
   if lobbyTransition and lobbyTransition.blocksInput() then return false end
@@ -63,7 +62,7 @@ function clubhouse.allowInput(name, closing, callback)
 end
 
 function clubhouse.language(name)
-  local translation = playerLanguage[name] and playerLanguage[name].tr or trad
+  local translation = playerState.language[name] and playerState.language[name].tr or trad
   for _, code in ipairs({"fr", "en", "br", "pl", "ar"}) do
     if lang[code] == translation then return code end
   end
@@ -249,6 +248,31 @@ clubhouse.closeIcons = {
   sync = {x=357, y=15, width=24, height=22, font_size=14, align="center"}
 }
 
+do
+local function labelLayout(key, region, r)
+  if key == "selector" or key == "selector_balls" then
+    local layout={};for field,value in pairs(r) do layout[field]=value end;r=layout
+    -- Allow for the native text field's padding inside the thin hosted buttons.
+    if region:match("^select_") or region:match("^vote_") or region == "previous" or region == "next" or region == "page" then
+      r.y=r.y-4;r.height=20
+    end
+    if region == "page" then r.x=r.x+(r.width-80)/2;r.width=80 end
+    if region == "tab_left" or region == "tab_right" then r.y=r.y+2 end
+    if key == "selector_balls" and region == "tab_right" then
+      r.x=r.x+24;r.width=r.width-48;r.font_size=11
+    end
+    if key == "selector" and region:match("^name_") then r.font_size=10 end
+    if region == "previous" or region == "next" then r.y=r.y+2 end
+  elseif (key == "help" or key == "settings") and (region == "previous" or region == "next") then
+    local layout={};for field,value in pairs(r) do layout[field]=value end;r=layout
+    if key == "help" then
+      r.x=region=="previous" and 33 or 483;r.width=136;r.align="center";r.font_size=10
+      r.y=r.y+3;r.height=20
+    else r.y=r.y-3;r.height=20 end
+  end
+  return r
+end
+
 function clubhouse.label(name, key, region, text, event, color)
   local screen = clubhouse.screens[key]
   local r = screen.regions[region]
@@ -275,26 +299,7 @@ function clubhouse.label(name, key, region, text, event, color)
     return
   end
   local sourceRegion = r
-  if key == "selector" or key == "selector_balls" then
-    local layout={};for field,value in pairs(r) do layout[field]=value end;r=layout
-    -- Allow for the native text field's padding inside the thin hosted buttons.
-    if region:match("^select_") or region:match("^vote_") or region == "previous" or region == "next" or region == "page" then
-      r.y=r.y-4;r.height=20
-    end
-    if region == "page" then r.x=r.x+(r.width-80)/2;r.width=80 end
-    if region == "tab_left" or region == "tab_right" then r.y=r.y+2 end
-    if key == "selector_balls" and region == "tab_right" then
-      r.x=r.x+24;r.width=r.width-48;r.font_size=11
-    end
-    if key == "selector" and region:match("^name_") then r.font_size=10 end
-    if region == "previous" or region == "next" then r.y=r.y+2 end
-  elseif (key == "help" or key == "settings") and (region == "previous" or region == "next") then
-    local layout={};for field,value in pairs(r) do layout[field]=value end;r=layout
-    if key == "help" then
-      r.x=region=="previous" and 33 or 483;r.width=136;r.align="center";r.font_size=10
-      r.y=r.y+3;r.height=20
-    else r.y=r.y-3;r.height=20 end
-  end
+  r = labelLayout(key, region, r)
   state.ids = state.ids or {}
   if not state.ids[region] then state.next = (state.next or screen.base) + 1; state.ids[region] = state.next end
   local value = clubhouse.escape(text or clubhouse.text(name, r.text_key))
@@ -310,6 +315,7 @@ function clubhouse.label(name, key, region, text, event, color)
     x=sourceRegion.x,y=sourceRegion.y,width=sourceRegion.width,height=sourceRegion.height,
     align=sourceRegion.align,fontSize=sourceRegion.font_size,regionColor=sourceRegion.color,
     area=area,signature=area.signature,value=value}
+end
 end
 
 function clubhouse.closeLabel(name, key, event)
@@ -382,7 +388,7 @@ function clubhouse.pageInputCallback(name,callback,keyboard)
     elseif key=="selector" and uiState.selectMapOpen[name] then clubhouse.selectorPage(name,false,page)
     elseif key=="selector_balls" and uiState.selectBallOpen[name] then clubhouse.selectorPage(name,true,page)
     elseif key=="ranking" then clubhouse.rankingCallback(name,"rankingPage"..page)
-    elseif key=="settings" and uiState.settings[name] and (USER_PERMISSIONS[name] or 1)>=2 then uiState.settingsMode[name]=false;uiState.pagePlayerSettings[name]=({1,4,2,3})[page];clubhouse.settings(name) end
+    elseif key=="settings" and uiState.settings[name] and (roomConfig.permissions[name] or 1)>=2 then uiState.settingsMode[name]=false;uiState.pagePlayerSettings[name]=({1,4,2,3})[page];clubhouse.settings(name) end
   elseif action=="back" or action:match("^%d$") then
     -- Editing has its own per-request delay; confirmation uses the player's click delay.
     local now=os.time()

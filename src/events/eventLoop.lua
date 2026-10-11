@@ -1,8 +1,8 @@
 function eventLoop(elapsedTime, remainingTime)
   if lobbyTransition.active then lobbyTransition.step();return end
-  if firstRun then timersLoop(); return end
-  if gameStats.isGamePaused then
-    tfm.exec.setGameTime(durationTimerPause, true)
+  if roomConfig.firstRun then timers.tick(); return end
+  if gameState.match.round.isGamePaused then
+    gameRound.showPausedTime()
   end
 
   if gameState.phase == 'startGame' then
@@ -15,5 +15,5 @@ function eventLoop(elapsedTime, remainingTime)
     if lobbyTransition.blocksInput() then return end
   end
 
-  timersLoop()
+  timers.tick()
 end

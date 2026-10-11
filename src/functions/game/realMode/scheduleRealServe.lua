@@ -1,32 +1,32 @@
 function realServe.endIfTeamEmpty()
-  if not gameStats.realMode or gameState.phase ~= "gameStart" then return false end
+  if not gameState.match.mode.realMode or gameState.phase ~= "gameStart" then return false end
   local counts={red=gameTeams.count(gameState.teams.red,true),blue=gameTeams.count(gameState.teams.blue,true)}
   if counts.red > 0 and counts.blue > 0 then return false end
   gameBalls.remove(1)
-  gameStats.pendingServeTeam = nil
-  gameStats.redServe, gameStats.blueServe = false, false
-  beginEndGame()
+  gameState.match.real.pendingServeTeam = nil
+  gameState.match.real.redServe, gameState.match.real.blueServe = false, false
+  matchLifecycle.finishMatch()
   tfm.exec.chatMessage("<ce>[System]: a team is empty. Returning to the lobby without awarding a win.<n>", nil)
   return true
 end
 
 function realServe.schedule(team)
-  if not gameStats.realMode or gameState.phase ~= "gameStart" or (team ~= "red" and team ~= "blue") then return end
+  if not gameState.match.mode.realMode or gameState.phase ~= "gameStart" or (team ~= "red" and team ~= "blue") then return end
   if realServe.endIfTeamEmpty() then return end
-  removeTimer("delayTeleport")
-  removeTimer("delaySpawnBall")
-  removeTimer("delayToVerifyBall")
-  gameStats.pendingServeTeam = team
+  timers.remove("delayTeleport")
+  timers.remove("delaySpawnBall")
+  timers.remove("delayToVerifyBall")
+  gameState.match.real.pendingServeTeam = team
   gameBalls.deactivate(1)
-  gameStats.canTransform = false
+  gameState.match.round.canTransform = false
   gameBalls.remove(1)
-  addRoundTimer(function()
-    if realServe.endIfTeamEmpty() or gameStats.pendingServeTeam ~= team then return end
+  timers.addRound(function()
+    if realServe.endIfTeamEmpty() or gameState.match.real.pendingServeTeam ~= team then return end
     if realServe.choosePlayer(team) then realServe.configureTeam(team) end
   end, 4000, 1, "delayTeleport")
-  addRoundTimer(function()
-    if realServe.endIfTeamEmpty() or gameStats.pendingServeTeam ~= team then return end
+  timers.addRound(function()
+    if realServe.endIfTeamEmpty() or gameState.match.real.pendingServeTeam ~= team then return end
     realServe.spawnBall(team)
-    gameStats.pendingServeTeam = nil
+    gameState.match.real.pendingServeTeam = nil
   end, 6000, 1, "delaySpawnBall")
 end

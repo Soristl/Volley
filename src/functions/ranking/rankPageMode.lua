@@ -1,4 +1,4 @@
-function rankPageMode(mode, name)
+function sessionRanking.pageForMode(mode, name)
   if mode == "Normal mode" then
     return uiState.pageNormalMode[name]
   elseif mode == "4 teams mode" then

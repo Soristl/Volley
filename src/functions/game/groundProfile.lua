@@ -16,7 +16,7 @@ do
       local a, key = {}, {}
       for k, quote, value in tag:gmatch('([%w_]+)%s*=%s*([\'"])(.-)%2') do a[k] = value end
       for i, field in ipairs(fields) do key[i] = a[field] or '' end
-      if volleyGroundSignatures[table.concat(key, '|')] then
+      if gameState.court.groundSignatures[table.concat(key, '|')] then
         local p = {}
         for value in a.P:gmatch('[^,]+') do p[#p+1] = tonumber(value) or 0 end
         local angle = (p[5] or 0)*math.pi/180
@@ -48,7 +48,7 @@ do
       end
     end
     -- Holes and maps without a reviewed fixed floor keep their fall threshold.
-    return result or GROUND_LINE_Y
+    return result or gameState.court.groundLineY
   end
 
   local function checkCrossing(previous, dx, dy, first, low, high, startX, startY, slope)
@@ -73,7 +73,7 @@ do
       local t, at = checkCrossing(previous,dx,dy,first,edge[1],edge[2],edge[1],edge[3],edge[4])
       if t then first, result = t, at end
     end
-    local t, at = checkCrossing(previous,dx,dy,first,-math.huge,math.huge,0,GROUND_LINE_Y,0)
+    local t, at = checkCrossing(previous,dx,dy,first,-math.huge,math.huge,0,gameState.court.groundLineY,0)
     if t then result = at end
     return result
   end

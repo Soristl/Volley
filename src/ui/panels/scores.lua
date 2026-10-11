@@ -30,9 +30,9 @@ function clubhouse.winner()
     clubhouse.closeWindows(name)
     clubhouse.panel(name,"victory")
     local team
-    if gameStats.teamsMode or gameStats.threeTeamsMode then
+    if gameState.match.mode.teamsMode or gameState.match.mode.threeTeamsMode then
       team = gameTeams.keyAt(1)
-    else team=gameState.scores.red>=gameStats.winscore and "red" or "blue" end
+    else team=gameState.scores.red>=gameState.match.rules.winscore and "red" or "blue" end
     local detail=team and clubhouse.strings["team."..team] and clubhouse.text(name,"victory.winner",{team=clubhouse.text(name,"team."..team)}) or
       ""
     clubhouse.label(name,"victory","detail",detail)

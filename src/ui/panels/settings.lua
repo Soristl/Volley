@@ -22,15 +22,15 @@ do
       local row=rows[i]
       local event=row.event
       clubhouse.label(name,"settings","label_"..i,clubhouse.text(name,"settings."..row.label))
-      local value=clubhouse.text(name,globalSettings[row.option] and "state.enabled" or "state.disabled")
+      local value=clubhouse.text(name,roomConfig.settings[row.option] and "state.enabled" or "state.disabled")
       if i==1 then
-        local values=page==1 and getModesText() or getMapTypesText()
+        local values=page==1 and roomConfig.modeNames() or roomConfig.mapTypeNames()
         for j,v in ipairs(values) do
-          if tostring(globalSettings[row.option]):lower()==v:lower() then value=clubhouse.text(name,(page==1 and modeKeys or sizeKeys)[j]) end
+          if tostring(roomConfig.settings[row.option]):lower()==v:lower() then value=clubhouse.text(name,(page==1 and modeKeys or sizeKeys)[j]) end
         end
         if uiState.settingsMode[name] then event=page==1 and "closeMode" or "closeMapType" end
       end
-      local available = not ((i==3 and page==1 and gameStats.realMode) or (i==1 and page==2 and (gameStats.teamsMode or gameStats.twoTeamsMode or gameStats.realMode)))
+      local available = not ((i==3 and page==1 and gameState.match.mode.realMode) or (i==1 and page==2 and (gameState.match.mode.teamsMode or gameState.match.mode.twoTeamsMode or gameState.match.mode.realMode)))
       clubhouse.label(name,"settings","action_"..i,value,available and event or nil,available and "#E3ECE7" or "#718B83")
     end
   end
@@ -55,7 +55,7 @@ do
 
   function clubhouse.settings(name)
     if not uiState.settings[name] then return end
-    local admin=(USER_PERMISSIONS[name] or 1)>=2
+    local admin=(roomConfig.permissions[name] or 1)>=2
     clubhouse.panel(name,"settings")
     clubhouse.closeLabel(name,"settings")
     local page=admin and (tonumber(uiState.pagePlayerSettings[name]) or 1) or 3
@@ -106,25 +106,25 @@ function clubhouse.personalDisplayCallback(name, c)
 end
 
 function clubhouse.defaultMapSettings(name)
-  local current=globalSettings.defaultMap or clubhouse.text(name,"defaultMap.standard")
-  local available=not gameStats.realMode and gameState.phase=="startGame"
+  local current=roomConfig.settings.defaultMap or clubhouse.text(name,"defaultMap.standard")
+  local available=not gameState.match.mode.realMode and gameState.phase=="startGame"
   clubhouse.label(name,"settings","label_1",clubhouse.text(name,"defaultMap.title"))
   clubhouse.label(name,"settings","action_1",clubhouse.shorten(current,24),available and "chooseDefaultMap" or nil,available and "#E3ECE7" or "#718B83")
   clubhouse.label(name,"settings","label_2",clubhouse.text(name,"defaultMap.reset"))
-  clubhouse.label(name,"settings","action_2",clubhouse.text(name,"defaultMap.standard"),globalSettings.defaultMap and "clearDefaultMap" or nil)
+  clubhouse.label(name,"settings","action_2",clubhouse.text(name,"defaultMap.standard"),roomConfig.settings.defaultMap and "clearDefaultMap" or nil)
   clubhouse.label(name,"settings","label_3",clubhouse.text(name,"defaultMap.condition"),nil,"#A9BCB4")
-  clubhouse.label(name,"settings","label_4",clubhouse.text(name,gameStats.realMode and "defaultMap.real" or "defaultMap.fallback"),nil,"#A9BCB4")
+  clubhouse.label(name,"settings","label_4",clubhouse.text(name,gameState.match.mode.realMode and "defaultMap.real" or "defaultMap.fallback"),nil,"#A9BCB4")
   for i=3,4 do clubhouse.label(name,"settings","action_"..i,"") end
 end
 
 function clubhouse.defaultMapCallback(name,callback)
-  if (USER_PERMISSIONS[name] or 1)<2 or gameState.phase~="startGame" then return end
+  if (roomConfig.permissions[name] or 1)<2 or gameState.phase~="startGame" then return end
   local views=clubhouse.views[name] or {}
   local picking=views.selector and views.selector.defaultMapPicker
   if callback=="chooseDefaultMap" or callback=="clearDefaultMap" then
     if not uiState.settings[name] or uiState.pagePlayerSettings[name]~=4 or not views.settings then return end
-    if callback=="clearDefaultMap" then globalSettings.defaultMap=nil;clubhouse.refreshSettings();return end
-    if gameStats.realMode then return end
+    if callback=="clearDefaultMap" then roomConfig.settings.defaultMap=nil;clubhouse.refreshSettings();return end
+    if gameState.match.mode.realMode then return end
     clubhouse.closeWindows(name)
     uiState.selectMapOpen[name]=true
     clubhouse.state(name,"selector").defaultMapPicker=true
@@ -134,8 +134,8 @@ function clubhouse.defaultMapCallback(name,callback)
   if not picking or not uiState.selectMapOpen[name] then return end
   if callback~="returnDefaultSettings" then
     local index=tonumber(callback:match("^setDefaultMap:(%d+)$"))
-    if not index or not isMapAvailable(index) then return end
-    globalSettings.defaultMap=configSelectMap()[index][3]
+    if not index or not gameMaps.isAvailable(index) then return end
+    roomConfig.settings.defaultMap=gameMaps.selectionCatalog()[index][3]
   end
   clubhouse.closeWindows(name)
   uiState.settings[name]=true;uiState.pagePlayerSettings[name]=4
@@ -147,37 +147,37 @@ end
 do
 -- Each action keeps its own messages and refresh scope; the router keeps the permission checks.
 local function selectRoomMode(name, c)
-  local modes = getModesText()
+  local modes = roomConfig.modeNames()
   local index = tonumber(c:sub(8))
 
   if not index or not modes[index] then return true end
   uiState.settingsMode[name] = false
-  globalSettings.mode = modes[index]
-  messageLog("<bv>The room has been set to " .. modes[index] .. ", selected by the admin " .. name .. "<n>")
+  roomConfig.settings.mode = modes[index]
+  roomConfig.logMessage("<bv>The room has been set to " .. modes[index] .. ", selected by the admin " .. name .. "<n>")
   clubhouse.refreshSettings()
   return true
 end
 
 local function toggleTwoBalls(name)
-  if globalSettings.twoBalls then
-    globalSettings.twoBalls = false
-    messageLog("<bv>The two balls command was disabled globally in the room, selected by the admin " .. name .. "<n>")
+  if roomConfig.settings.twoBalls then
+    roomConfig.settings.twoBalls = false
+    roomConfig.logMessage("<bv>The two balls command was disabled globally in the room, selected by the admin " .. name .. "<n>")
   else
-    globalSettings.twoBalls = true
-    messageLog("<bv>The two balls command was enabled globally in the room, selected by the admin " .. name .. "<n>")
+    roomConfig.settings.twoBalls = true
+    roomConfig.logMessage("<bv>The two balls command was enabled globally in the room, selected by the admin " .. name .. "<n>")
     print("<bv>The two balls command was enabled globally in the room, selected by the admin " .. name .. "<n>")
   end
   clubhouse.refreshSettings()
 end
 
 local function toggleThreeBalls(name)
-  if globalSettings.threeBalls then
-    globalSettings.threeBalls = false
-    messageLog("<bv>The three balls on 3 teams mode command was disabled globally in the room, selected by the admin " ..
+  if roomConfig.settings.threeBalls then
+    roomConfig.settings.threeBalls = false
+    roomConfig.logMessage("<bv>The three balls on 3 teams mode command was disabled globally in the room, selected by the admin " ..
       name .. "<n>")
   else
-    globalSettings.threeBalls = true
-    messageLog("<bv>The three balls on 3 teams mode command was enabled globally in the room, selected by the admin " ..
+    roomConfig.settings.threeBalls = true
+    roomConfig.logMessage("<bv>The three balls on 3 teams mode command was enabled globally in the room, selected by the admin " ..
       name .. "<n>")
     print("<bv>The three balls on 3 teams mode command was enabled globally in the room, selected by the admin " ..
       name .. "<n>")
@@ -186,29 +186,29 @@ local function toggleThreeBalls(name)
 end
 
 local function toggleRandomBall(name)
-  if globalSettings.randomBall then
-    globalSettings.randomBall = false
-    messageLog("<bv>The random ball command was disabled globally in the room, selected by the admin " .. name .. "<n>")
+  if roomConfig.settings.randomBall then
+    roomConfig.settings.randomBall = false
+    roomConfig.logMessage("<bv>The random ball command was disabled globally in the room, selected by the admin " .. name .. "<n>")
   else
-    globalSettings.randomBall = true
+    roomConfig.settings.randomBall = true
     print("<bv>The random ball command was enabled globally in the room, selected by the admin " .. name .. "<n>")
-    messageLog("<bv>The random ball command was enabled globally in the room, selected by the admin " .. name .. "<n>")
+    roomConfig.logMessage("<bv>The random ball command was enabled globally in the room, selected by the admin " .. name .. "<n>")
   end
   clubhouse.refreshSettings()
 end
 
 local function selectMapSize(name, c)
-  local modes = getMapTypesText()
+  local modes = roomConfig.mapTypeNames()
   local index = tonumber(c:sub(11))
 
   if not index or not modes[index] then return true end
   uiState.settingsMode[name] = false
-  globalSettings.mapType = string.lower(modes[index])
-  if gameState.phase == 'startGame' and not gameStats.threeTeamsMode then
-    gameStats.setMapName = globalSettings.mapType
-    refreshMapSizeSelection()
+  roomConfig.settings.mapType = string.lower(modes[index])
+  if gameState.phase == 'startGame' and not gameState.match.mode.threeTeamsMode then
+    gameState.match.maps.setMapName = roomConfig.settings.mapType
+    gameMaps.refreshSizeSelection()
   end
-  messageLog("<bv>The map size in normal mode was set by " .. modes[index] .. " by the admin " .. name .. "<n>")
+  roomConfig.logMessage("<bv>The map size in normal mode was set by " .. modes[index] .. " by the admin " .. name .. "<n>")
   clubhouse.refreshSettings()
   return true
 end
@@ -216,7 +216,7 @@ end
 local function changeSettingsPage(name, c)
   local page = tonumber(string.sub(c, 13))
   if page ~= 1 and page ~= 2 and page ~= 3 and page ~= 4 then return true end
-  if (USER_PERMISSIONS[name] or 1)<2 and page~=3 then return true end
+  if (roomConfig.permissions[name] or 1)<2 and page~=3 then return true end
   uiState.settingsMode[name] = false
   uiState.pagePlayerSettings[name] = page
 
@@ -225,41 +225,41 @@ local function changeSettingsPage(name, c)
 end
 
 local function toggleRandomMap(name)
-  if globalSettings.randomMap then
-    globalSettings.randomMap = false
+  if roomConfig.settings.randomMap then
+    roomConfig.settings.randomMap = false
     print("<bv>The random map command was disabled globally in the room, selected by the admin " .. name .. "<n>")
-    messageLog("<bv>The random map command was disabled globally in the room, selected by the admin " .. name .. "<n>")
+    roomConfig.logMessage("<bv>The random map command was disabled globally in the room, selected by the admin " .. name .. "<n>")
   else
-    globalSettings.randomMap = true
+    roomConfig.settings.randomMap = true
     print("<bv>The random map command was enabled globally in the room, selected by the admin " .. name .. "<n>")
-    messageLog("<bv>The random map command was enabled globally in the room, selected by the admin " .. name .. "<n>")
+    roomConfig.logMessage("<bv>The random map command was enabled globally in the room, selected by the admin " .. name .. "<n>")
   end
 
   clubhouse.refreshSettings()
 end
 
 local function toggleConsumables(name)
-  if globalSettings.consumables then
-    globalSettings.consumables = false
+  if roomConfig.settings.consumables then
+    roomConfig.settings.consumables = false
 
-    messageLog("<bv>The consumables command has been disabled globally by the admin " .. name .. "<n>")
+    roomConfig.logMessage("<bv>The consumables command has been disabled globally by the admin " .. name .. "<n>")
   else
-    globalSettings.consumables = true
+    roomConfig.settings.consumables = true
 
-    messageLog("<bv>The consumables command has been enabled globally by the admin " .. name .. "<n>")
+    roomConfig.logMessage("<bv>The consumables command has been enabled globally by the admin " .. name .. "<n>")
   end
 
   clubhouse.refreshSettings()
 end
 
 local function toggleMinimalist(name)
-  if globalSettings.minimalist then
-    globalSettings.minimalist = false
+  if roomConfig.settings.minimalist then
+    roomConfig.settings.minimalist = false
 
     tfm.exec.chatMessage('<bv>Minimalist mode for maps disabled by admin '..name..'<n>', nil)
     print('<bv>Minimalist mode for maps disabled by admin '..name..'<n>')
   else
-    globalSettings.minimalist = true
+    roomConfig.settings.minimalist = true
 
     tfm.exec.chatMessage('<bv>Minimalist mode for maps enabled by admin '..name..'<n>', nil)
     print('<bv>Minimalist mode for maps enabled by admin '..name..'<n>')
@@ -269,7 +269,7 @@ local function toggleMinimalist(name)
 end
 
 function clubhouse.settingsCallback(name, c)
-  if c == "openMode" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+  if c == "openMode" and roomConfig.permissions[name] and roomConfig.permissions[name] > 1 then
     uiState.settingsMode[name] = true
     clubhouse.settings(name)
   elseif c:sub(1, 7) == "setMode" then
@@ -277,23 +277,23 @@ function clubhouse.settingsCallback(name, c)
   elseif c == "closeMode" then
     uiState.settingsMode[name] = false
     clubhouse.settings(name)
-  elseif c == "twoballs" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+  elseif c == "twoballs" and roomConfig.permissions[name] and roomConfig.permissions[name] > 1 then
     toggleTwoBalls(name)
-  elseif c == "threeballs" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+  elseif c == "threeballs" and roomConfig.permissions[name] and roomConfig.permissions[name] > 1 then
     toggleThreeBalls(name)
-  elseif c == "randomball" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+  elseif c == "randomball" and roomConfig.permissions[name] and roomConfig.permissions[name] > 1 then
     toggleRandomBall(name)
-  elseif c == "openMapType" and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+  elseif c == "openMapType" and roomConfig.permissions[name] and roomConfig.permissions[name] > 1 then
     uiState.settingsMode[name] = true
     clubhouse.settings(name)
-  elseif c:sub(1, 10) == "setMapType" and not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realMode then
+  elseif c:sub(1, 10) == "setMapType" and not gameState.match.mode.teamsMode and not gameState.match.mode.twoTeamsMode and not gameState.match.mode.realMode then
     return selectMapSize(name, c)
   elseif c == "closeMapType" then
     uiState.settingsMode[name] = false
     clubhouse.settings(name)
   elseif string.sub(c, 1, 12) == 'nextSettings' or string.sub(c, 1, 12) == 'prevSettings' then
     return changeSettingsPage(name, c)
-  elseif c == "randommap" and not gameStats.realMode and USER_PERMISSIONS[name] and USER_PERMISSIONS[name] > 1 then
+  elseif c == "randommap" and not gameState.match.mode.realMode and roomConfig.permissions[name] and roomConfig.permissions[name] > 1 then
     toggleRandomMap(name)
   elseif c == "consumables" then
     toggleConsumables(name)

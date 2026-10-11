@@ -6,11 +6,11 @@ function gameTeams.placeAll()
     local nextPosition=1
     for index,slot in ipairs(rosters[key]) do
       if slot.name ~= '' then
-        playersOnGameHistoric[slot.name]={teams={key}}
+        sessionRanking.seedTeamHistory(slot.name,key)
         local position=positions[nextPosition]
         gameTeams.place(slot.name,key,position[1],position[2])
         if position[3] then
-          local roles=key=='red' and twoTeamsPlayerRedPosition or twoTeamsPlayerBluePosition
+          local roles=key=='red' and gameState.teamLayout.roles.red or gameState.teamLayout.roles.blue
           roles[index]=position[3]
         end
         nextPosition=nextPosition % #positions + 1

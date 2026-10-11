@@ -4,8 +4,8 @@ function clubhouse.sync(name)
   clubhouse.label(name,"sync","instruction")
   local candidates={}
   for player,data in pairs(tfm.get.room.playerList) do
-    if not player:find("*",1,true) and not playerBan[player] and not playerLeft[player] then
-      candidates[#candidates+1]={name=player,latency=getSyncLatency(data.averageLatency) or math.huge}
+    if not player:find("*",1,true) and not playerState.ban[player] and not playerState.left[player] then
+      candidates[#candidates+1]={name=player,latency=roomSync.latency(data.averageLatency) or math.huge}
     end
   end
   table.sort(candidates,function(a,b) return a.latency==b.latency and a.name<b.name or a.latency<b.latency end)
@@ -70,21 +70,21 @@ function clubhouse.guardCallback(name, callback)
   local settingsAction = settingsActions[callback] or callback:match("^setMode") or
     callback:match("^setMapType")
   if (callback:match("^nextSettings") or callback:match("^prevSettings")) and not uiState.settings[name] then return true end
-  if settingsAction and ((USER_PERMISSIONS[name] or 1)<2 or not uiState.settings[name]) then return true end
+  if settingsAction and ((roomConfig.permissions[name] or 1)<2 or not uiState.settings[name]) then return true end
   if callback:match("^randommap") and callback~="randommap" then return true end
   if callback:match("^joinTeam") or callback:match("^leaveTeam") then
     local action,team,index=callback:match("^(%a+)Team(%a+)(%d+)$")
-    if (action~="join" and action~="leave") or firstRun or gameState.phase~="startGame" then return true end
-    if clubhouse.hasPanel(name) or not gameStats.canJoin or gameStats.initTimer<=2 then return true end
+    if (action~="join" and action~="leave") or roomConfig.firstRun or gameState.phase~="startGame" then return true end
+    if clubhouse.hasPanel(name) or not gameState.match.round.canJoin or gameState.match.round.initTimer<=2 then return true end
     index=tonumber(index)
     if not index then return true end
-    if team=="Yellow" and not gameStats.teamsMode then return true end
-    if team=="Green" and not (gameStats.teamsMode or gameStats.threeTeamsMode) then return true end
+    if team=="Yellow" and not gameState.match.mode.teamsMode then return true end
+    if team=="Green" and not (gameState.match.mode.teamsMode or gameState.match.mode.threeTeamsMode) then return true end
     local roster=gameState.teams[teamKeys[team]]
-    if team=="Blue" then index=teamBlueIndex(index) end
+    if team=="Blue" then index=gameTeams.blueSeatIndex(index) end
     if not roster or not roster[index] then return true end
     if action=="join" then
-      if playerInGame[name]~=false or roster[index].name~="" then return true end
+      if playerState.inGame[name]~=false or roster[index].name~="" then return true end
     elseif roster[index].name~=name then return true end
     -- Pass the validated slot to the handler instead of parsing and indexing it again.
     return false,{action=action,team=team,index=index,slot=roster[index]}
@@ -106,11 +106,9 @@ function clubhouse.clearPlayer(name)
   clubhouse.clearLobbyArtwork(name)
   clubhouse.pageRequests[name]=nil
   clubhouse.ballCategoryState[name]=nil
-  if clubhouse.selectionTimers[name] then removeTimer(clubhouse.selectionTimers[name]);clubhouse.selectionTimers[name]=nil end
+  clubhouse.cancelSelectionCooldown(name)
   clubhouse.inputAt[name]=nil
-  uiState.profileKeyTime[name]=nil
-  uiState.rankKeyTime[name]=nil
-  uiState.panelOpenTime[name]=nil
+  panelInput.clearPlayer(name)
   local views=clubhouse.views[name]
   if views then
     local keys={};for key in pairs(views) do keys[#keys+1]=key end
@@ -119,7 +117,27 @@ function clubhouse.clearPlayer(name)
   clubhouse.views[name]=nil
 end
 
-function clearDepartedPlayerUiState(name)
+-- Keep shared victory artwork until the transition loads the lobby.
+function clubhouse.prepareLobbyPlayer(name)
+  clubhouse.closeWindows(name,true)
+  clubhouse.closePageInput(name)
+  clubhouse.cancelSelectionCooldown(name)
+end
+
+-- Preserve broadcast ownership while rebuilding a current lobby viewer.
+function clubhouse.rebuildLobbyPlayer(name)
+  local viewers=clubhouse.lobbyArtworkViewers
+  local sharedArtwork=viewers and viewers[name] and
+    not (clubhouse.lobbyArtworkPlayers and clubhouse.lobbyArtworkPlayers[name])
+  clubhouse.clearPlayer(name)
+  -- clearPlayer also forgets artwork ownership. A viewer of the current
+  -- broadcast still has those three images; only late arrivals need copies.
+  if sharedArtwork then viewers[name]=true end
+  clubhouse.closeWindows(name)
+  clubhouse.lobby(name)
+end
+
+function clubhouse.releaseDepartedState(name)
   -- Only after departure cleanup: live panel resets also call clearPlayer.
   -- These values are initialized again on arrival; session data stays intact.
   uiState.pagesList[name]=nil

@@ -1,3 +1,3 @@
-function pointsFourTeamsMode(ballX, ballY, index, typeMap, teamIndex)
+function gamePoints.fromFourTeamAreas(ballX, ballY, index, typeMap, teamIndex)
   return gamePoints.fromAreas('four', ballX, ballY, index, typeMap, teamIndex)
 end

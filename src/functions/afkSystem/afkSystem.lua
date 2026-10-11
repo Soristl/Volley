@@ -1,14 +1,14 @@
-function afkSystem()
+function playerRuntime.evictInactivePlayers()
   local now = os.time()
   local inactive, connected = {}, 0
   for name in pairs(tfm.get.room.playerList) do
     connected = connected + 1
-    local last = playersAfk[name]
+    local last = playerState.afk[name]
     -- A player may appear in the host list before their arrival is initialized.
     -- Start their inactivity clock instead of subtracting an absent timestamp.
     if type(last) ~= 'number' or last ~= last or math.abs(last) == math.huge then
       last = now
-      playersAfk[name] = now
+      playerState.afk[name] = now
     end
     local elapsed = now - last
     if elapsed >= 10 * 60 * 1000 then

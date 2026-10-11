@@ -1,5 +1,5 @@
 -- Dispatcher (Unified Command Table)
-COMMANDS = {
+commandHandlers.registry = {
   -- Everyone (Level 1)
   {
     ["commands"] = commandHandlers.cmdCommands,
@@ -137,7 +137,7 @@ COMMANDS = {
 
 -- Main handler
 function eventChatCommand(name, c)
-  if type(name) ~= "string" or not tfm.get.room.playerList[name] or playerBan[name] or playerLeft[name] or type(c) ~= "string" then return end
+  if type(name) ~= "string" or not tfm.get.room.playerList[name] or playerState.ban[name] or playerState.left[name] or type(c) ~= "string" then return end
 
   local args = commandHandlers.split(c)
   if not args[1] then return end
@@ -146,14 +146,14 @@ function eventChatCommand(name, c)
   if lobbyTransition.blocksInput() then return end
   args[1] = name
 
-  local userLevel = USER_PERMISSIONS[name] or 1
+  local userLevel = roomConfig.permissions[name] or 1
   local max_depth = math.min(userLevel, 3)
 
 
   local handler = nil
   for i = max_depth, 1, -1 do
-    if COMMANDS[i] and COMMANDS[i][cmdName] then
-      handler = COMMANDS[i][cmdName]
+    if commandHandlers.registry[i] and commandHandlers.registry[i][cmdName] then
+      handler = commandHandlers.registry[i][cmdName]
       break
     end
   end

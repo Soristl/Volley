@@ -3,6 +3,46 @@
 gameRound = {}
 
 do
+  -- Match timing stays private; phase and lobby deadlines retain their own lifetimes.
+  local roundClock = {}
+
+  function gameRound.resetClock()
+    roundClock.defaultDuration = 300
+    roundClock.deadline = os.time() + roundClock.defaultDuration * 1000
+    roundClock.remaining = roundClock.defaultDuration
+  end
+
+  function gameRound.defaultDuration()
+    return roundClock.defaultDuration
+  end
+
+  function gameRound.setDuration(durationSec)
+    roundClock.deadline = os.time() + durationSec * 1000
+    roundClock.remaining = durationSec
+    tfm.exec.setGameTime(roundClock.remaining, true)
+  end
+
+  function gameRound.capturePausedTime()
+    roundClock.remaining = math.max(0, math.ceil((roundClock.deadline - os.time()) / 1000))
+  end
+
+  function gameRound.resumeClock()
+    roundClock.deadline = os.time() + roundClock.remaining * 1000
+    tfm.exec.setGameTime(roundClock.remaining, true)
+  end
+
+  function gameRound.showPausedTime()
+    tfm.exec.setGameTime(roundClock.remaining, true)
+  end
+
+  function gameRound.startClock()
+    roundClock.deadline = os.time() + roundClock.remaining * 1000
+
+    local _timer = math.ceil((roundClock.deadline - os.time()) / 1000)
+
+    tfm.exec.setGameTime(_timer, true)
+  end
+
   local profiles = {
     real = { minimum=2, teams={'red','blue'}, rank=function() return sessionRanking.ranks.real end },
     three = { minimum=1, teams={'red','blue','green'}, rank=function() return sessionRanking.ranks.three end,
@@ -15,10 +55,10 @@ do
   }
 
   local function lobbyMode()
-    if gameStats.realMode then return 'real' end
-    if gameStats.threeTeamsMode then return 'three' end
-    if gameStats.teamsMode then return 'four' end
-    if gameStats.twoTeamsMode then return 'two' end
+    if gameState.match.mode.realMode then return 'real' end
+    if gameState.match.mode.threeTeamsMode then return 'three' end
+    if gameState.match.mode.teamsMode then return 'four' end
+    if gameState.match.mode.twoTeamsMode then return 'two' end
     return 'normal'
   end
 
@@ -32,23 +72,23 @@ do
   local function showRealRules()
     gameState.setPhase('showRules')
     for name in pairs(tfm.get.room.playerList) do
-      ui.addWindow(266, '' .. playerLanguage[name].tr.realModeRules .. '', name,
-        125, 60, 650, 300, 1, false, true, playerLanguage[name].tr.closeUIText)
+      ui.addWindow(266, '' .. playerState.language[name].tr.realModeRules .. '', name,
+        125, 60, 650, 300, 1, false, true, playerState.language[name].tr.closeUIText)
     end
-    removeWindowsOnBottom()
+    clubhouse.removeBottomWindows()
   end
 
   local function configureCourt(mode, profile, counts)
     if mode == 'normal' then
       -- Either team reaching four selects the larger automatic court.
       if counts.red <= 3 or counts.blue <= 3 then
-        gameStats.gameMode, gameStats.redX, gameStats.blueX = '3v3', 399, 401
+        gameState.match.mode.gameMode, gameState.match.court.redX, gameState.match.court.blueX = '3v3', 399, 401
       end
       if counts.red >= 4 or counts.blue >= 4 then
-        gameStats.gameMode, gameStats.redX, gameStats.blueX = '4v4', 599, 601
+        gameState.match.mode.gameMode, gameState.match.court.redX, gameState.match.court.blueX = '4v4', 599, 601
       end
     else
-      for key, value in pairs(profile.positions) do gameStats[key] = value end
+      for key, value in pairs(profile.positions) do gameState.match.court[key] = value end
     end
   end
 
@@ -56,12 +96,12 @@ do
   function gameRound.lobby()
     if lobbyTransition.active then return true end
     local seconds = math.ceil((gameState.lobbyDeadline - os.time()) / 1000)
-    if gameStats.stopTimer then return false end
-    gameStats.initTimer = math.max(0, seconds)
+    if gameState.match.round.stopTimer then return false end
+    gameState.match.round.initTimer = math.max(0, seconds)
     clubhouse.lobbyTimer()
     if seconds > 0 then return false end
 
-    local mode, counts = lobbyMode(), quantityPlayers()
+    local mode, counts = lobbyMode(), gameTeams.countsByTeam()
     local profile = profiles[mode]
     if not enoughPlayers(profile, counts) then
       gameState.lobbyDeadline = os.time() + 25000
@@ -73,15 +113,15 @@ do
       showRealRules()
       return true
     end
-    if profile.label then gameStats.actualMode = profile.label end
+    if profile.label then gameState.match.mode.actualMode = profile.label end
     -- Preserve the existing UI cleanup and rank selection order.
     if mode ~= 'normal' then sessionRanking.crown = profile.rank() end
     if mode == 'three' then configureCourt(mode, profile, counts) end
-    removeTextAreasOfLobby()
-    removeWindowsOnBottom()
+    clubhouse.removeLobbyTextAreas()
+    clubhouse.removeBottomWindows()
     if mode == 'normal' then sessionRanking.crown = profile.rank() end
     if mode ~= 'three' then configureCourt(mode, profile, counts) end
-    if mode ~= 'normal' then gameStats.typeMap = 'large4v4' end
+    if mode ~= 'normal' then gameState.match.court.typeMap = 'large4v4' end
     gameRound.start()
     return mode ~= 'normal'
   end
@@ -90,17 +130,17 @@ do
     -- Departures during the rules screen must not start an unplayable match.
     if gameTeams.count(gameState.teams.red, true) < 2 or
         gameTeams.count(gameState.teams.blue, true) < 2 then
-      closeWindow(266, nil)
+      clubhouse.closeLegacyWindow(266, nil)
       gameState.resetLobby()
-      gameStats.initTimer = 25
-      eventNewGameShowLobbyTexts()
+      gameState.match.round.initTimer = 25
+      clubhouse.renderLobby()
       for name in pairs(tfm.get.room.playerList) do clubhouse.refresh(name) end
       tfm.exec.chatMessage('<j>Real Mode needs at least two players in each team. Waiting in the lobby.<n>', nil)
       return true
     end
     if math.ceil((gameState.rulesDeadline - os.time()) / 1000) <= 0 then
-      gameStats.redX, gameStats.blueX = 601, 1999
-      closeWindow(266, nil)
+      gameState.match.court.redX, gameState.match.court.blueX = 601, 1999
+      clubhouse.closeLegacyWindow(266, nil)
       gameRound.start()
     end
     return false
@@ -109,11 +149,11 @@ do
   function gameRound.ending()
     if lobbyTransition.active then return end
     if math.ceil((gameState.endDeadline - os.time()) / 1000) <= 0 then
-      countMatches = countMatches + 1
+      sessionRanking.advanceMatch()
       ui.removeTextArea(899899)
       ui.removeTextArea(8998991)
-      removeTimer('verifyBallCoordinates')
-      init(true)
+      timers.remove('verifyBallCoordinates')
+      matchLifecycle.resetLobby(true)
     end
   end
 end

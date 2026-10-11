@@ -1,3 +1,3 @@
-function selectMap()
+function gameMaps.selectInitial()
   gameMaps.loadInitial()
 end

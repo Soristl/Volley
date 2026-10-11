@@ -1,8 +1,8 @@
 function gameTeams.placeSpectators(onlyDead)
   for name, data in pairs(tfm.get.room.playerList) do
-    if playerInGame[name] == false and not playerBan[name] and not playerLeft[name]
+    if playerState.inGame[name] == false and not playerState.ban[name] and not playerState.left[name]
       and (not onlyDead or data.isDead) then
-      if killSpecPermanent then
+      if roomConfig.killSpectators then
         tfm.exec.killPlayer(name)
       else
         if data.isDead then tfm.exec.respawnPlayer(name) end

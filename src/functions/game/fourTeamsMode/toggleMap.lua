@@ -1,13 +1,13 @@
-function toggleMap()
-  beginGameplayMapLoad()
-  removeTimer('deadTimer')
-  gameStats.canTransform = false
-  if not globalSettings.minimalist then disablePlayersCanTransform(3500) end
+function matchLifecycle.reduceCourt()
+  mapLoad.begin()
+  timers.remove('deadTimer')
+  gameState.match.round.canTransform = false
+  if not roomConfig.settings.minimalist then playerRuntime.delayRoundTransforms(3500) end
   gameBalls.deactivateAll()
-  globalSettings.minimalistToggleMap = true
+  roomConfig.settings.minimalistToggleMap = true
 
-  local largeCourt = gameStats.typeMap == 'large3v3'
-  if not largeCourt and gameStats.typeMap ~= 'small' then return end
+  local largeCourt = gameState.match.court.typeMap == 'large3v3'
+  if not largeCourt and gameState.match.court.typeMap ~= 'small' then return end
   ui.removeTextArea(8998991)
   if not largeCourt then ui.removeTextArea(899899) end
   gameMaps.loadReduced(largeCourt)
@@ -24,5 +24,5 @@ function toggleMap()
       gameTeams.placeRemaining(false)
     end
   end)
-  showCrownToAllPlayers()
+  gameCrowns.showAll()
 end

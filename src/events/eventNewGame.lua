@@ -1,20 +1,20 @@
 do
 local function initializeFirstMap()
-  local config, reason = readLobbyConfig()
+  local config, reason = roomConfig.readLobby()
   if not config then
     tfm.exec.chatMessage("<r>Lobby configuration error: " .. reason .. ". Waiting for valid XML.<n>", nil)
     return false
   end
-  initUsersPermissions(config)
-  lobbyMapConfig(config)
-  firstRun = false
-  if roomCreator.pendingName then
-    local pendingName = roomCreator.pendingName
-    roomCreator.pendingName = nil
-    assignRoomCreator(pendingName)
+  roomConfig.applyPermissions(config)
+  roomConfig.applyAccessRules(config)
+  roomConfig.firstRun = false
+  if roomConfig.creator.pendingName then
+    local pendingName = roomConfig.creator.pendingName
+    roomConfig.creator.pendingName = nil
+    roomConfig.assignCreator(pendingName)
   end
-  if not roomCreator.name then
-    initializeRoomCreator()
+  if not roomConfig.creator.name then
+    roomConfig.initializeCreator()
   end
   return true
 end
@@ -24,12 +24,12 @@ function eventNewGame()
   groundProfile.reset()
   mapBackgrounds.newGame()
   gameBalls.forget()
-  showCrownToAllPlayers()
+  gameCrowns.showAll()
   clubhouse.ballSkins.reset()
   clubhouse.newGame()
-  if firstRun and not initializeFirstMap() then return end
+  if roomConfig.firstRun and not initializeFirstMap() then return end
 
-  if autosync then refletzSyncSystem() end
+  if roomConfig.autoSync then roomSync.refresh() end
 
   if gameState.phase == "gameStart" then
     gameMaps.onGameplayLoaded()

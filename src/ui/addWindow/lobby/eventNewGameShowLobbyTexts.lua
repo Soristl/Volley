@@ -1,6 +1,6 @@
 -- A joining player needs only their own lobby controls. Omitted viewer broadcasts updates.
-function eventNewGameShowLobbyTexts(viewer)
-  if gameStats.threeTeamsMode then
+function clubhouse.renderLobby(viewer)
+  if gameState.match.mode.threeTeamsMode then
     for i = 1, 4 do
       clubhouse.teamSeat("Red", i, gameState.teams.red[i].name, viewer)
     end
@@ -22,7 +22,7 @@ function eventNewGameShowLobbyTexts(viewer)
   for i = 4, 6 do
     clubhouse.teamSeat("Blue", i - 3, gameState.teams.blue[i - 3].name, viewer)
   end
-  if not gameStats.teamsMode then
+  if not gameState.match.mode.teamsMode then
     for i = 8, 10 do
       clubhouse.teamSeat("Red", i - 4, gameState.teams.red[i - 4].name, viewer)
     end

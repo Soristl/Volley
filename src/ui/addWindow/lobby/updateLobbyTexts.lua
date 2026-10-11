@@ -34,7 +34,7 @@ local function releaseThreeTeamSeat(name)
 end
 
 local function releaseAdditionalLobbySeats(name)
-  if not gameStats.teamsMode then
+  if not gameState.match.mode.teamsMode then
     for i = 8, 10 do
       if gameState.teams.red[i - 4].name == name then
         gameState.teams.red[i - 4].name = ''
@@ -65,7 +65,7 @@ local function releaseAdditionalLobbySeats(name)
 end
 
 function gameTeams.releaseLobbySeat(name)
-  if gameStats.threeTeamsMode then
+  if gameState.match.mode.threeTeamsMode then
     releaseThreeTeamSeat(name)
     return
   end

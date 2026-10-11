@@ -1,4 +1,4 @@
-function removeButtons(id, name)
+function clubhouse.removeLegacyButtons(id, name)
   local id = tostring(id)
   local str = "000000000"
   ui.removeTextArea(id, name)

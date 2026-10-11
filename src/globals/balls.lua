@@ -38,6 +38,6 @@ local balls = {
 -- Attaches the ball skin image to a spawned ball object.
 -- Hosted skins are pre-scaled on 40x40 canvases; render at 1x with centered offsets.
 -- previewImage/previewSize preserve the existing selector artwork.
-function addBallSkin(objId)
-  clubhouse.ballSkins.spawn(objId, balls[gameStats.customBallId])
+function roomConfig.attachSelectedBallSkin(objId)
+  clubhouse.ballSkins.spawn(objId, balls[gameState.match.balls.customBallId])
 end

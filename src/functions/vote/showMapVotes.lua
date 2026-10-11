@@ -1,7 +1,7 @@
-function showMapVotes(maps, index)
-  if mapsVotes[index] == nil then
+function mapVoting.showVotes(maps, index)
+  if gameState.voting.counts[index] == nil then
     return 0
   end
 
-  return mapsVotes[index]
+  return gameState.voting.counts[index]
 end

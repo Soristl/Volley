@@ -3,14 +3,14 @@ local threeTeamGroups = {'Red','Blue','Green'}
 local fourTeamGroups = {'Red','Blue','Yellow','Green'}
 local twoTeamGroups = {'Red','Blue','Red','Blue'}
 
-function updateLobbyTextAreas(playersAlreadyReset, preferredPlayer)
-  removeTimer('resetTeams')
-  removeTimer('toggleTeams')
-  removeTimer('canJoin')
-  if not playersAlreadyReset then resetPlayerConfigs() end
+function clubhouse.refreshLobbyPlayers(playersAlreadyReset, preferredPlayer)
+  timers.remove('resetTeams')
+  timers.remove('toggleTeams')
+  timers.remove('canJoin')
+  if not playersAlreadyReset then playerRuntime.resetLobbyPlayers() end
   gameState.lobbyDeadline = os.time() + 25000
-  gameStats.canJoin = false
-  local three, four = gameStats.threeTeamsMode, gameStats.teamsMode
+  gameState.match.round.canJoin = false
+  local three, four = gameState.match.mode.threeTeamsMode, gameState.match.mode.teamsMode
   local groups = three and threeTeamGroups or four and fourTeamGroups or twoTeamGroups
   local function resetRosters()
     gameTeams.resetRoster('red', three and 4 or four and 3 or 6)
@@ -33,7 +33,7 @@ function updateLobbyTextAreas(playersAlreadyReset, preferredPlayer)
       if group>=3 and not four then slot=slot+3 end
     end
     clubhouse.teamSeat(groups[group],slot,"")
-    if seat==12 then gameStats.canJoin=true end
+    if seat==12 then gameState.match.round.canJoin=true end
   end
   resetRosters()
   for tick=3,14 do drawSeat(tick) end

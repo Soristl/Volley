@@ -3,10 +3,10 @@ gameMaps = {}
 
 -- Black Hole's jump ceiling blocks mice only; balls and transformed objects pass.
 function gameMaps.applyPlayerCeiling()
-  local code=tonumber((tostring(gameState.map.sourceTarget or tfm.get.room.currentMap):gsub('^@','')))
+  local code=tonumber((tostring(mapLoad.getSourceTarget() or tfm.get.room.currentMap):gsub('^@','')))
   local hosted=({[7984662]=true,[7984663]=true,[7984665]=true,[7984666]=true,[7984667]=true})[code]
   local xl=customMaps[57] and customMaps[57].extraLarge
-  if not hosted and not (xl and (gameState.map.sourceTarget or gameState.map.target)==xl) then return end
+  if not hosted and not (xl and (mapLoad.getSourceTarget() or mapLoad.getTarget())==xl) then return end
   local xml=tfm.get.room.xmlMapInfo and tfm.get.room.xmlMapInfo.xml or ''
   local params=xml:match('<P%s+[^>]+>') or ''
   local width=tonumber(mapXml.attribute(params,'L')) or 800
@@ -34,33 +34,33 @@ do
 
   local function selectedMap(entry, column)
     if not entry then return nil end
-    if gameStats.twoTeamsMode and column == 1 and entry.twoTeams then
+    if gameState.match.mode.twoTeamsMode and column == 1 and entry.twoTeams then
       return entry.twoTeams
     end
     return entry[column]
   end
 
   local function choose(catalog, column, fallback, overrideIndex, announce)
-    if mapsToTest[overrideIndex] ~= '' then
-      return mapsToTest[overrideIndex], true, 'test'
+    if gameMaps.testMapOverride(overrideIndex) ~= '' then
+      return gameMaps.testMapOverride(overrideIndex), true, 'test'
     end
-    if gameStats.isCustomMap then
-      local map = selectedMap(catalog[gameStats.customMapIndex], column)
+    if gameState.match.maps.isCustomMap then
+      local map = selectedMap(catalog[gameState.match.maps.customMapIndex], column)
       if map then return map, true, 'custom' end
       return fallback, false, 'default'
     end
-    if announce and gameStats.totalVotes == 1 then
+    if announce and gameState.match.maps.totalVotes == 1 then
       tfm.exec.chatMessage('<bv>It is necessary that at least 2 players have used the !votemap command for a map to be selected<n>', nil)
     end
-    if gameStats.totalVotes >= 2 then
-      local entry = catalog[gameStats.mapIndexSelected]
+    if gameState.match.maps.totalVotes >= 2 then
+      local entry = catalog[gameState.match.maps.mapIndexSelected]
       local map = selectedMap(entry, column)
       if map then return map, true, 'vote', entry end
       return fallback, false, 'default'
     end
-    if not globalSettings.randomMap and not gameStats.randomMap and globalSettings.defaultMap then
+    if not roomConfig.settings.randomMap and not gameState.match.maps.randomMap and roomConfig.settings.defaultMap then
       for _, entry in ipairs(catalog) do
-        if entry[3] == globalSettings.defaultMap then
+        if entry[3] == roomConfig.settings.defaultMap then
           local map = selectedMap(entry, column)
           if type(map)=='string' and map~='' then return map, true, 'configuredDefault' end
           break
@@ -71,15 +71,15 @@ do
   end
 
   local function load(map, parseMarkers, large, printMap)
-    loadGameplayMap(map)
+    mapLoad.request(map)
     if printMap then print(map) end
     if parseMarkers then
       -- Capture the requested map: later selection changes must not alter
       -- metadata for the court whose delivery this timer is waiting for.
-      addMapTimer(function(i)
+      timers.addMap(function(i)
         if i == 1 then
-          foundBallSpawnsOnMap(map, large)
-          foundMiceSpawnsOnMap(map, large)
+          gameMaps.readBallSpawns(map, large)
+          gameMaps.readPlayerSpawns(map, large)
         end
       end, 1000)
     end
@@ -87,36 +87,36 @@ do
 
   local function announceVote(entry, printVote)
     local message = '<bv>The ' .. entry[3] .. ' map (created by ' .. entry[4]
-      .. ') was selected (' .. tostring(mapsVotes[gameStats.mapIndexSelected]) .. ' votes)<n>'
+      .. ') was selected (' .. tostring(gameState.voting.counts[gameState.match.maps.mapIndexSelected]) .. ' votes)<n>'
     tfm.exec.chatMessage(message, nil)
     if printVote then print(message) end
   end
 
   local function normalLayout()
-    local size = gameStats.setMapName
-    if size == '' then return gameStats.gameMode == '3v3' and 1 or 2 end
+    local size = gameState.match.maps.setMapName
+    if size == '' then return gameState.match.mode.gameMode == '3v3' and 1 or 2 end
     if size == 'small' then
-      gameStats.gameMode, gameStats.redX, gameStats.blueX = '3v3', 399, 401
+      gameState.match.mode.gameMode, gameState.match.court.redX, gameState.match.court.blueX = '3v3', 399, 401
       return 1
     end
     if size == 'large' then
-      gameStats.gameMode, gameStats.redX, gameStats.blueX = '4v4', 599, 601
+      gameState.match.mode.gameMode, gameState.match.court.redX, gameState.match.court.blueX = '4v4', 599, 601
       return 2
     end
     if size == 'extra-large' then
-      gameStats.gameMode, gameStats.redX, gameStats.blueX = '6v6', 899, 901
+      gameState.match.mode.gameMode, gameState.match.court.redX, gameState.match.court.blueX = '6v6', 899, 901
       return 3
     end
   end
 
   function gameMaps.loadInitial()
-    if gameStats.realMode then loadGameplayMap(realXML); return end
+    if gameState.match.mode.realMode then mapLoad.request(realXML); return end
 
     local catalog, column, fallback, large, printVote
-    if gameStats.threeTeamsMode then
+    if gameState.match.mode.threeTeamsMode then
       catalog, column, fallback = customMapsThreeTeamsMode, 1, customMapsThreeTeamsMode[1][1]
       large, printVote = false, true
-    elseif gameStats.teamsMode or gameStats.twoTeamsMode then
+    elseif gameState.match.mode.teamsMode or gameState.match.mode.twoTeamsMode then
       catalog, column, fallback = customMapsFourTeamsMode, 1, customMapsFourTeamsMode[34][1]
       large, printVote = false, true
     else
@@ -128,7 +128,7 @@ do
       else
         fallback = customMaps[6][column]
       end
-      printVote = gameStats.setMapName == '' and column == 1
+      printVote = gameState.match.maps.setMapName == '' and column == 1
     end
     local map, parseMarkers, reason, entry = choose(catalog, column, fallback, 1, true)
     load(map, parseMarkers, large)
@@ -139,29 +139,29 @@ do
     local catalog, column, fallback, overrideIndex
     if largeCourt then
       overrideIndex, column = 2, 2
-      if gameStats.teamsMode then
+      if gameState.match.mode.teamsMode then
         catalog, fallback = customMapsFourTeamsMode, customMapsFourTeamsMode[34][2]
-      elseif gameStats.threeTeamsMode then
+      elseif gameState.match.mode.threeTeamsMode then
         catalog, fallback = customMapsThreeTeamsMode, customMaps[6][2]
       else return end
     else
       catalog, column, fallback, overrideIndex = customMapsFourTeamsMode, 5, customMaps[6][1], 3
     end
     local map, parseMarkers, reason = choose(catalog, column, fallback, overrideIndex, false)
-    load(map, parseMarkers, false, largeCourt and gameStats.teamsMode and reason == 'test')
+    load(map, parseMarkers, false, largeCourt and gameState.match.mode.teamsMode and reason == 'test')
   end
 end
 
 -- Metadata is read after 1 second; court preparation runs after 2.5 seconds.
 -- Both timers wait for the requested map and are canceled when it is replaced.
 function gameMaps.prepareCourt(placeAndSpawn)
-  delaySpawnBall = addMapTimer(function(i)
+  timers.handles.spawnBall = timers.addMap(function(i)
     if i ~= 1 then return end
     gameMaps.refreshBoundaries()
     placeAndSpawn()
   end, 2500)
-  if globalSettings.minimalist then
-    addMapTimer(function() gameStats.canTransform = true end, 4000)
+  if roomConfig.settings.minimalist then
+    timers.addMap(function() gameState.match.round.canTransform = true end, 4000)
   end
 end
 
@@ -169,7 +169,7 @@ end
 -- Geometry copied from the exported XML; IDs do not overlap transformations,
 -- native map grounds, side indicators or the player ceiling.
 function gameMaps.restorePlatformsWalls()
-  local target = tostring(gameState.map.sourceTarget or tfm.get.room.currentMap)
+  local target = tostring(mapLoad.getSourceTarget() or tfm.get.room.currentMap)
   if target ~= '@7985278' and target ~= '7985278' then return end
   for index, x in ipairs({255,1345,945,535,125,1475,665,1075}) do
     tfm.exec.addPhysicObject(99970 + index, x, 352.5, {
@@ -198,35 +198,35 @@ end
 -- Complete only the requested gameplay map; the event owns phase dispatch.
 do
   local function setGameplayMapName()
-    local maps = (gameStats.teamsMode or gameStats.twoTeamsMode) and customMapsFourTeamsMode
-      or gameStats.threeTeamsMode and customMapsThreeTeamsMode or customMaps
-    if gameStats.isCustomMap and gameStats.customMapIndex >= 1 then
-      ui.setMapName("<j>" .. maps[gameStats.customMapIndex][4] .. "<n>")
-    elseif gameStats.totalVotes >= 2 then
-      ui.setMapName("<j>" .. maps[gameStats.mapIndexSelected][4] .. "<n>")
+    local maps = (gameState.match.mode.teamsMode or gameState.match.mode.twoTeamsMode) and customMapsFourTeamsMode
+      or gameState.match.mode.threeTeamsMode and customMapsThreeTeamsMode or customMaps
+    if gameState.match.maps.isCustomMap and gameState.match.maps.customMapIndex >= 1 then
+      ui.setMapName("<j>" .. maps[gameState.match.maps.customMapIndex][4] .. "<n>")
+    elseif gameState.match.maps.totalVotes >= 2 then
+      ui.setMapName("<j>" .. maps[gameState.match.maps.mapIndexSelected][4] .. "<n>")
     else
       ui.setMapName("<j>Refletz#6472<n>")
     end
   end
 
   function gameMaps.onGameplayLoaded()
-    if gameplayMapMatches() then
-      if not (globalSettings.minimalist and globalSettings.minimalistToggleMap) then
+    if mapLoad.matches() then
+      if not (roomConfig.settings.minimalist and roomConfig.settings.minimalistToggleMap) then
         if mapBackgrounds.prepare() then return end
-        finishGameplayMapLoad()
+        mapLoad.finish()
       end
     else
       return
     end
-    if globalSettings.minimalist and globalSettings.minimalistToggleMap then
-      globalSettings.minimalistToggleMap = false
+    if roomConfig.settings.minimalist and roomConfig.settings.minimalistToggleMap then
+      roomConfig.settings.minimalistToggleMap = false
 
       tfm.exec.chatMessage("<ch>Minimalist mode is enabled, reloading the map to complete the settings.<n>", nil)
 
       local loadedXML = tfm.get.room.xmlMapInfo.xml
-      local sourceTarget = gameState.map.sourceTarget
-      addMapLoadTimer(function(i)
-        loadGameplayMap(loadedXML, sourceTarget)
+      local sourceTarget = mapLoad.getSourceTarget()
+      timers.addMapLoad(function(i)
+        mapLoad.request(loadedXML, sourceTarget)
       end, 3000, 1)
     end
     clubhouse.showScores()

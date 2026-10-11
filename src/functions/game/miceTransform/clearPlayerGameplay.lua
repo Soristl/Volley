@@ -1,22 +1,39 @@
-function clearPlayerGameplay(name)
-  local ground = playerPhysicId[name]
+function playerRuntime.clearGameplay(name)
+  local ground = playerState.physicId[name]
   if ground and ground > 0 then tfm.exec.removePhysicObject(ground) end
-  playerPhysicId[name] = 0
-  for _, id in ipairs(playerConsumables[name] or {}) do
+  playerState.physicId[name] = 0
+  for _, id in ipairs(playerState.consumables.objects[name] or {}) do
     if tfm.get.room.objectList[id] then tfm.exec.removeObject(id) end
   end
-  playerConsumables[name] = nil
-  playerPressSpace[name] = false
-  playerCanTransform[name] = true
-  playerConsumable[name] = true
-  isPlayerDead[name] = false
-  playerOutOfCourt[name] = false
-  showOutOfCourtText[name] = false
+  playerState.consumables.objects[name] = nil
+  playerState.pressSpace[name] = false
+  playerState.canTransform[name] = true
+  playerState.consumables.ready[name] = true
+  playerState.dead[name] = false
+  playerState.outOfCourt[name] = false
+  playerState.outOfCourtText[name] = false
 end
 
-function clearMapPlayerGameplay()
+function playerRuntime.clearMapGameplay()
   for name in pairs(tfm.get.room.playerList) do
-    clearPlayerTimers(name)
-    clearPlayerGameplay(name)
+    timers.clearPlayer(name)
+    playerRuntime.clearGameplay(name)
   end
+end
+
+function playerRuntime.removeBannedPlayer(target)
+  if gameState.phase == "startGame" then
+    gameTeams.releaseLobbySeat(target)
+  elseif gameState.match.mode.teamsMode or gameState.match.mode.threeTeamsMode then
+    -- Remove membership even during a terrain transition.
+    gameTeams.leaveMulti(target)
+  else
+    gameTeams.leaveStandard(target)
+  end
+
+  -- Host departure can arrive later. Cancel both previous player work and
+  -- the spectator respawn that leaving a team may just have scheduled.
+  timers.clearPlayer(target)
+  playerRuntime.clearGameplay(target)
+  gameTeams.releaseSpawn(target)
 end

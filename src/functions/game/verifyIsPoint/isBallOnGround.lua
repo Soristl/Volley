@@ -1,4 +1,4 @@
-function isBallOnGround(objId)
+function gameBalls.isOnGround(objId)
   local obj = tfm.get.room.objectList[objId]
 
   if obj == nil then return false end

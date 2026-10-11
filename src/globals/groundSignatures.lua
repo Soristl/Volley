@@ -1,6 +1,6 @@
 -- Exact floor signatures reviewed against the 272 exported XML variants.
 -- Invisible grounds remain eligible; marker/decorative grounds do not.
-volleyGroundSignatures = {
+gameState.court.groundSignatures = {
   ["10|400|400|1200|100|0,0,0.2,0,0,0,0,0|3"] = true,
   ["10|400|400|800|100|0,0,0.1,0.2,0,0,0,0|3"] = true,
   ["10|600|400|1200|100|0,0,0.1,0.2,0,0,0,0|3"] = true,

@@ -96,9 +96,9 @@ end
 function clubhouse.teamSeat(team, index, occupant, viewer)
   local occupied = occupant ~= ""
   local id, px, py, color, callbackIndex = nil, nil, nil, nil, index
-  if gameStats.threeTeamsMode and team ~= "Yellow" then
+  if gameState.match.mode.threeTeamsMode and team ~= "Yellow" then
     local offset = team == "Red" and 0 or team == "Blue" and 4 or 8
-    id, px, py = threeTeamsMode.id[index+offset], threeTeamsMode.x[index+offset], threeTeamsMode.y[index+offset]
+    id, px, py = roomConfig.lobbySlots.threeTeams.id[index+offset], roomConfig.lobbySlots.threeTeams.x[index+offset], roomConfig.lobbySlots.threeTeams.y[index+offset]
   else
     local position
     if team == "Red" then
@@ -110,7 +110,7 @@ function clubhouse.teamSeat(team, index, occupant, viewer)
       callbackIndex = index+3
     elseif team == "Yellow" then id,position = index+7,index+6
     else id,position = index+10,index+9 end
-    px,py = x[position],y[position]
+    px,py = roomConfig.lobbySlots.x[position],roomConfig.lobbySlots.y[position]
   end
   if team == "Red" then color = occupied and 0x871F1F or 0xE14747
   elseif team == "Blue" then color = occupied and 0x0B3356 or 0x184F81
@@ -169,9 +169,9 @@ function clubhouse.lobbyTimer(name)
     end
     if lobbyTransition and not lobbyTransition.allowsDraw(player) then return end
     local state=clubhouse.state(player,"lobbyTimer")
-    if state.seconds==gameStats.initTimer and state.areas[7] then return end
-    clubhouse.area(player,"lobbyTimer",7,"<p align='center'><font size='18' color='#E3ECE7'>" .. string.format("%d",gameStats.initTimer) .. "</font></p>",375,65,50,25)
-    state.seconds=gameStats.initTimer
+    if state.seconds==gameState.match.round.initTimer and state.areas[7] then return end
+    clubhouse.area(player,"lobbyTimer",7,"<p align='center'><font size='18' color='#E3ECE7'>" .. string.format("%d",gameState.match.round.initTimer) .. "</font></p>",375,65,50,25)
+    state.seconds=gameState.match.round.initTimer
   end)
 end
 

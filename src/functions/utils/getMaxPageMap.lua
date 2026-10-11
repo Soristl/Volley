@@ -1,4 +1,4 @@
-function getMaxPageMap(mapsList)
+function clubhouse.mapPageCount(mapsList)
   local count = math.floor(#mapsList / 5)
 
   if #mapsList % 5 ~= 0 then
