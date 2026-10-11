@@ -16,15 +16,15 @@ local KEYS = {
   SPAWN_ITEM  = 77
 }
 
-function bindKeys(name)
+function playerRuntime.bindKeys(name)
   for k, v in pairs(KEYS) do
     if type(v) == "number" then
       system.bindKeyboard(name, v, true, true)
     end
 
     if type(v) == "table" then
-      for _, v2 in pairs(v) do
-        system.bindKeyboard(name, v2, true, true)
+      for code, enabled in pairs(v) do
+        if enabled then system.bindKeyboard(name, code, true, true) end
       end
     end
   end

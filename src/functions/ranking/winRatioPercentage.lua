@@ -1,4 +1,4 @@
-function winRatioPercentage(wins, matches)
+function sessionRanking.winPercentage(wins, matches)
   if matches == 0 then
     return 0
   end

@@ -32,7 +32,7 @@ clubhouse.ballSkins = (function()
   end
 
   function api.show(name)
-    if mode ~= "gameStart" or not tfm.get.room.playerList[name] then return end
+    if gameState.phase ~= "gameStart" or not tfm.get.room.playerList[name] then return end
     local stale = {}
     for id, skin in pairs(skins) do
       if tfm.get.room.objectList[id] then draw(name, id, skin)
@@ -46,6 +46,8 @@ clubhouse.ballSkins = (function()
     images[name] = nil
     for _, image in pairs(owned or {}) do tfm.exec.removeImage(image) end
   end
+
+  api.remove = removeBall
 
   function api.reset()
     local previous = images

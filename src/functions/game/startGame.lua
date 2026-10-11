@@ -1,54 +1,27 @@
-function startGame()
-  gameStats.canTransform = false
-  if not globalSettings.minimalist then
-    disablePlayersCanTransform(3500)
+function gameRound.start()
+  gameState.setPhase("gameStart")
+  timers.clearRound()
+  mapLoad.begin()
+  gameState.match.round.canTransform = false
+  if not roomConfig.settings.minimalist then
+    playerRuntime.delayRoundTransforms(3500)
   end
   
-  addMatchesToAllPlayers()
-  selectMap()
+  sessionRanking.addMatchesForRound()
+  gameMaps.selectInitial()
 
-  duration = os.time() + durationTimerPause * 1000
+  gameRound.startClock()
 
-  local _timer = math.ceil((duration - os.time()) / 1000)
+  clubhouse.removeLobbyTextAreas()
+  clubhouse.showScores()
 
-  tfm.exec.setGameTime(_timer, true)
+  roomConfig.settings.minimalistToggleMap = true
+  gameMaps.prepareCourt(function()
+    gameTeams.placeAll()
+    gameBalls.spawnInitial()
+    gamePoints.startChecking()
+    gameCrowns.showAll()
+  end)
 
-  removeTextAreasOfLobby()
-  showTheScore()
-
-  local delayMS = 2500
-
-  if globalSettings.minimalist then
-    delayMS = 6500
-  end
-
-  globalSettings.minimalistToggleMap = true
-
-  delaySpawnBall = addTimer(function(i)
-    if i == 1 then
-      updateBoundariesFromMap()
-      teleportPlayers()
-      spawnInitialBall()
-      verifyIsPoint()
-      showCrownToAllPlayers()
-
-      tfm.exec.addPhysicObject (99999, 800, webY, 
-      {
-        type = 15,
-        width = 3000,
-        height = 100,
-        miceCollision = false,
-        groundCollision = false   
-      })
-    end
-  end, delayMS)
-
-  if globalSettings.minimalist then
-    addTimer(function(i) 
-      gameStats.canTransform = true
-    end, delayMS + 1500)
-  end
-
-  mode = "gameStart"
   tfm.exec.chatMessage("<ch>If you don't want to see the ranking crowns, type the command !crown false<n>", nil)
 end

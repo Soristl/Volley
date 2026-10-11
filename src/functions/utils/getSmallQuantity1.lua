@@ -1,4 +1,4 @@
-function getSmallQuantity1(quantity)
+function gameTeams.smallestPopulatedCourt(quantity)
   local smallNumber = 9999
   local index = 0
 

@@ -1,20 +1,10 @@
-function removeSelectUI(name)
+function clubhouse.clearSelectors(name)
   clubhouse.clear(name, "selector")
   clubhouse.clear(name, "selector_balls")
-  selectMapImages[name] = selectMapImages[name] or {}
-  local ids = { 99999, 999999, 9999999, 99999999, 999999999 }
+  uiState.selectMapImages[name] = uiState.selectMapImages[name] or {}
 
-  for i = 1, 5 do
-    for j = 1, 5 do
-      ui.removeTextArea("" .. tostring(ids[i]) .. "" .. j .. "", name)
-    end
+  for i = 1, #uiState.selectMapImages[name] do
+    tfm.exec.removeImage(uiState.selectMapImages[name][i])
   end
-
-  ui.removeTextArea(9999999999, name)
-  ui.removeTextArea(99999999999, name)
-
-  for i = 1, #selectMapImages[name] do
-    tfm.exec.removeImage(selectMapImages[name][i])
-  end
-  selectMapImages[name] = {}
+  uiState.selectMapImages[name] = {}
 end

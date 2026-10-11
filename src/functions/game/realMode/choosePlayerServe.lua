@@ -1,113 +1,43 @@
-function choosePlayerServe(team)
-  print(team)
-  gameStats.redServe = false
-  gameStats.blueServe = false
-  gameStats.lastPlayerRed = ""
-  gameStats.lastPlayerBlue = ""
-
-  if gameStats.aceRed then
-    tfm.exec.movePlayer(gameStats.redPlayerServe, 700, 334)
-    tfm.exec.chatMessage("<bv>" .. gameStats.redPlayerServe .. " will serve the ball<n>", nil)
-    print("red condition ace")
-    print("<bv>" .. gameStats.redPlayerServe .. " will serve the ball<n>")
-    return chooseTeam
+do
+local function selectServer(roster, ace, previous, team)
+  local chosen, chosenIndex
+  local function available(name)
+    return name ~= "" and tfm.get.room.playerList[name] and not playerState.left[name]
   end
-
-  if gameStats.aceBlue then
-    tfm.exec.movePlayer(gameStats.bluePlayerServe, 1900, 334)
-    tfm.exec.chatMessage("<bv>" .. gameStats.bluePlayerServe .. " will serve the ball<n>", nil)
-    print("blue condition ace")
-    print("<bv>" .. gameStats.bluePlayerServe .. " will serve the ball<n>")
-    return chooseTeam
-  end
-
-
-  if team == "red" then
-    if gameStats.redServeIndex == 6 then
-      for i = 1, 6 do
-        if playersRed[i].name ~= "" then
-          gameStats.redServeIndex = i
-          gameStats.redPlayerServe = playersRed[i].name
-          gameStats.redServe = true
-          gameStats.aceRed = true
-          tfm.exec.movePlayer(playersRed[i].name, 700, 334)
-          tfm.exec.chatMessage("<bv>" .. playersRed[i].name .. " will serve the ball<n>", nil)
-          print("<bv>" .. playersRed[i].name .. " will serve the ball<n>")
-          return chooseTeam
-        end
-      end
-    else
-      for i = gameStats.redServeIndex, 6 do
-        if playersRed[i].name ~= "" and gameStats.redServeIndex ~= i then
-          gameStats.redServeIndex = i
-          gameStats.redPlayerServe = playersRed[i].name
-          gameStats.redServe = true
-          gameStats.aceRed = true
-          tfm.exec.movePlayer(playersRed[i].name, 700, 334)
-          tfm.exec.chatMessage("<bv>" .. playersRed[i].name .. " will serve the ball<n>", nil)
-          print("<bv>" .. playersRed[i].name .. " will serve the ball<n>")
-          return chooseTeam
-        end
-      end
-
-      for i = 1, gameStats.redServeIndex do
-        if playersRed[i].name ~= "" then
-          gameStats.redServeIndex = i
-          gameStats.redPlayerServe = playersRed[i].name
-          gameStats.redServe = true
-          gameStats.aceRed = true
-          tfm.exec.movePlayer(playersRed[i].name, 700, 334)
-          tfm.exec.chatMessage("<bv>" .. playersRed[i].name .. " will serve the ball<n>", nil)
-          print("<bv>" .. playersRed[i].name .. " will serve the ball<n>")
-          return chooseTeam
-        end
-      end
+  if gameState.match.real[ace] then
+    for i, slot in ipairs(roster) do
+      if slot.name == previous and available(slot.name) then chosen, chosenIndex = slot.name, i; break end
     end
-    gameStats.redServe = true
-    gameStats.aceRed = true
-  elseif team == "blue" then
-    if gameStats.blueServeIndex == 6 then
-      for i = 1, 6 do
-        if playersBlue[i].name ~= "" then
-          gameStats.blueServeIndex = i
-          gameStats.bluePlayerServe = playersBlue[i].name
-          gameStats.blueServe = true
-          gameStats.aceBlue = true
-          tfm.exec.movePlayer(playersBlue[i].name, 1900, 334)
-          tfm.exec.chatMessage("<bv>" .. playersBlue[i].name .. " will serve the ball<n>", nil)
-          print("<bv>" .. playersBlue[i].name .. " will serve the ball<n>")
-          return chooseTeam
-        end
-      end
-    else
-      for i = gameStats.blueServeIndex, 6 do
-        if playersBlue[i].name ~= "" and gameStats.blueServeIndex ~= i then
-          gameStats.blueServeIndex = i
-          gameStats.bluePlayerServe = playersBlue[i].name
-          gameStats.blueServe = true
-          gameStats.aceBlue = true
-          tfm.exec.movePlayer(playersBlue[i].name, 1900, 334)
-          tfm.exec.chatMessage("<bv>" .. playersBlue[i].name .. " will serve the ball<n>", nil)
-          print("<bv>" .. playersBlue[i].name .. " will serve the ball<n>")
-          return chooseTeam
-        end
-      end
-
-      for i = 1, gameStats.blueServeIndex do
-        if playersBlue[i].name ~= "" then
-          gameStats.blueServeIndex = i
-          gameStats.bluePlayerServe = playersBlue[i].name
-          gameStats.blueServe = true
-          gameStats.aceBlue = true
-          tfm.exec.movePlayer(playersBlue[i].name, 1900, 334)
-          tfm.exec.chatMessage("<bv>" .. playersBlue[i].name .. " will serve the ball<n>", nil)
-          print("<bv>" .. playersBlue[i].name .. " will serve the ball<n>")
-          return chooseTeam
-        end
-      end
-    end
-
-    gameStats.blueServe = true
-    gameStats.aceBlue = true
   end
+  if not chosen then
+    local last = gameState.match.real[team .. "ServeIndex"] or 0
+    for offset = 1, #roster do
+      local i = (last + offset - 1) % #roster + 1
+      if available(roster[i].name) then chosen, chosenIndex = roster[i].name, i; break end
+    end
+  end
+  return chosen, chosenIndex
+end
+
+function realServe.choosePlayer(team)
+  if team ~= "red" and team ~= "blue" then return nil end
+  local roster = team == "red" and gameState.teams.red or gameState.teams.blue
+  local ace = team == "red" and "aceRed" or "aceBlue"
+  local previous = gameState.match.real[team .. "PlayerServe"]
+  local chosen, chosenIndex = selectServer(roster, ace, previous, team)
+  gameState.match.real.redServe, gameState.match.real.blueServe = false, false
+  gameState.match.real.lastPlayerRed, gameState.match.real.lastPlayerBlue = "", ""
+  if not chosen then
+    gameState.match.real[team .. "PlayerServe"] = ""
+    gameState.match.real[ace] = false
+    return nil
+  end
+  gameState.match.real[team .. "PlayerServe"] = chosen
+  gameState.match.real[team .. "ServeIndex"] = chosenIndex
+  gameState.match.real[team .. "Serve"] = true
+  gameState.match.real.aceRed, gameState.match.real.aceBlue = team == "red", team == "blue"
+  tfm.exec.movePlayer(chosen, team == "red" and 700 or 1900, 334)
+  tfm.exec.chatMessage("<bv>" .. chosen .. " will serve the ball<n>", nil)
+  return chosen
+end
 end

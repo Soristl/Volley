@@ -1,7 +1,7 @@
-function disablePlayersCanTransform(time)
-  playersCanTransform = addTimer(function(i)
+function playerRuntime.delayRoundTransforms(time)
+  timers.handles.playerTransform = timers.addMap(function(i)
     if i == 1 then
-      gameStats.canTransform = true
+      gameState.match.round.canTransform = true
     end
   end, time, 1, "playersCanTransform")
 end

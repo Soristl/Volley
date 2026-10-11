@@ -1,4 +1,4 @@
-function getTeamName(text)
+function gameTeams.nameFromText(text)
   if string.sub(text, 1, 9) == "<j>Yellow" then
     return "Yellow"
   elseif string.sub(text, 1, 6) == "<r>Red" then

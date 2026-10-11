@@ -1,13 +1,13 @@
-function rankPageMode(mode, name)
+function sessionRanking.pageForMode(mode, name)
   if mode == "Normal mode" then
-    return pageNormalMode[name]
+    return uiState.pageNormalMode[name]
   elseif mode == "4 teams mode" then
-    return pageFourTeamsMode[name]
+    return uiState.pageFourTeamsMode[name]
   elseif mode == "3 teams mode" then
-    return pageThreeTeamsMode[name]
+    return uiState.pageThreeTeamsMode[name]
   elseif mode == "2 teams mode" then
-    return pageTwoTeamsMode[name]
+    return uiState.pageTwoTeamsMode[name]
   elseif mode == "Real mode" then
-    return pageRealMode[name]
+    return uiState.pageRealMode[name]
   end
 end

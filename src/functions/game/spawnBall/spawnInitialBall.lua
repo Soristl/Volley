@@ -1,110 +1,106 @@
-function spawnInitialBall()
-  local x = {}
+do
+-- Keep serve selection and delayed activation separate from court layout selection.
+local function spawnRealModeBall()
+  if realServe.endIfTeamEmpty() then return end
+  gameBalls.deactivate(1)
+  local team = realServe.chooseInitialTeam()
 
-  if gameStats.threeTeamsMode and gameStats.typeMap == "large4v4" then
-    local spawnBalls = { spawnBallArea400, spawnBallArea800, spawnBallArea1200 }
+  print(team)
+  gameState.match.real.reduceForce = true
+  if not team then return end
+  gameState.match.real[team .. 'LimitSpawn']=1
+  timers.addRound(function()
+    gameBalls.spawn(1,team=='red' and 700 or 1900,50,false)
+  end,4000,1,'delaySpawnBall')
 
-    x = { 300, 900, 1500 }
+  clubhouse.showScores()
 
-    spawnBallConfig(spawnBalls, x)
+  timers.handles.verifyBall = timers.addRound(function(i)
+    if i == 1 then
+      gameBalls.activate(1)
+    end
+  end, 5000, 1, "delayToVerifyBall")
+  return
+end
 
-    return
-  elseif gameStats.threeTeamsMode and gameStats.typeMap == "large3v3" then
-    local spawnBalls = { spawnBallArea400, spawnBallArea800 }
-    x = { 300, 900 }
+local function spawnThreeTeamBalls()
+  if gameState.match.mode.threeTeamsMode and gameState.match.court.typeMap == "large4v4" then
+    local spawnBalls = { gameState.court.ballSpawns[1], gameState.court.ballSpawns[2], gameState.court.ballSpawns[3] }
 
-    if gameStats.threeBalls then
+    local x = { 300, 900, 1500 }
+
+    gameBalls.spawnFromMarkers(spawnBalls, x)
+
+    return true
+  elseif gameState.match.mode.threeTeamsMode and gameState.match.court.typeMap == "large3v3" then
+    local spawnBalls = { gameState.court.ballSpawns[1], gameState.court.ballSpawns[2] }
+    local x = { 300, 900 }
+
+    if gameState.match.balls.threeBalls then
+      -- Keep the right-team markers assigned to the rightmost ball.
+      spawnBalls = { gameState.court.ballSpawns[1], {}, gameState.court.ballSpawns[2] }
       x = { 300, 600, 900 }
     end
 
-    spawnBallConfig(spawnBalls, x)
+    gameBalls.spawnFromMarkers(spawnBalls, x)
 
-    return
+    return true
   end
+  return false
+end
 
-  if gameStats.teamsMode and gameStats.typeMap == "large4v4" or gameStats.twoTeamsMode then
-    local spawnBalls = { spawnBallArea400, spawnBallArea800, spawnBallArea1200, spawnBallArea1600 }
+local function spawnTwoOrFourTeamBalls()
+  if gameState.match.mode.teamsMode and gameState.match.court.typeMap == "large4v4" or gameState.match.mode.twoTeamsMode then
+    local spawnBalls = { gameState.court.ballSpawns[1], gameState.court.ballSpawns[2], gameState.court.ballSpawns[3], gameState.court.ballSpawns[4] }
 
-    x = { 200, 600, 1000, 1400 }
+    local x = { 200, 600, 1000, 1400 }
 
-    spawnBallConfig(spawnBalls, x)
+    gameBalls.spawnFromMarkers(spawnBalls, x)
 
-    return
-  elseif gameStats.teamsMode and gameStats.typeMap == "large3v3" then
-    x = { 200, 600, 1000 }
-    local spawnBalls = { spawnBallArea400, spawnBallArea800, spawnBallArea1200 }
+    return true
+  elseif gameState.match.mode.teamsMode and gameState.match.court.typeMap == "large3v3" then
+    local x = { 200, 600, 1000 }
+    local spawnBalls = { gameState.court.ballSpawns[1], gameState.court.ballSpawns[2], gameState.court.ballSpawns[3] }
 
-    spawnBallConfig(spawnBalls, x)
+    gameBalls.spawnFromMarkers(spawnBalls, x)
 
-    return
-  elseif gameStats.teamsMode and gameStats.typeMap == "small" then
-    x = { 200, 600 }
-    local spawnBalls = { spawnBallArea400, spawnBallArea800 }
+    return true
+  elseif gameState.match.mode.teamsMode and gameState.match.court.typeMap == "small" then
+    local x = { 200, 600 }
+    local spawnBalls = { gameState.court.ballSpawns[1], gameState.court.ballSpawns[2] }
 
-    spawnBallConfig(spawnBalls, x)
+    gameBalls.spawnFromMarkers(spawnBalls, x)
 
-    return
+    return true
   end
+  return false
+end
 
-  if gameStats.realMode then
-    ballOnGame = false
-    local team = chooseInitialPlayer()
+function gameBalls.spawnInitial()
+  local x = {}
 
-    print(team)
-    gameStats.reduceForce = true
-    if team == "red" then
-      gameStats.aceRed = true
-      gameStats.redLimitSpawn = 1
-      local delaySpawnBall = addTimer(function(i)
-        if i == 1 then
-          if gameStats.customBall then
-            ball_id = tfm.exec.addShamanObject(balls[gameStats.customBallId].id, 700, 50, 0, 0, -5, true)
-            addBallSkin(ball_id)
-          else
-            ball_id = tfm.exec.addShamanObject(6, 700, 50, 0, 0, -5, true)
-          end
-        end
-      end, 4000, 1, "delaySpawnBall")
-    elseif team == "blue" then
-      gameStats.aceBlue = true
-      gameStats.blueLimitSpawn = 1
-      local delaySpawnBall = addTimer(function(i)
-        if i == 1 then
-          if gameStats.customBall then
-            ball_id = tfm.exec.addShamanObject(balls[gameStats.customBallId].id, 1900, 50, 0, 0, -5, true)
-            addBallSkin(ball_id)
-          else
-            ball_id = tfm.exec.addShamanObject(6, 1900, 50, 0, 0, -5, true)
-          end
-        end
-      end, 4000, 1, "delaySpawnBall")
-    end
+  if spawnThreeTeamBalls() then return end
+  if spawnTwoOrFourTeamBalls() then return end
 
-    showTheScore()
-
-    delayToVerifyBall = addTimer(function(i)
-      if i == 1 then
-        ballOnGame = true
-      end
-    end, 5000, 1, "delayToVerifyBall")
+  if gameState.match.mode.realMode then
+    spawnRealModeBall()
     return
   end
 
   local spawnBalls = {}
-  if gameStats.gameMode == "3v3" then
+  if gameState.match.mode.gameMode == "3v3" then
     x = { 200, 600 }
-    spawnBalls = { spawnBallArea400, spawnBallArea800 }
-  elseif gameStats.gameMode == "4v4" then
+    spawnBalls = { gameState.court.ballSpawns[1], gameState.court.ballSpawns[2] }
+  elseif gameState.match.mode.gameMode == "4v4" then
     x = { 400, 800 }
-    spawnBalls = { spawnBallArea800, spawnBallArea1600 }
+    spawnBalls = { gameState.court.ballSpawns[2], gameState.court.ballSpawns[4] }
   else
-    gameStats.physicObjectForce = 1.2
+    gameState.match.rules.physicObjectForce = 1.2
     x = { 400, 1400 }
   end
 
   --print(x)
 
-  spawnBallConfig(spawnBalls, x)
-  ballOnGame = true
-  updateTwoBallOnGame()
+  gameBalls.spawnFromMarkers(spawnBalls, x)
+end
 end

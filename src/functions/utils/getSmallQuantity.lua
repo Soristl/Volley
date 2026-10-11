@@ -1,7 +1,7 @@
-function getSmallQuantity(quantity)
+function gameTeams.smallestPopulatedTeam(quantity)
   local quantityNumbers = { quantity.yellow, quantity.red, quantity.blue, quantity.green }
 
-  if gameStats.threeTeamsMode then
+  if gameState.match.mode.threeTeamsMode then
     quantityNumbers = { quantity.red, quantity.blue, quantity.green }
   end
 

@@ -1,4 +1,4 @@
-function closeWindow(id, name)
+function clubhouse.closeLegacyWindow(id, name)
   local number = tonumber(id)
   if number == 23 or number == 30 or number == 31 then clubhouse.clear(name, "launcher" .. number) end
   if number == 24 then

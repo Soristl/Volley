@@ -1,4 +1,4 @@
-function isTemporaryPermanentAdmin(name)
+function roomConfig.isTemporaryPermanentAdmin(name)
   for i = 1, #temporaryPermanentAdmins do
     local admin = temporaryPermanentAdmins[i]
     if name == admin then

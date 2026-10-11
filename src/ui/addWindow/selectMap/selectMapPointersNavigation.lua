@@ -1,4 +1,4 @@
-function selectMapPointersNavigation(name, page, maxPage)
+function clubhouse.mapNavigation(name, page, maxPage)
   local str = ""
   for i = 1, maxPage do
     if page == i then

@@ -1,4 +1,4 @@
-function positions(page)
+function sessionRanking.pagePositions(page)
   local positions = {}
 
   for i = 1, 10 do

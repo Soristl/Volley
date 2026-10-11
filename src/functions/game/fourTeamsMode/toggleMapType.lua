@@ -1,7 +1,7 @@
-function toggleMapType()
-  if gameStats.typeMap == "large4v4" then
-    gameStats.typeMap = "large3v3"
-  elseif gameStats.typeMap == "large3v3" then
-    gameStats.typeMap = "small"
+function matchLifecycle.chooseReducedCourt()
+  if gameState.match.court.typeMap == "large4v4" then
+    gameState.match.court.typeMap = "large3v3"
+  elseif gameState.match.court.typeMap == "large3v3" then
+    gameState.match.court.typeMap = "small"
   end
 end

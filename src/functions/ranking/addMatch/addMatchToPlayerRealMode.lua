@@ -1,4 +1,3 @@
-function addMatchToPlayerRealMode(name)
-  playersRealMode[name].matches = playersRealMode[name].matches + 1
-  playersRealMode[name].winRatio = winRatioPercentage(playersRealMode[name].wins, playersRealMode[name].matches)
+function sessionRanking.addRealMatch(name)
+  sessionRanking.recordParticipation(sessionRanking.stats.real, name)
 end

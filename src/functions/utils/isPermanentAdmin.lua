@@ -1,4 +1,4 @@
-function isPermanentAdmin(name)
+function roomConfig.isPermanentAdmin(name)
   for i = 1, #permanentAdmins do
     local admin = permanentAdmins[i]
     if name == admin then

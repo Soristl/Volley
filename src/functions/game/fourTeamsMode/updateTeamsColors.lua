@@ -1,10 +1,6 @@
-function updateTeamsColors(index)
-  table.remove(messageTeamsLostOneLife, index)
-  table.remove(messageTeamsLifes, index)
-  table.remove(getTeamsColors, index)
-  table.remove(getTeamsColorsName, index)
-  table.remove(messageTeamsLifesTextChat, index)
-  table.remove(messageWinners, index)
-  table.remove(teamsPlayersOnGame, index)
-  table.remove(getTeamsLifes, index)
+-- Remove a court slot without maintaining parallel display arrays.
+function matchLifecycle.removeCourtTeam(index)
+  if not gameLives.setAt(index, 0) then return false end
+  table.remove(gameState.teamLayout.remaining, index)
+  return true
 end
