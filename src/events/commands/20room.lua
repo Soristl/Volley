@@ -266,7 +266,7 @@ function commandHandlers.cmdSetScore(args)
   if targets[target] then
     gameScores.set(target, newScore)
     tfm.exec.chatMessage(targets[target] .. target .. " score set to " .. newScore .."<n2> by " .. name .. " <n> ", nil)
-    showTheScore()
+    clubhouse.showScores()
   end
 
   -- Player Score:

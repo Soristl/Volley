@@ -1,13 +1,13 @@
 function rankMode(mode)
   if mode == "Normal mode" then
-    return rankNormalMode
+    return sessionRanking.ranks.normal
   elseif mode == "4 teams mode" then
-    return rankFourTeamsMode
+    return sessionRanking.ranks.four
   elseif mode == "3 teams mode" then
-    return rankThreeTeamsMode
+    return sessionRanking.ranks.three
   elseif mode == "2 teams mode" then
-    return rankTwoTeamsMode
+    return sessionRanking.ranks.two
   elseif mode == "Real mode" then
-    return rankRealMode
+    return sessionRanking.ranks.real
   end
 end

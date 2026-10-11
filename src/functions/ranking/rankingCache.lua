@@ -1,15 +1,15 @@
 -- UI reads share sorted session statistics until a participation, victory or
 -- roster insertion changes them. Game-triggered updaters still rebuild eagerly.
-rankingCache = {}
+sessionRanking.cache = {}
 
 do
-  local sources = { playersNormalMode, playersTwoTeamsMode, playersThreeTeamsMode, playersFourTeamsMode, playersRealMode }
+  local sources = { sessionRanking.stats.normal, sessionRanking.stats.two, sessionRanking.stats.three, sessionRanking.stats.four, sessionRanking.stats.real }
   local updaters = {
-    function() updateRankingNormalMode() end,
-    function() updateRankingTwoTeamsMode() end,
-    function() updateRankingThreeTeamsMode() end,
-    function() updateRankingFourTeamsMode() end,
-    function() updateRankingRealMode() end
+    function() sessionRanking.update.normal() end,
+    function() sessionRanking.update.two() end,
+    function() sessionRanking.update.three() end,
+    function() sessionRanking.update.four() end,
+    function() sessionRanking.update.real() end
   }
   local entries = {}
 
@@ -24,7 +24,7 @@ do
 
   -- One snapshot builder for every mode. Keep the original source iteration
   -- and comparator: adding a tie-breaker would change existing crown/rank order.
-  function rankingCache.rebuild(stats, mode)
+  function sessionRanking.cache.rebuild(stats, mode)
     local rank = {}
     local fields = extraFields[mode]
     for name, player in pairs(stats) do
@@ -40,27 +40,27 @@ do
       end
     end
     table.sort(rank, compare)
-    rankingCache.publish(stats, rank)
+    sessionRanking.cache.publish(stats, rank)
     return rank
   end
 
-  function rankingCache.invalidate(stats)
+  function sessionRanking.cache.invalidate(stats)
     local entry = entries[stats]
     if entry then entry.dirty = true end
   end
 
-  function rankingCache.invalidateAll()
+  function sessionRanking.cache.invalidateAll()
     for _, entry in pairs(entries) do entry.dirty = true end
   end
 
-  function rankingCache.publish(stats, rank)
+  function sessionRanking.cache.publish(stats, rank)
     local positions = {}
     for position, player in ipairs(rank) do positions[player.name] = position end
-    -- Never mutate an older rank list: rankCrown may retain it for this match.
+    -- Never mutate an older rank list: sessionRanking.crown may retain it for this match.
     entries[stats] = { rank = rank, positions = positions, dirty = false }
   end
 
-  function rankingCache.ensure(index)
+  function sessionRanking.cache.ensure(index)
     local stats = sources[index]
     local entry = entries[stats]
     if not entry or entry.dirty then
@@ -71,7 +71,7 @@ do
   end
 
   -- Call after ensure so the rank and its position index share one snapshot.
-  function rankingCache.position(index, name)
+  function sessionRanking.cache.position(index, name)
     return entries[sources[index]].positions[name]
   end
 end

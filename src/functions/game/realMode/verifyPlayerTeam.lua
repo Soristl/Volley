@@ -20,7 +20,7 @@ function verifyPlayerTeam(name)
           end
           gameStats[rule.quantity] = quantity + 1
           gameStats[rule.last] = name
-          showTheScore()
+          clubhouse.showScores()
           return true
         end
       end

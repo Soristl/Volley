@@ -1,3 +1,3 @@
 function addMatchToPlayerThreeTeamsMode(name)
-  recordMatchParticipation(playersThreeTeamsMode, name)
+  sessionRanking.recordParticipation(sessionRanking.stats.three, name)
 end

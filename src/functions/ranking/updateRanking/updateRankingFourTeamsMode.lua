@@ -1,3 +1,3 @@
-function updateRankingFourTeamsMode()
-  rankFourTeamsMode = rankingCache.rebuild(playersFourTeamsMode, 'four')
+function sessionRanking.update.four()
+  sessionRanking.ranks.four = sessionRanking.cache.rebuild(sessionRanking.stats.four, 'four')
 end

@@ -1,15 +1,15 @@
-function removeUITrophies(name, skipRestore)
-  if not profileState[name] and not isOpenProfile[name] and #(playerAchievementsImages[name] or {})==0 then return end
+function clubhouse.closeProfile(name, skipRestore)
+  if not uiState.profileState[name] and not uiState.isOpenProfile[name] and #(uiState.playerAchievementsImages[name] or {})==0 then return end
   clubhouse.clear(name, "profile")
-  isOpenProfile[name] = false
+  uiState.isOpenProfile[name] = false
 
   -- Profile and trophy text areas are all owned by the profile view.
-  profileState[name] = nil
+  uiState.profileState[name] = nil
 
-  for i = 1, #(playerAchievementsImages[name] or {}) do
-    tfm.exec.removeImage(playerAchievementsImages[name][i])
+  for i = 1, #(uiState.playerAchievementsImages[name] or {}) do
+    tfm.exec.removeImage(uiState.playerAchievementsImages[name][i])
   end
 
-  playerAchievementsImages[name] = {}
+  uiState.playerAchievementsImages[name] = {}
   if not skipRestore then clubhouse.restoreLobbyControls(name) end
 end

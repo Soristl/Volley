@@ -157,7 +157,7 @@ end
 function gameMaps.prepareCourt(placeAndSpawn)
   delaySpawnBall = addMapTimer(function(i)
     if i ~= 1 then return end
-    updateBoundariesFromMap()
+    gameMaps.refreshBoundaries()
     placeAndSpawn()
   end, 2500)
   if globalSettings.minimalist then
@@ -192,5 +192,44 @@ function gameMaps.restorePlatformsWalls()
       friction=0.1, restitution=0.2, miceCollision=true,
       groundCollision=false, foreground=true
     })
+  end
+end
+
+-- Complete only the requested gameplay map; the event owns phase dispatch.
+do
+  local function setGameplayMapName()
+    local maps = (gameStats.teamsMode or gameStats.twoTeamsMode) and customMapsFourTeamsMode
+      or gameStats.threeTeamsMode and customMapsThreeTeamsMode or customMaps
+    if gameStats.isCustomMap and gameStats.customMapIndex >= 1 then
+      ui.setMapName("<j>" .. maps[gameStats.customMapIndex][4] .. "<n>")
+    elseif gameStats.totalVotes >= 2 then
+      ui.setMapName("<j>" .. maps[gameStats.mapIndexSelected][4] .. "<n>")
+    else
+      ui.setMapName("<j>Refletz#6472<n>")
+    end
+  end
+
+  function gameMaps.onGameplayLoaded()
+    if gameplayMapMatches() then
+      if not (globalSettings.minimalist and globalSettings.minimalistToggleMap) then
+        if mapBackgrounds.prepare() then return end
+        finishGameplayMapLoad()
+      end
+    else
+      return
+    end
+    if globalSettings.minimalist and globalSettings.minimalistToggleMap then
+      globalSettings.minimalistToggleMap = false
+
+      tfm.exec.chatMessage("<ch>Minimalist mode is enabled, reloading the map to complete the settings.<n>", nil)
+
+      local loadedXML = tfm.get.room.xmlMapInfo.xml
+      local sourceTarget = gameState.map.sourceTarget
+      addMapLoadTimer(function(i)
+        loadGameplayMap(loadedXML, sourceTarget)
+      end, 3000, 1)
+    end
+    clubhouse.showScores()
+    setGameplayMapName()
   end
 end

@@ -113,7 +113,7 @@ do
         if valid(item) then
           -- Keep victory, score, podium, crowns and the court visible until
           -- the map changes. clearPlayer would remove those views too early.
-          closeAllWindows(item.name,true)
+          clubhouse.closeWindows(item.name,true)
           clubhouse.closePageInput(item.name)
           if clubhouse.selectionTimers[item.name] then
             removeTimer(clubhouse.selectionTimers[item.name])
@@ -140,7 +140,7 @@ do
         -- clearPlayer also forgets artwork ownership. A viewer of the current
         -- broadcast still has those three images; only late arrivals need copies.
         if sharedArtwork then viewers[item.name]=true end
-        closeAllWindows(item.name)
+        clubhouse.closeWindows(item.name)
         clubhouse.lobby(item.name)
         transition.renderingName=nil
         pending[item.name]=nil

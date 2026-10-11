@@ -37,7 +37,7 @@ do
         if subject ~= '' and (not player or subject == player) and playerInGame[subject]
           and tfm.get.room.playerList[subject] and not playerLeft[subject] and not playerBan[subject] then
           for rank = 1, 10 do
-            if rankCrown[rank] and rankCrown[rank].name == subject then
+            if sessionRanking.crown[rank] and sessionRanking.crown[rank].name == subject then
               for recipient in pairs(tfm.get.room.playerList) do
                 if (not viewer or recipient == viewer) and showCrownImages[recipient]
                   and not playerLeft[recipient] and not playerBan[recipient] then

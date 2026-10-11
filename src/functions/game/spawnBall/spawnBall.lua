@@ -1,5 +1,5 @@
 function spawnBall(x, index, y)
   local id=gameBalls.spawn(index,x,y)
-  showTheScore()
+  clubhouse.showScores()
   return id
 end

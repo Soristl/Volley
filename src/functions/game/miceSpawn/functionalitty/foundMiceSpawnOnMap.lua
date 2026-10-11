@@ -1,9 +1,9 @@
 function foundMiceSpawnsOnMap(map, isLargeMap)
-  lobbySpawn = {}
-  playersSpawn400 = {}
-  playersSpawn800 = {}
-  playersSpawn1200 = {}
-  playersSpawn1600 = {}
+  gameState.court.lobbySpawns = {}
+  gameState.court.playerSpawns[1] = {}
+  gameState.court.playerSpawns[2] = {}
+  gameState.court.playerSpawns[3] = {}
+  gameState.court.playerSpawns[4] = {}
 
   local xml = mapXml.spawnSource(map)
   for tag in xml:gmatch('<T%s+[^>]*>') do

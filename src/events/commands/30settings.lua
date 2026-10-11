@@ -110,7 +110,7 @@ function commandHandlers.cmdRandomMap(args)
   -- API. @Vit0rg
 
   -- for n, _ in pairs(tfm.get.room.playerList) do
-  --  if selectMapOpen[n] then selectMapUI(n) end
+  --  if selectMapOpen[n] then clubhouse.mapSelector(n) end
   -- end
 end
 
@@ -187,7 +187,7 @@ function commandHandlers.cmdCustomMap(args)
 
   -- Same case of randommap UI update. @Vit0rg
   -- for n, _ in pairs(tfm.get.room.playerList) do
-  --  if selectMapOpen[n] then selectMapUI(n) end
+  --  if selectMapOpen[n] then clubhouse.mapSelector(n) end
   -- end
 end
 
@@ -386,9 +386,9 @@ end
 function commandHandlers.cmdSettings(args)
   local name = args[1]
 
-  closeAllWindows(name)
-  settings[name] = true
-  updateSettingsUI(name)
+  clubhouse.closeWindows(name)
+  uiState.settings[name] = true
+  clubhouse.refreshSettings(name)
 end
 
 -- PERMANENT ADMIN COMMANDS

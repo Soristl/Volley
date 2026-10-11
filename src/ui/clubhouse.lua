@@ -379,10 +379,10 @@ function clubhouse.pageInputCallback(name,callback,keyboard)
     clubhouse.closePageInput(name)
     if page==view.navigation.page then return end
     if key=="help" then clubhouse.document(name,"help",page)
-    elseif key=="selector" and selectMapOpen[name] then clubhouse.selectorPage(name,false,page)
-    elseif key=="selector_balls" and selectBallOpen[name] then clubhouse.selectorPage(name,true,page)
-    elseif key=="ranking" then rankingCallback(name,"rankingPage"..page)
-    elseif key=="settings" and settings[name] and (USER_PERMISSIONS[name] or 1)>=2 then settingsMode[name]=false;pagePlayerSettings[name]=({1,4,2,3})[page];clubhouse.settings(name) end
+    elseif key=="selector" and uiState.selectMapOpen[name] then clubhouse.selectorPage(name,false,page)
+    elseif key=="selector_balls" and uiState.selectBallOpen[name] then clubhouse.selectorPage(name,true,page)
+    elseif key=="ranking" then clubhouse.rankingCallback(name,"rankingPage"..page)
+    elseif key=="settings" and uiState.settings[name] and (USER_PERMISSIONS[name] or 1)>=2 then uiState.settingsMode[name]=false;uiState.pagePlayerSettings[name]=({1,4,2,3})[page];clubhouse.settings(name) end
   elseif action=="back" or action:match("^%d$") then
     -- Editing has its own per-request delay; confirmation uses the player's click delay.
     local now=os.time()

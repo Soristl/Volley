@@ -1,6 +1,6 @@
 do
 -- Apply persistent room choices after the map request, before player resets.
-local function applyLobbySettings(prepared)
+local function applyLobbyMode()
   local configuredMode = true
   if globalSettings.mode == "4 teams mode" then
     gameStats.teamsMode = true
@@ -24,7 +24,9 @@ local function applyLobbySettings(prepared)
   if configuredMode then
     tfm.exec.chatMessage("<bv>Room Setup: The room has been configured for " .. globalSettings.mode .. "<n>", nil)
   end
+end
 
+local function applyLobbyBalls()
   if globalSettings.threeBalls and gameStats.threeTeamsMode then
     gameStats.threeBalls = true
     tfm.exec.chatMessage("<bv>Room Setup: The three-ball mode has been activated", nil)
@@ -43,7 +45,9 @@ local function applyLobbySettings(prepared)
     local indexBall = math.random(1, #balls)
     gameStats.customBallId = indexBall
   end
+end
 
+local function applyLobbyMap(prepared)
   if not (gameStats.realMode or gameStats.teamsMode or gameStats.twoTeamsMode or gameStats.threeTeamsMode) then
     gameStats.setMapName = globalSettings.mapType or ''
   end
@@ -55,8 +59,8 @@ local function applyLobbySettings(prepared)
     tfm.exec.chatMessage("<bv>Room Setup: The random map mode has been activated<n>", nil)
 
     for name1, data in pairs(tfm.get.room.playerList) do
-      if not prepared and selectMapOpen[name1] then
-        selectMapUI(name1)
+      if not prepared and uiState.selectMapOpen[name1] then
+        clubhouse.mapSelector(name1)
       end
     end
 
@@ -70,6 +74,12 @@ local function applyLobbySettings(prepared)
     tfm.exec.chatMessage(message, nil)
     if usesFourTeamMaps then print(message) end
   end
+end
+
+local function applyLobbySettings(prepared)
+  applyLobbyMode()
+  applyLobbyBalls()
+  applyLobbyMap(prepared)
 
   if not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realMode and not gameStats.threeTeamsMode then
     if globalSettings.consumables then
@@ -90,60 +100,8 @@ local function applyLobbySettings(prepared)
   end
 end
 
-function init(staged, prepared)
-  if staged then return lobbyTransition.begin() end
-  if not prepared then lobbyTransition.cancel() end
-  resetMatchStatistics()
-  if not prepared then
-    clearRoundTimers()
-    gameCrowns.reset()
-    clubhouse.reset()
-  end
-  spawnBallArea400 = {}
-  spawnBallArea800 = {}
-  spawnBallArea1200 = {}
-  spawnBallArea1600 = {}
-
-  lobbySpawn = {}
-
-  playersSpawn400 = {}
-  playersSpawn800 = {}
-  playersSpawn1200 = {}
-  playersSpawn1600 = {}
-
-  durationDefault = 300
-  duration = os.time() + durationDefault * 1000
-  durationTimerPause = durationDefault
-
-  playersOnGameHistoric = {}
-  gameState.resetLobby()
-  removeTimer('verifyBallCoordinates')
-  playerConsumables = {}
-
-  gameBalls.clear()
-  tfm.exec.disableAllShamanSkills(true)
-
-  playerCanTransform = {}
-  playerInGame = {}
-
-  twoTeamsPlayerRedPosition = { [1] = "", [2] = "", [3] = "", [4] = "", [5] = "", [6] = "" }
-  twoTeamsPlayerBluePosition = { [1] = "", [2] = "", [3] = "", [4] = "", [5] = "", [6] = "" }
-
-  gameTeams.resetRoster("red", 6)
-  gameTeams.resetRoster("blue", 6)
-  gameTeams.resetRoster("yellow", 3)
-
-  gameTeams.resetRoster("green", 3)
-
-  gameState.lives = { [1] = { yellow = 3 }, [2] = { red = 3 }, [3] = { blue = 3 }, [4] = { green = 3 } }
-
-  mapsToTest = { [1] = "", [2] = "", [3] = "" }
-  teamsPlayersOnGame = {}
-
-  for i = 1, #customMaps do
-    mapsVotes[i] = 0
-  end
-
+-- Replace match settings before applying the persistent room choices.
+local function resetMatchSettings()
   gameStats = {
     gameMode = '',
     redX = 0,
@@ -195,67 +153,98 @@ function init(staged, prepared)
     threeTeamsMode = false,
     threeBalls = false
   }
+end
+
+-- Keep round cleanup and state replacement in their established order.
+local function resetRoundState()
+  gameState.resetCourtSpawns()
+
+  durationDefault = 300
+  duration = os.time() + durationDefault * 1000
+  durationTimerPause = durationDefault
+
+  playersOnGameHistoric = {}
+  gameState.resetLobby()
+  removeTimer('verifyBallCoordinates')
+  playerConsumables = {}
+
+  gameBalls.clear()
+  tfm.exec.disableAllShamanSkills(true)
+
+  playerCanTransform = {}
+  playerInGame = {}
+
+  twoTeamsPlayerRedPosition = { [1] = "", [2] = "", [3] = "", [4] = "", [5] = "", [6] = "" }
+  twoTeamsPlayerBluePosition = { [1] = "", [2] = "", [3] = "", [4] = "", [5] = "", [6] = "" }
+
+  gameTeams.resetRoster("red", 6)
+  gameTeams.resetRoster("blue", 6)
+  gameTeams.resetRoster("yellow", 3)
+
+  gameTeams.resetRoster("green", 3)
+
+  gameState.lives = { [1] = { yellow = 3 }, [2] = { red = 3 }, [3] = { blue = 3 }, [4] = { green = 3 } }
+
+  mapsToTest = { [1] = "", [2] = "", [3] = "" }
+  teamsPlayersOnGame = {}
+
+  for i = 1, #customMaps do
+    mapsVotes[i] = 0
+  end
+
+  resetMatchSettings()
 
   playerCoordinates = {}
   webY = 460
   countId = 100000 -- Player grounds: separate from XML grounds and 99990..99998 map helpers.
   playerPhysicId = {}
   gameScores.reset()
-  teamPointsArea1 = {}
-  teamPointsArea2 = {}
-  teamPointsArea3 = {}
-  teamPointsArea4 = {}
+  gameState.resetCourtPointAreas()
+end
 
-  lobby_map = '@7983549'
-  tfm.exec.newGame(lobby_map)
-
-  applyLobbySettings(prepared)
-
-  for name, data in pairs(tfm.get.room.playerList) do
-    if string.match(name, '%*') then
-      playerBanHistory[name] = 'VOLLEY SYSTEM'
-      playerBan[name] = true
-    end
-
-    playerLeftRight[name] = 0
-    playerConsumableKey[name] = 56
-    playerConsumable[name] = true
-    playerConsumableItem[name] = 80
-    playerForce[name] = 0
-    playerCanTransform[name] = true
-    playerInGame[name] = false
-    playerCoordinates[name] = { x = 0, y = 0 }
-    playerPhysicId[name] = 0
-    playersOnGameHistoric[name] = { teams = {} }
-    isPlayerDead[name] = false
-    playerPressSpace[name] = false
-    playerOutOfCourt[name] = false
-    showOutOfCourtText[name] = false
-
-    --[[
-    for i = 1, #keys do
-      system.bindKeyboard(name, keys[i], true, true)
-    end
-    ]]
-
-    tfm.exec.setNameColor(name, 0xD1D5DB)
-    tfm.exec.setPlayerScore(name, 0, false)
-    pagesList[name] = { helpPage = 1 }
-    canVote[name] = true
-
-    if not prepared and selectMapOpen[name] then
-      selectMapPage[name] = 1
-      selectMapUI(name)
-    end
-
-    clubhouse.launcher(name,31)
+-- Reset one player after room settings; staged returns defer selector rendering.
+local function resetPlayerForLobby(name, prepared)
+  if string.match(name, '%*') then
+    playerBanHistory[name] = 'VOLLEY SYSTEM'
+    playerBan[name] = true
   end
 
-  clubhouse.launcher(nil,23)
-  clubhouse.launcher(nil,30)
+  playerLeftRight[name] = 0
+  playerConsumableKey[name] = 56
+  playerConsumable[name] = true
+  playerConsumableItem[name] = 80
+  playerForce[name] = 0
+  playerCanTransform[name] = true
+  playerInGame[name] = false
+  playerCoordinates[name] = { x = 0, y = 0 }
+  playerPhysicId[name] = 0
+  playersOnGameHistoric[name] = { teams = {} }
+  isPlayerDead[name] = false
+  playerPressSpace[name] = false
+  playerOutOfCourt[name] = false
+  showOutOfCourtText[name] = false
 
-  ui.removeTextArea(0)
+  --[[
+  for i = 1, #keys do
+    system.bindKeyboard(name, keys[i], true, true)
+  end
+  ]]
 
+  tfm.exec.setNameColor(name, 0xD1D5DB)
+  tfm.exec.setPlayerScore(name, 0, false)
+  uiState.pagesList[name] = { helpPage = 1 }
+  canVote[name] = true
+
+  if not prepared and uiState.selectMapOpen[name] then
+    uiState.selectMapPage[name] = 1
+    clubhouse.mapSelector(name)
+  end
+
+  clubhouse.launcher(name,31)
+end
+
+-- Clear the two-team seat layout after player controls have been refreshed.
+local function resetLobbySeats()
   if not gameStats.teamsMode and not gameStats.threeTeamsMode then
     for i = 1, 3 do
       clubhouse.teamSeat("Red", i, "")
@@ -273,6 +262,34 @@ function init(staged, prepared)
       clubhouse.teamSeat("Blue", i - 7, "")
     end
   end
+end
+
+function init(staged, prepared)
+  if staged then return lobbyTransition.begin() end
+  if not prepared then lobbyTransition.cancel() end
+  sessionRanking.resetMatch()
+  if not prepared then
+    clearRoundTimers()
+    gameCrowns.reset()
+    clubhouse.reset()
+  end
+  resetRoundState()
+
+  lobby_map = '@7983549'
+  tfm.exec.newGame(lobby_map)
+
+  applyLobbySettings(prepared)
+
+  for name, data in pairs(tfm.get.room.playerList) do
+    resetPlayerForLobby(name, prepared)
+  end
+
+  clubhouse.launcher(nil,23)
+  clubhouse.launcher(nil,30)
+
+  ui.removeTextArea(0)
+
+  resetLobbySeats()
 
   afkSystem()
 

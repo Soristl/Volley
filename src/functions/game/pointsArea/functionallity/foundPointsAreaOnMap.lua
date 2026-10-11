@@ -27,8 +27,8 @@ function foundPointsAreaOnMap(map)
     end
     return result
   end
-  teamPointsArea1 = areas("team1")
-  teamPointsArea2 = areas("team2")
-  teamPointsArea3 = areas("team3")
-  teamPointsArea4 = areas("team4")
+  gameState.court.pointAreas[1] = areas("team1")
+  gameState.court.pointAreas[2] = areas("team2")
+  gameState.court.pointAreas[3] = areas("team3")
+  gameState.court.pointAreas[4] = areas("team4")
 end

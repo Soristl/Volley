@@ -20,7 +20,7 @@ end
 
 function clubhouse.menu(name)
   if gameState.phase ~= "startGame" then return end
-  if not (clubhouse.views[name] and clubhouse.views[name].menu) then closeAllWindows(name) end
+  if not (clubhouse.views[name] and clubhouse.views[name].menu) then clubhouse.closeWindows(name) end
   clubhouse.clear(name, "launcher23")
   clubhouse.panel(name, "menu")
   clubhouse.closeLabel(name, "menu", "menuClose")

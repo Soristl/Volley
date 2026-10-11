@@ -1,3 +1,3 @@
 function addMatchToPlayer(name)
-  recordMatchParticipation(playersNormalMode, name)
+  sessionRanking.recordParticipation(sessionRanking.stats.normal, name)
 end

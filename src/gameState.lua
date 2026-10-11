@@ -4,6 +4,9 @@
 gameState = {
   phase = "startGame",
   map = { ready = true },
+  -- Map-derived lists are replaced at their existing parse/reset boundaries.
+  -- Slots follow XML team/spawn order, not a fixed court width.
+  court = { playerSpawns = {}, ballSpawns = {}, pointAreas = {} },
   balls = { { active = false }, { active = false }, { active = false } },
   teams = { red = {}, blue = {}, yellow = {}, green = {} },
   scores = { red = 0, blue = 0 },
@@ -37,4 +40,27 @@ function gameState.resetMap()
   gameState.map.ready = true
   gameState.map.target = nil
   gameState.map.sourceTarget = nil
+end
+
+-- These lists are replaced at lobby initialization; keep their parent containers stable.
+function gameState.resetCourtSpawns()
+  gameState.court.ballSpawns[1] = {}
+  gameState.court.ballSpawns[2] = {}
+  gameState.court.ballSpawns[3] = {}
+  gameState.court.ballSpawns[4] = {}
+
+  gameState.court.lobbySpawns = {}
+
+  gameState.court.playerSpawns[1] = {}
+  gameState.court.playerSpawns[2] = {}
+  gameState.court.playerSpawns[3] = {}
+  gameState.court.playerSpawns[4] = {}
+end
+
+-- Point areas reset later, after scores. Keep this separate from the spawn reset.
+function gameState.resetCourtPointAreas()
+  gameState.court.pointAreas[1] = {}
+  gameState.court.pointAreas[2] = {}
+  gameState.court.pointAreas[3] = {}
+  gameState.court.pointAreas[4] = {}
 end

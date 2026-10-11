@@ -23,6 +23,6 @@ function resetQuantityTeams()
       end
     end
 
-    showTheScore()
+    clubhouse.showScores()
   end
 end

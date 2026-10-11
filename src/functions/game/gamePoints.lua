@@ -1,8 +1,8 @@
 -- Detection and point resolution are shared by XML zones and ordinary floors.
 gamePoints = {}
 do
-  local function pointAreas() return {teamPointsArea1,teamPointsArea2,teamPointsArea3,teamPointsArea4} end
-  local function spawnAreas() return {spawnBallArea400,spawnBallArea800,spawnBallArea1200,spawnBallArea1600} end
+  local function pointAreas() return {gameState.court.pointAreas[1],gameState.court.pointAreas[2],gameState.court.pointAreas[3],gameState.court.pointAreas[4]} end
+  local function spawnAreas() return {gameState.court.ballSpawns[1],gameState.court.ballSpawns[2],gameState.court.ballSpawns[3],gameState.court.ballSpawns[4]} end
 
   local function respawn(index, area, fallback)
     local markers = spawnAreas()[area]
@@ -112,11 +112,11 @@ do
   local function finishPoints(mode, key, index)
     gameBalls.deactivateAll()
     gameBalls.remove(index)
-    showTheScore()
+    clubhouse.showScores()
     showMessageWinner()
-    if mode == 'real' then realModeWinner(key); updateRankingRealMode()
-    elseif mode == 'two' then twoTeamsModeWinner(key); updateRankingTwoTeamsMode()
-    else normalModeTeamWinner(key); updateRankingNormalMode() end
+    if mode == 'real' then realModeWinner(key); sessionRanking.update.real()
+    elseif mode == 'two' then twoTeamsModeWinner(key); sessionRanking.update.two()
+    else normalModeTeamWinner(key); sessionRanking.update.normal() end
     beginEndGame()
   end
 
@@ -148,12 +148,12 @@ do
   local function finishLives(mode, index)
     gameBalls.deactivateAll()
     gameBalls.remove(index)
-    showTheScore()
+    clubhouse.showScores()
     if #teamsPlayersOnGame == 1 then
       showMessageWinner()
       local key = gameTeams.keyAt(1)
-      if mode == 'three' then threeTeamsModeWinner(key, teamsPlayersOnGame[1]); updateRankingThreeTeamsMode()
-      else fourTeamsModeWinner(key, teamsPlayersOnGame[1]); updateRankingFourTeamsMode() end
+      if mode == 'three' then threeTeamsModeWinner(key, teamsPlayersOnGame[1]); sessionRanking.update.three()
+      else fourTeamsModeWinner(key, teamsPlayersOnGame[1]); sessionRanking.update.four() end
     end
     beginEndGame()
   end
@@ -168,7 +168,7 @@ do
       gameBalls.deactivateAll()
       gameTeams.eliminate(gameState.teams[key])
       tfm.exec.chatMessage(gameTeams.message(key, 'lost all their lives'), nil)
-      local remaining = refreshRemainingTeams()
+      local remaining = gameTeams.refreshRemaining()
       if remaining <= 1 then finishLives(mode, index); return end
       gameStats.typeMap = mode == 'three' and 'large3v3' or remaining == 3 and 'large3v3' or 'small'
       gameStats.canTransform = false
@@ -223,8 +223,8 @@ do
     else
       gameBalls.deactivate(1)
       gameStats.canTransform = false
-      scheduleRealServe(key)
-      showTheScore()
+      realServe.schedule(key)
+      clubhouse.showScores()
     end
   end
 end

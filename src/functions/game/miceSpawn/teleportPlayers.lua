@@ -1,5 +1,5 @@
-function teleportPlayers()
-  teleportPlayersToSpec()
+function gameTeams.placeAll()
+  gameTeams.placeSpectators()
   local rosters=gameTeams.rosters()
   for _,key in ipairs(gameTeams.keys()) do
     local positions=gameTeams.positions(key)

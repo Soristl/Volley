@@ -76,14 +76,14 @@ function commandHandlers.cmdForceLeave(args)
 
   if (gameStats.teamsMode or gameStats.threeTeamsMode) and
       gameStats.canTransform then
-    leaveTeamTeamsMode(target)
+    gameTeams.leaveMulti(target)
     tfm.exec.chatMessage("<vi>" .. target .. " force leave by " .. name ..
       " <n> ", nil)
     return
   end
 
   if not gameStats.teamsMode and not gameStats.threeTeamsMode then
-    leaveTeam(target);
+    gameTeams.leaveStandard(target);
     return tfm.exec.chatMessage("<vi>" .. target .. " force leave by " ..
       name .. " <n> ", nil)
   end
@@ -128,19 +128,19 @@ function commandHandlers.cmdBan(args)
   if not tfm.get.room.playerList[target] or playerLeft[target] then return end
 
   if gameState.phase == "startGame" then
-    updateLobbyTexts(target)
+    gameTeams.releaseLobbySeat(target)
   elseif gameStats.teamsMode or gameStats.threeTeamsMode then
     -- Remove membership even during a terrain transition.
-    leaveTeamTeamsMode(target)
+    gameTeams.leaveMulti(target)
   else
-    leaveTeam(target)
+    gameTeams.leaveStandard(target)
   end
 
   -- Host departure can arrive later. Cancel both previous player work and
   -- the spectator respawn that leaving a team may just have scheduled.
   clearPlayerTimers(target)
   clearPlayerGameplay(target)
-  removePlayerOnSpawnConfig(target)
+  gameTeams.releaseSpawn(target)
 end
 
 function commandHandlers.cmdUnban(args)
@@ -193,7 +193,7 @@ function commandHandlers.cmdKillSpec(args)
   elseif gameState.phase == "gameStart" and isGameplayMapReady() then
     -- Revive only dead spectators; active players keep their own respawn delay.
     -- During loading, the normal map placement restores spectators instead.
-    teleportPlayersToSpec(true)
+    gameTeams.placeSpectators(true)
   end
 end
 
@@ -222,5 +222,5 @@ function commandHandlers.cmdPause(args)
   setGameplayTimersPaused(false)
   -- A departure during pause may have queued a reduced court. Its map
   -- preparation owns the next ball; do not spawn one on the old terrain.
-  if isGameplayMapReady() and gameStats.canTransform then spawnInitialBall() end
+  if isGameplayMapReady() and gameStats.canTransform then gameBalls.spawnInitial() end
 end

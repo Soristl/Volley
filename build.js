@@ -3,7 +3,7 @@ const combine = require("./combine")
 const luamin = require("luamin")
 
 const inputs = [
-	"src/printf.lua", "src/translations.lua", "src/gameState.lua", "src/timer.lua", "src/configuration",
+	"src/printf.lua", "src/translations.lua", "src/services.lua", "src/gameState.lua", "src/timer.lua", "src/configuration",
 	"src/main.lua", "src/globals", "src/events", "src/functions", "src/ui", "src/init.lua"
 ]
 

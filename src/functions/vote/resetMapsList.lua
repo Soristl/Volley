@@ -5,9 +5,9 @@ function resetMapsList()
   for name, data in pairs(tfm.get.room.playerList) do
     canVote[name] = true
 
-    if selectMapOpen[name] then
-      selectMapPage[name] = 1
-      selectMapUI(name)
+    if uiState.selectMapOpen[name] then
+      uiState.selectMapPage[name] = 1
+      clubhouse.mapSelector(name)
     end
   end
 end

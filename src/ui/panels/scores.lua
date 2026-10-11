@@ -27,7 +27,7 @@ end
 
 function clubhouse.winner()
   clubhouse.each(nil,function(name)
-    closeAllWindows(name)
+    clubhouse.closeWindows(name)
     clubhouse.panel(name,"victory")
     local team
     if gameStats.teamsMode or gameStats.threeTeamsMode then

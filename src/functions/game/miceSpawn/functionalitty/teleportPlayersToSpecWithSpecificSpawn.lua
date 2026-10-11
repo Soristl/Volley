@@ -1,8 +1,8 @@
-function teleportPlayersToSpecWithSpecificSpawn(name)
-  if #lobbySpawn > 0 then
-    local index = math.random(1, #lobbySpawn)
+function gameTeams.placeSpectator(name)
+  if #gameState.court.lobbySpawns > 0 then
+    local index = math.random(1, #gameState.court.lobbySpawns)
 
-    tfm.exec.movePlayer(name, lobbySpawn[index].x, lobbySpawn[index].y)
+    tfm.exec.movePlayer(name, gameState.court.lobbySpawns[index].x, gameState.court.lobbySpawns[index].y)
   else
     if gameStats.threeTeamsMode then
       if gameStats.typeMap == "large4v4" then

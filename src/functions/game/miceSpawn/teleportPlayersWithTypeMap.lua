@@ -1,8 +1,8 @@
 -- Reduced courts retain the original team identity for lives and colours.
-function teleportPlayersWithTypeMap(isLargeMode)
+function gameTeams.placeRemaining(isLargeMode)
   if gameStats.typeMap ~= 'large3v3' and gameStats.typeMap ~= 'small' then return end
-  teleportPlayersToSpec()
-  if isLargeMode then refreshRemainingTeams() end
+  gameTeams.placeSpectators()
+  if isLargeMode then gameTeams.refreshRemaining() end
 
   local width = gameStats.threeTeamsMode and 600 or 400
   local area = 0

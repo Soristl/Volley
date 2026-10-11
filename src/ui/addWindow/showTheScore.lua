@@ -1,8 +1,23 @@
-function showTheScore(viewer)
-  -- Arrivals render only their own panel; phase cleanup remains room-wide.
-  if gameState.phase ~= "gameStart" then clubhouse.clear(nil,"score");return end
-  -- Retire the old map-relative score textareas, including Real Mode counters.
-  for _,id in ipairs({0,1,899899,8998991}) do ui.removeTextArea(id) end
+do
+local function addReducedTeamScores(add, colors)
+  local count = gameStats.teamsMode and gameStats.typeMap == "large3v3" and 3 or 2
+  local positions = gameStats.typeMap == "small" and {0,700} or count == 3 and {200,550,900} or {200,900}
+  if count == 3 then
+    -- Simple Neon's visible right frame is 200px beyond the standard slot.
+    -- Use the requested source during transitions, not the previous map.
+    local source = gameState.map.sourceTarget or gameState.map.target or tfm.get.room.currentMap
+    if tonumber((tostring(source):gsub('^@', ''))) == 7985080 then positions[3] = 1100 end
+  end
+  for i=1,count do
+    local key = gameTeams.keyAt(i)
+    local lives = gameLives.forTeam(key)
+    if lives == nil or key == nil then clubhouse.clear(nil,"score");return false end
+    add(lives,colors[key] or "#E3ECE7",positions[i])
+  end
+  return true
+end
+
+local function buildScoreEntries()
   local colors = {red="#E85A71",blue="#4BA9EF",yellow="#E5CC4B",green="#49CF82"}
   local entries = {}
   local function add(value,color,x,detail,detailX)
@@ -24,25 +39,23 @@ function showTheScore(viewer)
       add(gameState.lives[3].blue,colors.blue,gameStats.teamsMode and 950 or 850)
       add(gameState.lives[4].green,colors.green,gameStats.teamsMode and 1300 or 1350)
     else
-      local count = gameStats.teamsMode and gameStats.typeMap == "large3v3" and 3 or 2
-      local positions = gameStats.typeMap == "small" and {0,700} or count == 3 and {200,550,900} or {200,900}
-      if count == 3 then
-        -- Simple Neon's visible right frame is 200px beyond the standard slot.
-        -- Use the requested source during transitions, not the previous map.
-        local source = gameState.map.sourceTarget or gameState.map.target or tfm.get.room.currentMap
-        if tonumber((tostring(source):gsub('^@', ''))) == 7985080 then positions[3] = 1100 end
-      end
-      for i=1,count do
-        local key = gameTeams.keyAt(i)
-        local lives = gameLives.forTeam(key)
-        if lives == nil or key == nil then clubhouse.clear(nil,"score");return end
-        add(lives,colors[key] or "#E3ECE7",positions[i])
-      end
+      if not addReducedTeamScores(add, colors) then return end
     end
   else
     local positions = gameStats.gameMode == "3v3" and {0,700} or gameStats.gameMode == "4v4" and {200,900} or {200,1500}
     add(gameState.scores.red,colors.red,positions[1])
     add(gameState.scores.blue,colors.blue,positions[2])
   end
+  return entries
+end
+
+function clubhouse.showScores(viewer)
+  -- Arrivals render only their own panel; phase cleanup remains room-wide.
+  if gameState.phase ~= "gameStart" then clubhouse.clear(nil,"score");return end
+  -- Retire the old map-relative score textareas, including Real Mode counters.
+  for _,id in ipairs({0,1,899899,8998991}) do ui.removeTextArea(id) end
+  local entries = buildScoreEntries()
+  if not entries then return end
   clubhouse.drawScores(entries,viewer)
+end
 end

@@ -1,4 +1,4 @@
-function spawnBallsOnSpecificPlaces(spawnBallsTable, defaultSpawnBallTable)
+function gameBalls.resolveSpawnPlaces(spawnBallsTable, defaultSpawnBallTable)
   local pool,places={},{}
   for index,x in ipairs(defaultSpawnBallTable) do
     pool[#pool+1]={markers=spawnBallsTable[index],x=x}

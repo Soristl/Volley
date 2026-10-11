@@ -63,10 +63,10 @@ local teleportFourSlots = {yellow=1, red=2, blue=3, green=4}
 local teleportThreeSlots = {red=1, blue=2, green=3}
 
 local function teleportAreaSpawns(slot)
-  if slot == 1 then return playersSpawn400 end
-  if slot == 2 then return playersSpawn800 end
-  if slot == 3 then return playersSpawn1200 end
-  if slot == 4 then return playersSpawn1600 end
+  if slot == 1 then return gameState.court.playerSpawns[1] end
+  if slot == 2 then return gameState.court.playerSpawns[2] end
+  if slot == 3 then return gameState.court.playerSpawns[3] end
+  if slot == 4 then return gameState.court.playerSpawns[4] end
 end
 
 -- Resolve the current court without changing membership or spawn occupancy.
@@ -93,13 +93,13 @@ local function teleportCourt(color)
     if gameStats.realMode then
       x = red and 900 or 1700
     elseif gameStats.twoTeamsMode then
-      spawns = red and playersSpawn800 or playersSpawn1200
+      spawns = red and gameState.court.playerSpawns[2] or gameState.court.playerSpawns[3]
       x = red and 600 or 1000
     elseif gameStats.gameMode == '3v3' then
-      spawns = red and playersSpawn400 or playersSpawn800
+      spawns = red and gameState.court.playerSpawns[1] or gameState.court.playerSpawns[2]
       x = red and 101 or 700
     elseif gameStats.gameMode == '4v4' then
-      spawns = red and playersSpawn800 or playersSpawn1600
+      spawns = red and gameState.court.playerSpawns[2] or gameState.court.playerSpawns[4]
       x = red and 301 or 900
     else
       x = red and 401 or 1500

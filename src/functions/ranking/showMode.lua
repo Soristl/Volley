@@ -24,29 +24,11 @@ local function rankingText(text, color, size)
 end
 
 local function rankingSetPage(name, index, page)
-  local pages = { pageNormalMode, pageTwoTeamsMode, pageThreeTeamsMode, pageFourTeamsMode, pageRealMode }
+  local pages = { uiState.pageNormalMode, uiState.pageTwoTeamsMode, uiState.pageThreeTeamsMode, uiState.pageFourTeamsMode, uiState.pageRealMode }
   pages[index][name] = page
 end
 
-function showMode(mode, name, findMe)
-  local state = rankingState[name]
-  if not state or not openRank[name] then return end
-  local selected
-  for i, value in ipairs(rankingModes) do if value == mode then selected = i; break end end
-  if not selected then return end
-  local rank = rankingCache.ensure(selected)
-  local ownPosition = rankingCache.position(selected, name)
-  local pages = math.max(1, math.ceil(#rank / 8))
-  local page = math.max(1, math.min(pages, rankPageMode(mode, name) or 1))
-  if findMe and ownPosition then page = math.ceil(ownPosition / 8) end
-  rankingSetPage(name, selected, page)
-  playerRankingMode[name] = mode
-  state.mode, state.page, state.pages, state.targets = selected, page, pages, {}
-  local language = playerLanguage[name].tr
-  local text = language.ranking or lang.en.ranking
-  local profile = getProfileText(name)
-  state.ownPosition = ownPosition
-
+local function drawRankingHeading(name, selected, profile, text, ownPosition, rank)
   clubhouse.panel(name, "ranking")
   clubhouse.closeLabel(name, "ranking", "rankingClose")
   rankingArea(8806, rankingText(profile.session, "#ADAB94", 9), name, 50, 61, 650, 15)
@@ -64,6 +46,9 @@ function showMode(mode, name, findMe)
     local column = rankingColumns[col]
     rankingArea(8820 + col - 1, (col > 2 and "<p align='center'>" or "") .. rankingText(label, column.color, 10), name, column.x, 143, column.width, 20)
   end
+end
+
+local function drawRankingRows(name, state, rank, page, selected)
   for row = 1, 8 do
     local position = (page - 1) * 8 + row
     local player = rank[position]
@@ -90,6 +75,9 @@ function showMode(mode, name, findMe)
       end
     end
   end
+end
+
+local function drawRankingNavigation(name, language, page, pages, ownPosition, text, profile)
   local previousLabel = language.previousMessage:gsub("<[^>]+>", "")
   local nextLabel = language.nextMessage:gsub("<[^>]+>", "")
   local previous = page > 1 and ("<a href='event:rankingPage" .. (page - 1) .. "'>‹ " .. previousLabel .. "</a>") or ("‹ " .. previousLabel)
@@ -101,22 +89,46 @@ function showMode(mode, name, findMe)
   rankingArea(8831, "<p align='center'>" .. rankingText(pageLabel, pages>2 and "#DEC18A" or "#ADAB94"), name, 190, 342, 75, 19, 0x102323, 0x665135)
   rankingArea(8832, "<p align='center'>" .. rankingText(ownPosition and ("<a href='event:rankingMe'>" .. text.findMe .. "</a>") or profile.unranked, ownPosition and "#DEC18A" or "#777D70"), name, 280, 342, 230, 19, 0x102323, ownPosition and 0xA37A3D or 0x665135)
   rankingArea(8833, "<p align='center'>" .. rankingText(nextPage, page < pages and "#F2E5CD" or "#777D70"), name, 604, 342, 142, 19, 0x102323, 0x665135)
+end
+
+local function showMode(mode, name, findMe)
+  local state = uiState.rankingState[name]
+  if not state or not uiState.openRank[name] then return end
+  local selected
+  for i, value in ipairs(rankingModes) do if value == mode then selected = i; break end end
+  if not selected then return end
+  local rank = sessionRanking.cache.ensure(selected)
+  local ownPosition = sessionRanking.cache.position(selected, name)
+  local pages = math.max(1, math.ceil(#rank / 8))
+  local page = math.max(1, math.min(pages, rankPageMode(mode, name) or 1))
+  if findMe and ownPosition then page = math.ceil(ownPosition / 8) end
+  rankingSetPage(name, selected, page)
+  uiState.playerRankingMode[name] = mode
+  state.mode, state.page, state.pages, state.targets = selected, page, pages, {}
+  local language = playerLanguage[name].tr
+  local text = language.ranking or lang.en.ranking
+  local profile = clubhouse.profileText(name)
+  state.ownPosition = ownPosition
+
+  drawRankingHeading(name, selected, profile, text, ownPosition, rank)
+  drawRankingRows(name, state, rank, page, selected)
+  drawRankingNavigation(name, language, page, pages, ownPosition, text, profile)
   clubhouse.endUpdate(name, "ranking")
 end
 
-function openRankingUI(name)
-  if rankKeyTime[name] and os.time() - rankKeyTime[name] < 2000 then return end
-  rankKeyTime[name] = os.time()
-  closeAllWindows(name)
-  openRank[name] = true
-  rankingState[name] = {}
-  showMode(playerRankingMode[name] or "Normal mode", name)
+function clubhouse.openRanking(name)
+  if uiState.rankKeyTime[name] and os.time() - uiState.rankKeyTime[name] < 2000 then return end
+  uiState.rankKeyTime[name] = os.time()
+  clubhouse.closeWindows(name)
+  uiState.openRank[name] = true
+  uiState.rankingState[name] = {}
+  showMode(uiState.playerRankingMode[name] or "Normal mode", name)
 end
 
-function rankingCallback(name, callback)
-  local state = rankingState[name]
-  if not state or not openRank[name] then return end
-  if callback == "rankingClose" then closeRankingUI(name); return end
+function clubhouse.rankingCallback(name, callback)
+  local state = uiState.rankingState[name]
+  if not state or not uiState.openRank[name] then return end
+  if callback == "rankingClose" then clubhouse.closeRanking(name); return end
   if callback:sub(1, 11) == "rankingMode" then
     local index = tonumber(callback:sub(12))
     if index and rankingModes[index] then showMode(rankingModes[index], name) end
@@ -132,10 +144,10 @@ function rankingCallback(name, callback)
     local row = tonumber(callback:sub(14))
     local target = row and state.targets[row]
     if not target or not playerAchievements[target] then return end
-    if profileKeyTime[name] and os.time() - profileKeyTime[name] < 2000 then return end
-    profileKeyTime[name] = os.time()
-    closeAllWindows(name)
-    profileUI(name, target)
+    if uiState.profileKeyTime[name] and os.time() - uiState.profileKeyTime[name] < 2000 then return end
+    uiState.profileKeyTime[name] = os.time()
+    clubhouse.closeWindows(name)
+    clubhouse.profile(name, target)
   end
 end
 end

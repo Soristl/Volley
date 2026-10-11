@@ -11,17 +11,17 @@ function toggleMap()
   ui.removeTextArea(8998991)
   if not largeCourt then ui.removeTextArea(899899) end
   gameMaps.loadReduced(largeCourt)
-  showTheScore()
+  clubhouse.showScores()
 
   gameMaps.prepareCourt(function()
     -- Preserve placement/spawn ordering for each reduced court.
     if largeCourt then
-      teleportPlayersWithTypeMap(true)
-      spawnInitialBall()
-      showTheScore()
+      gameTeams.placeRemaining(true)
+      gameBalls.spawnInitial()
+      clubhouse.showScores()
     else
-      spawnInitialBall()
-      teleportPlayersWithTypeMap(false)
+      gameBalls.spawnInitial()
+      gameTeams.placeRemaining(false)
     end
   end)
   showCrownToAllPlayers()

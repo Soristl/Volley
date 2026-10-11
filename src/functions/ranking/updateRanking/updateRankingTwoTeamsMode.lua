@@ -1,3 +1,3 @@
-function updateRankingTwoTeamsMode()
-  rankTwoTeamsMode = rankingCache.rebuild(playersTwoTeamsMode, 'two')
+function sessionRanking.update.two()
+  sessionRanking.ranks.two = sessionRanking.cache.rebuild(sessionRanking.stats.two, 'two')
 end

@@ -1,6 +1,6 @@
 do
 -- Occupancy wins first, then priority; identical priorities keep random ties.
-local function chooseSpawn(playersSpawn)
+local function leastOccupiedSpawnIndexes(playersSpawn)
   local lowestPlayersQuantity
   local availableIndexesToSpawn = {}
   for i = 1, #playersSpawn do
@@ -16,11 +16,10 @@ local function chooseSpawn(playersSpawn)
       end
     end
   end
+  return availableIndexesToSpawn
+end
 
-  if #availableIndexesToSpawn == 1 then
-    return playersSpawn[availableIndexesToSpawn[1]]
-  end
-
+local function chooseSpawnByPriority(playersSpawn, availableIndexesToSpawn)
   local lowestSpawnPriority
   local indexSelected
   local foundDifference = false
@@ -49,10 +48,19 @@ local function chooseSpawn(playersSpawn)
   return playersSpawn[availableIndexesToSpawn[math.random(1, #availableIndexesToSpawn)]]
 end
 
-function teleportPlayerWithSpecificSpawn(playersSpawn, name)
+local function chooseSpawn(playersSpawn)
+  local availableIndexesToSpawn = leastOccupiedSpawnIndexes(playersSpawn)
+  if #availableIndexesToSpawn == 1 then
+    return playersSpawn[availableIndexesToSpawn[1]]
+  end
+
+  return chooseSpawnByPriority(playersSpawn, availableIndexesToSpawn)
+end
+
+function gameTeams.placeFromMarkers(playersSpawn, name)
   if not name or name == '' or not playersSpawn or #playersSpawn == 0 then return false end
   if not tfm.get.room.playerList[name] then
-    removePlayerOnSpawnConfig(name, playersSpawn)
+    gameTeams.releaseSpawn(name, playersSpawn)
     return false
   end
   local previous
@@ -61,7 +69,7 @@ function teleportPlayerWithSpecificSpawn(playersSpawn, name)
       if occupant == name then previous = previous or marker end
     end
   end
-  removePlayerOnSpawnConfig(name, playersSpawn)
+  gameTeams.releaseSpawn(name, playersSpawn)
   local chosen = previous or chooseSpawn(playersSpawn)
   chosen.players[#chosen.players+1] = name
   tfm.exec.movePlayer(name, chosen.x, chosen.y)

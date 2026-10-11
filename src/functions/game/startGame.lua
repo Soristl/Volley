@@ -1,4 +1,4 @@
-function startGame()
+function gameRound.start()
   gameState.setPhase("gameStart")
   clearRoundTimers()
   beginGameplayMapLoad()
@@ -17,12 +17,12 @@ function startGame()
   tfm.exec.setGameTime(_timer, true)
 
   removeTextAreasOfLobby()
-  showTheScore()
+  clubhouse.showScores()
 
   globalSettings.minimalistToggleMap = true
   gameMaps.prepareCourt(function()
-    teleportPlayers()
-    spawnInitialBall()
+    gameTeams.placeAll()
+    gameBalls.spawnInitial()
     verifyIsPoint()
     showCrownToAllPlayers()
   end)

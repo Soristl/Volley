@@ -28,6 +28,6 @@ function playerNearOfTheBall(name, x, y)
       end
     end
 
-    showTheScore()
+    clubhouse.showScores()
   end
 end

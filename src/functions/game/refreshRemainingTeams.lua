@@ -1,5 +1,5 @@
 -- Only court order is cached. Display metadata is derived from team identity.
-function refreshRemainingTeams()
+function gameTeams.refreshRemaining()
   teamsPlayersOnGame = {}
   for _, key in ipairs(gameTeams.keys()) do
     local roster = gameState.teams[key]

@@ -47,7 +47,7 @@ function gameTeams.eliminate(roster)
       gameCrowns.clearSubject(name)
       clearPlayerTimers(name)
       clearPlayerGameplay(name)
-      removePlayerOnSpawnConfig(name)
+      gameTeams.releaseSpawn(name)
       -- Empty roster slots and disconnected players are not API targets.
       local player = tfm.get.room.playerList[name]
       if player and not playerLeft[name] and not playerBan[name] then
@@ -56,7 +56,7 @@ function gameTeams.eliminate(roster)
           tfm.exec.killPlayer(name)
         else
           if player.isDead then tfm.exec.respawnPlayer(name) end
-          teleportPlayersToSpecWithSpecificSpawn(name)
+          gameTeams.placeSpectator(name)
         end
       end
     end
@@ -106,10 +106,10 @@ function gameTeams.find(name)
 end
 
 function gameTeams.place(name, key, area, fallbackX)
-  local markers = ({playersSpawn400,playersSpawn800,playersSpawn1200,playersSpawn1600})[area]
-  if markers and #markers > 0 then teleportPlayerWithSpecificSpawn(markers, name)
+  local markers = ({gameState.court.playerSpawns[1],gameState.court.playerSpawns[2],gameState.court.playerSpawns[3],gameState.court.playerSpawns[4]})[area]
+  if markers and #markers > 0 then gameTeams.placeFromMarkers(markers, name)
   else
-    removePlayerOnSpawnConfig(name)
+    gameTeams.releaseSpawn(name)
     tfm.exec.movePlayer(name, fallbackX, 334)
   end
   tfm.exec.setNameColor(name, gameTeams.color(key))
@@ -242,4 +242,35 @@ do
     disablePlayerCanTransform(name)
     return true
   end
+end
+
+-- Team membership owns transform colors, including reduced-court ordering.
+do
+local TRANSFORM_TEAMS = {
+  {key="red", color=0xEF4444},
+  {key="blue", color=0x3B82F6},
+  {key="yellow", color=0xF59E0B},
+  {key="green", color=0x109267}
+}
+
+function gameTeams.transformColor(name)
+  -- Remaining teams keep their colors when the court shrinks after elimination.
+  if (gameStats.teamsMode or gameStats.threeTeamsMode)
+    and (gameStats.typeMap == "large3v3" or gameStats.typeMap == "small") then
+    for index, team in ipairs(teamsPlayersOnGame) do
+      for _, player in ipairs(team) do
+        if player.name == name then
+          return gameTeams.color(gameTeams.keyAt(index)) or 0x81348A
+        end
+      end
+    end
+  end
+
+  for _, team in ipairs(TRANSFORM_TEAMS) do
+    for _, player in ipairs(gameState.teams[team.key]) do
+      if player.name == name then return team.color end
+    end
+  end
+  return 0x81348A
+end
 end

@@ -1,5 +1,5 @@
 function clubhouse.sync(name)
-  if not (clubhouse.views[name] and clubhouse.views[name].sync) then closeAllWindows(name) end
+  if not (clubhouse.views[name] and clubhouse.views[name].sync) then clubhouse.closeWindows(name) end
   clubhouse.panel(name,"sync");clubhouse.closeLabel(name,"sync")
   clubhouse.label(name,"sync","instruction")
   local candidates={}
@@ -23,7 +23,7 @@ function clubhouse.refresh(name)
     lobbyTransition.enqueue(name)
     return
   end
-  closeAllWindows(name)
+  clubhouse.closeWindows(name)
   clubhouse.launcher(name,23);clubhouse.launcher(name,30);clubhouse.launcher(name,31)
   if gameState.phase=="startGame" then
     clubhouse.lobby(name)
@@ -69,8 +69,8 @@ function clubhouse.guardCallback(name, callback)
   if lobbyTransition and lobbyTransition.blocksInput() then return true end
   local settingsAction = settingsActions[callback] or callback:match("^setMode") or
     callback:match("^setMapType")
-  if (callback:match("^nextSettings") or callback:match("^prevSettings")) and not settings[name] then return true end
-  if settingsAction and ((USER_PERMISSIONS[name] or 1)<2 or not settings[name]) then return true end
+  if (callback:match("^nextSettings") or callback:match("^prevSettings")) and not uiState.settings[name] then return true end
+  if settingsAction and ((USER_PERMISSIONS[name] or 1)<2 or not uiState.settings[name]) then return true end
   if callback:match("^randommap") and callback~="randommap" then return true end
   if callback:match("^joinTeam") or callback:match("^leaveTeam") then
     local action,team,index=callback:match("^(%a+)Team(%a+)(%d+)$")
@@ -91,9 +91,9 @@ function clubhouse.guardCallback(name, callback)
   end
   for _, direction in ipairs(navigationDirections) do
     if callback:match("^" .. direction .. "SelectMap") then
-      return invalidNavigation(name,callback,direction.."SelectMap","selector",selectMapOpen[name])
+      return invalidNavigation(name,callback,direction.."SelectMap","selector",uiState.selectMapOpen[name])
     elseif callback:match("^" .. direction .. "SelectBall") then
-      return invalidNavigation(name,callback,direction.."SelectBall","selector_balls",selectBallOpen[name])
+      return invalidNavigation(name,callback,direction.."SelectBall","selector_balls",uiState.selectBallOpen[name])
     elseif callback:match("^" .. direction .. "Help") then
       return invalidNavigation(name,callback,direction.."Help","help",true)
     end
@@ -108,9 +108,9 @@ function clubhouse.clearPlayer(name)
   clubhouse.ballCategoryState[name]=nil
   if clubhouse.selectionTimers[name] then removeTimer(clubhouse.selectionTimers[name]);clubhouse.selectionTimers[name]=nil end
   clubhouse.inputAt[name]=nil
-  profileKeyTime[name]=nil
-  rankKeyTime[name]=nil
-  panelOpenTime[name]=nil
+  uiState.profileKeyTime[name]=nil
+  uiState.rankKeyTime[name]=nil
+  uiState.panelOpenTime[name]=nil
   local views=clubhouse.views[name]
   if views then
     local keys={};for key in pairs(views) do keys[#keys+1]=key end
@@ -122,17 +122,17 @@ end
 function clearDepartedPlayerUiState(name)
   -- Only after departure cleanup: live panel resets also call clearPlayer.
   -- These values are initialized again on arrival; session data stays intact.
-  pagesList[name]=nil
-  selectMapImages[name]=nil
-  playerAchievementsImages[name]=nil
-  pagePlayerSettings[name]=nil
-  selectMapOpen[name]=nil
-  selectMapPage[name]=nil
-  selectBallOpen[name]=nil
-  selectBallPage[name]=nil
-  settings[name]=nil
-  settingsMode[name]=nil
-  customMapCommand[name]=nil
+  uiState.pagesList[name]=nil
+  uiState.selectMapImages[name]=nil
+  uiState.playerAchievementsImages[name]=nil
+  uiState.pagePlayerSettings[name]=nil
+  uiState.selectMapOpen[name]=nil
+  uiState.selectMapPage[name]=nil
+  uiState.selectBallOpen[name]=nil
+  uiState.selectBallPage[name]=nil
+  uiState.settings[name]=nil
+  uiState.settingsMode[name]=nil
+  uiState.customMapCommand[name]=nil
 end
 
 function clubhouse.reset()
@@ -145,7 +145,7 @@ end
 function clubhouse.newGame()
   clubhouse.clearLobbyArtwork()
   clubhouse.each(nil,function(name)
-    closeAllWindows(name)
+    clubhouse.closeWindows(name)
     clubhouse.clear(name,"victory")
     clubhouse.clear(name,"score")
   end)

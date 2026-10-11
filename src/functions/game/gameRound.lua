@@ -4,14 +4,14 @@ gameRound = {}
 
 do
   local profiles = {
-    real = { minimum=2, teams={'red','blue'}, rank=function() return rankRealMode end },
-    three = { minimum=1, teams={'red','blue','green'}, rank=function() return rankThreeTeamsMode end,
+    real = { minimum=2, teams={'red','blue'}, rank=function() return sessionRanking.ranks.real end },
+    three = { minimum=1, teams={'red','blue','green'}, rank=function() return sessionRanking.ranks.three end,
       label='3 teams mode', positions={redX=599,blueX=1199,greenX=1201} },
-    four = { minimum=1, teams={'red','blue','yellow','green'}, rank=function() return rankFourTeamsMode end,
+    four = { minimum=1, teams={'red','blue','yellow','green'}, rank=function() return sessionRanking.ranks.four end,
       label='4 teams mode', positions={yellowX=399,redX=799,blueX=1199,greenX=1201} },
-    two = { minimum=2, teams={'red','blue'}, rank=function() return rankTwoTeamsMode end,
+    two = { minimum=2, teams={'red','blue'}, rank=function() return sessionRanking.ranks.two end,
       positions={blueX=399,redX=799,blueX2=1199,redX2=1201} },
-    normal = { minimum=1, teams={'red','blue'}, rank=function() return rankNormalMode end }
+    normal = { minimum=1, teams={'red','blue'}, rank=function() return sessionRanking.ranks.normal end }
   }
 
   local function lobbyMode()
@@ -69,20 +69,20 @@ do
     end
 
     if mode == 'real' then
-      rankCrown = profile.rank()
+      sessionRanking.crown = profile.rank()
       showRealRules()
       return true
     end
     if profile.label then gameStats.actualMode = profile.label end
     -- Preserve the existing UI cleanup and rank selection order.
-    if mode ~= 'normal' then rankCrown = profile.rank() end
+    if mode ~= 'normal' then sessionRanking.crown = profile.rank() end
     if mode == 'three' then configureCourt(mode, profile, counts) end
     removeTextAreasOfLobby()
     removeWindowsOnBottom()
-    if mode == 'normal' then rankCrown = profile.rank() end
+    if mode == 'normal' then sessionRanking.crown = profile.rank() end
     if mode ~= 'three' then configureCourt(mode, profile, counts) end
     if mode ~= 'normal' then gameStats.typeMap = 'large4v4' end
-    startGame()
+    gameRound.start()
     return mode ~= 'normal'
   end
 
@@ -101,7 +101,7 @@ do
     if math.ceil((gameState.rulesDeadline - os.time()) / 1000) <= 0 then
       gameStats.redX, gameStats.blueX = 601, 1999
       closeWindow(266, nil)
-      startGame()
+      gameRound.start()
     end
     return false
   end

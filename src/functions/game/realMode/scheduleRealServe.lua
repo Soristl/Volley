@@ -1,4 +1,4 @@
-function endRealMatchIfTeamEmpty()
+function realServe.endIfTeamEmpty()
   if not gameStats.realMode or gameState.phase ~= "gameStart" then return false end
   local counts={red=gameTeams.count(gameState.teams.red,true),blue=gameTeams.count(gameState.teams.blue,true)}
   if counts.red > 0 and counts.blue > 0 then return false end
@@ -10,9 +10,9 @@ function endRealMatchIfTeamEmpty()
   return true
 end
 
-function scheduleRealServe(team)
+function realServe.schedule(team)
   if not gameStats.realMode or gameState.phase ~= "gameStart" or (team ~= "red" and team ~= "blue") then return end
-  if endRealMatchIfTeamEmpty() then return end
+  if realServe.endIfTeamEmpty() then return end
   removeTimer("delayTeleport")
   removeTimer("delaySpawnBall")
   removeTimer("delayToVerifyBall")
@@ -21,12 +21,12 @@ function scheduleRealServe(team)
   gameStats.canTransform = false
   gameBalls.remove(1)
   addRoundTimer(function()
-    if endRealMatchIfTeamEmpty() or gameStats.pendingServeTeam ~= team then return end
-    if choosePlayerServe(team) then teamServe(team) end
+    if realServe.endIfTeamEmpty() or gameStats.pendingServeTeam ~= team then return end
+    if realServe.choosePlayer(team) then realServe.configureTeam(team) end
   end, 4000, 1, "delayTeleport")
   addRoundTimer(function()
-    if endRealMatchIfTeamEmpty() or gameStats.pendingServeTeam ~= team then return end
-    spawnBallRealMode(team)
+    if realServe.endIfTeamEmpty() or gameStats.pendingServeTeam ~= team then return end
+    realServe.spawnBall(team)
     gameStats.pendingServeTeam = nil
   end, 6000, 1, "delaySpawnBall")
 end

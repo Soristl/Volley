@@ -1,4 +1,4 @@
-function teleportPlayersToSpec(onlyDead)
+function gameTeams.placeSpectators(onlyDead)
   for name, data in pairs(tfm.get.room.playerList) do
     if playerInGame[name] == false and not playerBan[name] and not playerLeft[name]
       and (not onlyDead or data.isDead) then
@@ -6,7 +6,7 @@ function teleportPlayersToSpec(onlyDead)
         tfm.exec.killPlayer(name)
       else
         if data.isDead then tfm.exec.respawnPlayer(name) end
-        teleportPlayersToSpecWithSpecificSpawn(name)
+        gameTeams.placeSpectator(name)
       end
     end
   end

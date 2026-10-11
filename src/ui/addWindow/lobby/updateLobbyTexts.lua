@@ -1,49 +1,39 @@
-function updateLobbyTexts(name)
-  if gameStats.threeTeamsMode then
-    for i = 1, 4 do
-      if gameState.teams.red[i].name == name then
-        gameState.teams.red[i].name = ''
-
-        clubhouse.teamSeat("Red", i, "")
-
-        return
-      end
-    end
-
-    for i = 5, 8 do
-      if gameState.teams.blue[i - 4].name == name then
-        gameState.teams.blue[i - 4].name = ''
-
-        clubhouse.teamSeat("Blue", i - 4, "")
-
-        return
-      end
-    end
-
-    for i = 9, 12 do
-      if gameState.teams.green[i - 8].name == name then
-        gameState.teams.green[i - 8].name = ''
-
-        clubhouse.teamSeat("Green", i - 8, "")
-
-        return
-      end
-    end
-
-    return
-  end
-
-
-  for i = 1, 3 do
+do
+local function releaseThreeTeamSeat(name)
+  for i = 1, 4 do
     if gameState.teams.red[i].name == name then
       gameState.teams.red[i].name = ''
+
       clubhouse.teamSeat("Red", i, "")
-    end
-    if gameState.teams.blue[i].name == name then
-      gameState.teams.blue[i].name = ''
-      clubhouse.teamSeat("Blue", i, "")
+
+      return
     end
   end
+
+  for i = 5, 8 do
+    if gameState.teams.blue[i - 4].name == name then
+      gameState.teams.blue[i - 4].name = ''
+
+      clubhouse.teamSeat("Blue", i - 4, "")
+
+      return
+    end
+  end
+
+  for i = 9, 12 do
+    if gameState.teams.green[i - 8].name == name then
+      gameState.teams.green[i - 8].name = ''
+
+      clubhouse.teamSeat("Green", i - 8, "")
+
+      return
+    end
+  end
+
+  return
+end
+
+local function releaseAdditionalLobbySeats(name)
   if not gameStats.teamsMode then
     for i = 8, 10 do
       if gameState.teams.red[i - 4].name == name then
@@ -72,4 +62,24 @@ function updateLobbyTexts(name)
       clubhouse.teamSeat("Green", i - 10, "")
     end
   end
+end
+
+function gameTeams.releaseLobbySeat(name)
+  if gameStats.threeTeamsMode then
+    releaseThreeTeamSeat(name)
+    return
+  end
+
+  for i = 1, 3 do
+    if gameState.teams.red[i].name == name then
+      gameState.teams.red[i].name = ''
+      clubhouse.teamSeat("Red", i, "")
+    end
+    if gameState.teams.blue[i].name == name then
+      gameState.teams.blue[i].name = ''
+      clubhouse.teamSeat("Blue", i, "")
+    end
+  end
+  releaseAdditionalLobbySeats(name)
+end
 end

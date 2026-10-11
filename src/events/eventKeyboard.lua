@@ -14,13 +14,6 @@ local FORCE_CONFIG = {
   [52] = { value = -1, msg = "Your strength has been reduced by 100%" }
 }
 
-local TRANSFORM_TEAMS = {
-  {key="red", color=0xEF4444},
-  {key="blue", color=0x3B82F6},
-  {key="yellow", color=0xF59E0B},
-  {key="green", color=0x109267}
-}
-
 local function finiteNumber(value)
   return type(value) == "number" and value == value and value > -math.huge and value < math.huge
 end
@@ -34,7 +27,7 @@ end
   -- Vit0rg
 ]]
 local function cleanUpUI(name)
-  closeAllWindows(name)
+  clubhouse.closeWindows(name)
 end
 
 local function handleConsumables(name, key, x, y, offsetX)
@@ -117,32 +110,8 @@ local function handleRealMode(name, key, x)
   return true -- Allow execution to continue
 end
 
-local function getPlayerTransformColor(name)
-  -- Remaining teams keep their colors when the court shrinks after elimination.
-  if (gameStats.teamsMode or gameStats.threeTeamsMode)
-    and (gameStats.typeMap == "large3v3" or gameStats.typeMap == "small") then
-    for index, team in ipairs(teamsPlayersOnGame) do
-      for _, player in ipairs(team) do
-        if player.name == name then
-          return gameTeams.color(gameTeams.keyAt(index)) or 0x81348A
-        end
-      end
-    end
-  end
-
-  for _, team in ipairs(TRANSFORM_TEAMS) do
-    for _, player in ipairs(gameState.teams[team.key]) do
-      if player.name == name then return team.color end
-    end
-  end
-  return 0x81348A
-end
-
-local function handlePlayerTransform(name, x, y, player, data)
-  -- Validate before consuming a serve, killing the mouse or allocating a ground.
-  local ping = player.ping or 10
-  if not finiteNumber(data.transformDuration) or data.transformDuration < 0 or not finiteNumber(ping)
-    or (gameStats.realMode and not finiteNumber(playerForce[name])) then return end
+-- A refused real-mode transform returns nil; zero remains a valid force.
+local function prepareTransformForce(name, x, y)
   local additionalForce = 0
 
   -- 1. Calculate launch force based on real-mode state
@@ -184,30 +153,10 @@ local function handlePlayerTransform(name, x, y, player, data)
     -- Check proximity to ball for gameplay triggers
     playerNearOfTheBall(name, x, y)
   end
+  return additionalForce
+end
 
-  -- 2. Execute transformation
-  playerPressSpace[name] = true
-  playerCanTransform[name] = false
-  playerPhysicId[name] = countId
-  tfm.exec.killPlayer(name)
-
-  -- Spawn physics object at updated player position
-  local height = name.height or 20
-  local width = name.width or 20
-
-  tfm.exec.addPhysicObject(playerPhysicId[name], x, y, {
-    type = 13,
-    width = width,
-    height = height,
-    restitution = gameStats.physicObjectForce + additionalForce,
-    friction = 0,
-    color = getPlayerTransformColor(name),
-    miceCollision = false,
-    groundCollision = true
-  })
-
-  local groundId = playerPhysicId[name]
-
+local function scheduleTransformRecovery(name, x, y, groundId, data, ping)
   -- 3. Schedule cleanup & respawn sequence (ping-compensated)
   -- Compensate for input latency: subtract ~1x ping from the base duration
   -- so high-ping clients perceive the same ~2s window as low-ping clients.
@@ -231,6 +180,40 @@ local function handlePlayerTransform(name, x, y, player, data)
       playerCanTransform[name] = true
     end, transformCooldown, 1, "delayOnTransform_" .. name)
   end, transformDuration, 1, "removeGround_" .. name)
+end
+
+local function handlePlayerTransform(name, x, y, player, data)
+  -- Validate before consuming a serve, killing the mouse or allocating a ground.
+  local ping = player.ping or 10
+  if not finiteNumber(data.transformDuration) or data.transformDuration < 0 or not finiteNumber(ping)
+    or (gameStats.realMode and not finiteNumber(playerForce[name])) then return end
+  local additionalForce = prepareTransformForce(name, x, y)
+  if additionalForce == nil then return end
+
+  -- 2. Execute transformation
+  playerPressSpace[name] = true
+  playerCanTransform[name] = false
+  playerPhysicId[name] = countId
+  tfm.exec.killPlayer(name)
+
+  -- Spawn physics object at updated player position
+  local height = name.height or 20
+  local width = name.width or 20
+
+  tfm.exec.addPhysicObject(playerPhysicId[name], x, y, {
+    type = 13,
+    width = width,
+    height = height,
+    restitution = gameStats.physicObjectForce + additionalForce,
+    friction = 0,
+    color = gameTeams.transformColor(name),
+    miceCollision = false,
+    groundCollision = true
+  })
+
+  local groundId = playerPhysicId[name]
+
+  scheduleTransformRecovery(name, x, y, groundId, data, ping)
 
   -- 4. Increment global physics object ID counter
   countId = countId + 1
@@ -238,6 +221,63 @@ end
 
 local function handleSkills(name, key, x, y)
   return
+end
+
+local function handleInterfaceShortcut(name, key)
+  -- 3. Profile Key (P)
+  if key == KEYS.PROFILE then
+    -- Capture state BEFORE cleanUpUI (clubhouse.closeProfile resets isOpenProfile)
+    local wasOpen = uiState.isOpenProfile[name]
+
+    -- Closing is instant; opening has a 2s anti-spam cooldown (spamming crashed the script)
+    if wasOpen then
+      clubhouse.closeProfile(name)
+      return true
+    end
+    if uiState.profileKeyTime[name] and os.time() - uiState.profileKeyTime[name] < 2000 then return true end
+    uiState.profileKeyTime[name] = os.time()
+
+    cleanUpUI(name)
+    clubhouse.profile(name, name)
+    return true
+  end
+
+  -- 4. Rank Key (L)
+  if key == KEYS.RANK then
+    if uiState.openRank[name] then
+      clubhouse.closeRanking(name)
+    else
+      clubhouse.openRanking(name)
+    end
+    return true
+  end
+  return false
+end
+
+local function handleGameplayKey(name, key, x, y, offsetX, player, data)
+  -- 5. Game-Specific Logic
+  if not playerInGame[name] or gameState.phase ~= "gameStart" or gameStats.isGamePaused or not isGameplayMapReady() then return end
+
+  -- Track direction
+  if gameStats.skillsTree then
+    handleSkills(name, key, x, y)
+  end
+
+  if KEYS.LEFT == key or KEYS.RIGHT == key then
+    playerLeftRight[name] = key
+  end
+
+  if gameStats.consumables and not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realMode then
+    handleConsumables(name, key, x, y, offsetX)
+  end
+
+  if gameStats.realMode then
+    if not handleRealMode(name, key, x) then return end
+  end
+
+  if key == KEYS.TRANSFORM and gameStats.canTransform and playerCanTransform[name] and not playerOutOfCourt[name] and not isPlayerDead[name] then
+    handlePlayerTransform(name, player.x, player.y, player, data)
+  end
 end
 
 --[[
@@ -262,7 +302,7 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
     or not finiteNumber(offsets.x) or not finiteNumber(offsets.y) then return end
   if key == KEYS.PROFILE or key == KEYS.RANK then
     if not down then return end
-    local closing=key==KEYS.PROFILE and isOpenProfile[name] or key==KEYS.RANK and openRank[name]
+    local closing=key==KEYS.PROFILE and uiState.isOpenProfile[name] or key==KEYS.RANK and uiState.openRank[name]
     if not clubhouse.allowInput(name,closing) then return end
   end
 
@@ -278,56 +318,8 @@ function eventKeyboard(name, key, down, x, y, xv, yv)
     playersAfk[name] = os.time()
   end
 
-  -- 3. Profile Key (P)
-  if key == KEYS.PROFILE then
-    -- Capture state BEFORE cleanUpUI (removeUITrophies resets isOpenProfile)
-    local wasOpen = isOpenProfile[name]
+  if handleInterfaceShortcut(name, key) then return end
 
-    -- Closing is instant; opening has a 2s anti-spam cooldown (spamming crashed the script)
-    if wasOpen then
-      removeUITrophies(name)
-      return
-    end
-    if profileKeyTime[name] and os.time() - profileKeyTime[name] < 2000 then return end
-    profileKeyTime[name] = os.time()
-
-    cleanUpUI(name)
-    profileUI(name, name)
-    return
-  end
-
-  -- 4. Rank Key (L)
-  if key == KEYS.RANK then
-    if openRank[name] then
-      closeRankingUI(name)
-    else
-      openRankingUI(name)
-    end
-    return
-  end
-
-  -- 5. Game-Specific Logic
-  if not playerInGame[name] or gameState.phase ~= "gameStart" or gameStats.isGamePaused or not isGameplayMapReady() then return end
-
-  -- Track direction
-  if gameStats.skillsTree then
-    handleSkills(name, key, x, y)
-  end
-
-  if KEYS.LEFT == key or KEYS.RIGHT == key then
-    playerLeftRight[name] = key
-  end
-
-  if gameStats.consumables and not gameStats.teamsMode and not gameStats.twoTeamsMode and not gameStats.realMode then
-    handleConsumables(name, key, x, y, offsetX)
-  end
-
-  if gameStats.realMode then
-    if not handleRealMode(name, key, x) then return end
-  end
-
-  if key == KEYS.TRANSFORM and gameStats.canTransform and playerCanTransform[name] and not playerOutOfCourt[name] and not isPlayerDead[name] then
-    handlePlayerTransform(name, player.x, player.y, player, data)
-  end
+  handleGameplayKey(name, key, x, y, offsetX, player, data)
 end
 end

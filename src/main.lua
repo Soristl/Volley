@@ -108,33 +108,41 @@ local playerConsumables = {}
 local playerLeftRight = {}
 local playerConsumableKey = {}
 local gameStats = { gameMode = '' }
-local pagesList = {}
+-- Per-player interface navigation and presentation state. Keep each field
+-- initialized and cleared at its own lifecycle boundary; ranking pages survive rejoin.
+local uiState = {}
+uiState.pagesList = {}
 local mapsVotes = {}
 local canVote = {}
 local playerOutOfCourt = {}
 local showOutOfCourtText = {}
 local globalSettings = { mode = 'Normal mode', twoBalls = false, randomBall = false, randomMap = false, mapType = '', consumables = false, threeBalls = false, minimalist = false, minimalistToggleMap = true }
-local settings = {}
-local settingsMode = {}
-local playersNormalMode = {}
-local rankNormalMode = {}
+uiState.settings = {}
+uiState.settingsMode = {}
+-- Session ranking owns statistics, sorted snapshots and match accounting.
+-- Statistics retain their identity across rounds; rebuilt ranks replace snapshots.
+-- The current crown can retain an older snapshot until the next match.
+-- Cache and accounting methods attach later, before init starts the lobby.
+local sessionRanking = { stats = {}, ranks = {}, update = {} }
+sessionRanking.stats.normal = {}
+sessionRanking.ranks.normal = {}
 local playersOnGameHistoric = {}
-local pageNormalMode = {}
-local playerRankingMode = {}
-local playersFourTeamsMode = {}
-local rankFourTeamsMode = {}
-local pageFourTeamsMode = {}
-local rankTwoTeamsMode = {}
-local playersTwoTeamsMode = {}
-local pageTwoTeamsMode = {}
-local rankRealMode = {}
-local playersRealMode = {}
-local pageRealMode = {}
-local rankThreeTeamsMode = {}
-local playersThreeTeamsMode = {}
-local pageThreeTeamsMode = {}
-local openRank = {}
-local rankingState = {}
+uiState.pageNormalMode = {}
+uiState.playerRankingMode = {}
+sessionRanking.stats.four = {}
+sessionRanking.ranks.four = {}
+uiState.pageFourTeamsMode = {}
+sessionRanking.ranks.two = {}
+sessionRanking.stats.two = {}
+uiState.pageTwoTeamsMode = {}
+sessionRanking.ranks.real = {}
+sessionRanking.stats.real = {}
+uiState.pageRealMode = {}
+sessionRanking.ranks.three = {}
+sessionRanking.stats.three = {}
+uiState.pageThreeTeamsMode = {}
+uiState.openRank = {}
+uiState.rankingState = {}
 local countMatches = 0
 local playerLastMatchCount = {}
 local playerLeft = {}
@@ -148,38 +156,38 @@ local yellowCrown = { '1a0785537f5.png', '1a078554f67.png', '1a0785566d6.png', '
   '1a07855ad29.png', '1a07855c49a.png', '1a07855dc0b.png', '1a07855f37c.png', '1a078560aeb.png' }
 local greenCrown = { '1a078531cc4.png', '1a078533435.png', '1a078534ba9.png', '1a07853631b.png', '1a078537a8c.png',
   '1a0785391fd.png', '1a07853a96e.png', '1a07853c0e1.png', '1a07853d852.png', '1a07853efc2.png' }
-local rankCrown = {}
+sessionRanking.crown = {}
 
 local playerAchievements = {}
-local playerAchievementsImages = {}
+uiState.playerAchievementsImages = {}
 local playerTrophyImage = {}
-local isOpenProfile = {}
-local profileState = {}
+uiState.isOpenProfile = {}
+uiState.profileState = {}
 local timestamp = 0
 
-local selectMapOpen = {}
-local selectMapPage = {}
-local selectMapImages = {}
-local selectBallOpen = {}
-local selectBallPage = {}
-local customMapCommand = {}
+uiState.selectMapOpen = {}
+uiState.selectMapPage = {}
+uiState.selectMapImages = {}
+uiState.selectBallOpen = {}
+uiState.selectBallPage = {}
+uiState.customMapCommand = {}
 
-local lobbySpawn = {}
-local playersSpawn400 = {}
-local playersSpawn800 = {}
-local playersSpawn1200 = {}
-local playersSpawn1600 = {}
+gameState.court.lobbySpawns = {}
+gameState.court.playerSpawns[1] = {}
+gameState.court.playerSpawns[2] = {}
+gameState.court.playerSpawns[3] = {}
+gameState.court.playerSpawns[4] = {}
 local playersAfk = {}
-local pagePlayerSettings = {}
+uiState.pagePlayerSettings = {}
 local maxPageSettings = 2
 local threeTeamsMode = {id = {1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13}, x = {100, 280, 460, 640, 100, 280, 460, 640, 100, 280, 460, 640}, y = {100, 100, 100, 100, 160, 160, 160, 160, 220, 220, 220, 220}}
 local isPlayerDead = {}
 local playerPressSpace = {}
 local webY = 460
-local teamPointsArea1 = {}
-local teamPointsArea2 = {}
-local teamPointsArea3 = {}
-local teamPointsArea4 = {}
+gameState.court.pointAreas[1] = {}
+gameState.court.pointAreas[2] = {}
+gameState.court.pointAreas[3] = {}
+gameState.court.pointAreas[4] = {}
 
 
 
@@ -260,39 +268,39 @@ end
 initPlayersData()
 
 for name, data in pairs(tfm.get.room.playerList) do
-  customMapCommand[name] = true
-  selectMapOpen[name] = false
-  selectMapPage[name] = 1
-  selectMapImages[name] = {}
-  selectBallOpen[name] = false
-  selectBallPage[name] = 1
+  uiState.customMapCommand[name] = true
+  uiState.selectMapOpen[name] = false
+  uiState.selectMapPage[name] = 1
+  uiState.selectMapImages[name] = {}
+  uiState.selectBallOpen[name] = false
+  uiState.selectBallPage[name] = 1
 
-  isOpenProfile[name] = false
+  uiState.isOpenProfile[name] = false
   playerTrophyImage[name] = 0
 
   if playerAchievements[name] == nil then
     playerAchievements[name] = newPlayerAchievements()
   end
 
-  pagePlayerSettings[name] = 1
+  uiState.pagePlayerSettings[name] = 1
   playersAfk[name] = os.time()
-  playerAchievementsImages[name] = {}
+  uiState.playerAchievementsImages[name] = {}
   showCrownImages[name] = true
-  playersNormalMode[name] = newPlayerStats(name)
-  pageNormalMode[name] = 1
-  playersFourTeamsMode[name] = newPlayerStats(name, 4)
-  pageFourTeamsMode[name] = 1
-  playersThreeTeamsMode[name] = newPlayerStats(name, 3)
-  pageThreeTeamsMode[name] = 1
-  playersTwoTeamsMode[name] = newPlayerStats(name)
-  pageTwoTeamsMode[name] = 1
-  playersRealMode[name] = newPlayerStats(name)
-  pageRealMode[name] = 1
-  playerRankingMode[name] = "Normal mode"
+  sessionRanking.stats.normal[name] = newPlayerStats(name)
+  uiState.pageNormalMode[name] = 1
+  sessionRanking.stats.four[name] = newPlayerStats(name, 4)
+  uiState.pageFourTeamsMode[name] = 1
+  sessionRanking.stats.three[name] = newPlayerStats(name, 3)
+  uiState.pageThreeTeamsMode[name] = 1
+  sessionRanking.stats.two[name] = newPlayerStats(name)
+  uiState.pageTwoTeamsMode[name] = 1
+  sessionRanking.stats.real[name] = newPlayerStats(name)
+  uiState.pageRealMode[name] = 1
+  uiState.playerRankingMode[name] = "Normal mode"
   playerLeft[name] = false
-  openRank[name] = false
-  settings[name] = false
-  settingsMode[name] = false
+  uiState.openRank[name] = false
+  uiState.settings[name] = false
+  uiState.settingsMode[name] = false
   playerLanguage[name] = { tr = trad, name = name }
   playerOutOfCourt[name] = false
   playerCanTransform[name] = true
@@ -316,6 +324,6 @@ for name, data in pairs(tfm.get.room.playerList) do
 end
 
 firstRun = true
-local profileKeyTime = {}
-local rankKeyTime = {}
-local panelOpenTime = {}
+uiState.profileKeyTime = {}
+uiState.rankKeyTime = {}
+uiState.panelOpenTime = {}

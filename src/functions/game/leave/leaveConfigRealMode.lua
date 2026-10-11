@@ -1,6 +1,6 @@
-function leaveConfigRealMode(name, team)
+function realServe.playerLeft(name, team)
   if not gameStats.realMode or gameState.phase ~= "gameStart" then return end
-  if endRealMatchIfTeamEmpty() then return end
+  if realServe.endIfTeamEmpty() then return end
   if team ~= "red" and team ~= "blue" then return end
   local pending = gameStats.pendingServeTeam
   if pending and pending ~= team then return end
@@ -9,5 +9,5 @@ function leaveConfigRealMode(name, team)
   gameStats[team == "red" and "aceRed" or "aceBlue"] = false
   gameStats[team .. "PlayerServe"] = ""
   tfm.exec.chatMessage("<ce>[System]: the server left; choosing another player from the same team.<n>", nil)
-  scheduleRealServe(team)
+  realServe.schedule(team)
 end

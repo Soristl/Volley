@@ -1,8 +1,5 @@
-function choosePlayerServe(team)
-  if team ~= "red" and team ~= "blue" then return nil end
-  local roster = team == "red" and gameState.teams.red or gameState.teams.blue
-  local ace = team == "red" and "aceRed" or "aceBlue"
-  local previous = gameStats[team .. "PlayerServe"]
+do
+local function selectServer(roster, ace, previous, team)
   local chosen, chosenIndex
   local function available(name)
     return name ~= "" and tfm.get.room.playerList[name] and not playerLeft[name]
@@ -19,6 +16,15 @@ function choosePlayerServe(team)
       if available(roster[i].name) then chosen, chosenIndex = roster[i].name, i; break end
     end
   end
+  return chosen, chosenIndex
+end
+
+function realServe.choosePlayer(team)
+  if team ~= "red" and team ~= "blue" then return nil end
+  local roster = team == "red" and gameState.teams.red or gameState.teams.blue
+  local ace = team == "red" and "aceRed" or "aceBlue"
+  local previous = gameStats[team .. "PlayerServe"]
+  local chosen, chosenIndex = selectServer(roster, ace, previous, team)
   gameStats.redServe, gameStats.blueServe = false, false
   gameStats.lastPlayerRed, gameStats.lastPlayerBlue = "", ""
   if not chosen then
@@ -33,4 +39,5 @@ function choosePlayerServe(team)
   tfm.exec.movePlayer(chosen, team == "red" and 700 or 1900, 334)
   tfm.exec.chatMessage("<bv>" .. chosen .. " will serve the ball<n>", nil)
   return chosen
+end
 end

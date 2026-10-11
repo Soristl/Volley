@@ -1,5 +1,6 @@
-function eventNewPlayer(name)
-  if type(name) ~= 'string' or not tfm.get.room.playerList[name] then return end
+do
+-- Forget handles and work belonging to the previous connection before resetting flags.
+local function clearPreviousConnection(name)
   lobbyTransition.leave(name) -- A reconnect invalidates work for the former connection.
   clearPlayerTimers(name, false)
   clearPlayerGameplay(name)
@@ -8,6 +9,10 @@ function eventNewPlayer(name)
   -- Client images and textareas are lost on disconnect: discard cached handles.
   clubhouse.clearPlayer(name)
   clubhouse.ballSkins.clearPlayer(name)
+end
+
+-- First-time key binding still precedes admission; reconnect binding happens after it.
+local function preparePlayerAccess(name)
   if string.match(name, "%*") then
     tfm.exec.chatMessage("<bv>This room does not allow guest accounts to enter. Create an account to enter the room.<n>",
       name)
@@ -25,26 +30,30 @@ function eventNewPlayer(name)
       end
     end
   end
+  return keysBound
+end
 
-  pagePlayerSettings[name] = 1
-  customMapCommand[name] = true
+-- Reset connection-specific controls without replacing session achievements.
+local function resetConnectionState(name)
+  uiState.pagePlayerSettings[name] = 1
+  uiState.customMapCommand[name] = true
 
-  selectMapOpen[name] = false
-  selectMapPage[name] = 1
-  selectMapImages[name] = {}
-  selectBallOpen[name] = false
-  selectBallPage[name] = 1
+  uiState.selectMapOpen[name] = false
+  uiState.selectMapPage[name] = 1
+  uiState.selectMapImages[name] = {}
+  uiState.selectBallOpen[name] = false
+  uiState.selectBallPage[name] = 1
 
-  isOpenProfile[name] = false
+  uiState.isOpenProfile[name] = false
   playerTrophyImage[name] = 0
   if playerAchievements[name] == nil then
     playerAchievements[name] = newPlayerAchievements()
   end
 
-  settings[name] = false
-  settingsMode[name] = false
+  uiState.settings[name] = false
+  uiState.settingsMode[name] = false
 
-  playerAchievementsImages[name] = {}
+  uiState.playerAchievementsImages[name] = {}
   playerLeft[name] = false
   playerLeftRight[name] = 0
   playerConsumable[name] = true
@@ -54,12 +63,15 @@ function eventNewPlayer(name)
   playerOutOfCourt[name] = false
 
   showOutOfCourtText[name] = false
-  openRank[name] = false
+  uiState.openRank[name] = false
   playerLanguage[name] = { tr = trad, name = name }
-  pagesList[name] = { helpPage = 1 }
+  uiState.pagesList[name] = { helpPage = 1 }
   playersAfk[name] = os.time()
   playerPressSpace[name] = false
+end
 
+-- Preserve session choices and ranking pages when the same player reconnects.
+local function initializeSessionRecords(name)
   if canVote[name] == nil then
     canVote[name] = true
   end
@@ -84,32 +96,69 @@ function eventNewPlayer(name)
     playerBan[name] = false
     playerBanHistory[name] = ""
   end
-
-  if playersNormalMode[name] == nil then
-    --[[
-      This could all be inside one single table:
-      --Vit0rg
-    ]]
-    playersNormalMode[name] = newPlayerStats(name)
-    playersFourTeamsMode[name] = newPlayerStats(name, 4)
-    playersThreeTeamsMode[name] = newPlayerStats(name, 3)
-    playersTwoTeamsMode[name] = newPlayerStats(name)
-    playersRealMode[name] = newPlayerStats(name)
-    -- Even an unranked insertion can change pairs ordering for exact ties.
-    rankingCache.invalidateAll()
-
+  if sessionRanking.ensurePlayer(name) then
     --[[
       This could also  all be inside one single table:
       --Vit0rg
     ]]
-    pageFourTeamsMode[name] = 1
-    pageNormalMode[name] = 1
-    pageThreeTeamsMode[name] = 1
-    pageTwoTeamsMode[name] = 1
-    pageRealMode[name] = 1
+    uiState.pageFourTeamsMode[name] = 1
+    uiState.pageNormalMode[name] = 1
+    uiState.pageThreeTeamsMode[name] = 1
+    uiState.pageTwoTeamsMode[name] = 1
+    uiState.pageRealMode[name] = 1
 
-    playerRankingMode[name] = "Normal mode"
+    uiState.playerRankingMode[name] = "Normal mode"
   end
+end
+
+-- A lobby transition queues rendering; other phases keep their existing presentation order.
+local function showPlayerArrival(name)
+  if lobbyTransition.blocksInput() then
+    lobbyTransition.enqueue(name)
+    tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
+    tfm.exec.chatMessage("<j>#Volley Version: " .. gameVersion .. "<n>", name)
+    tfm.exec.chatMessage("<ce>Join our #Volley Discord server: https://discord.com/invite/pWNTesmNhu<n>", name)
+    return
+  end
+
+  ui.addWindow(23, "<p align='center'><font size='13px'><a href='event:menuOpen'>Menu", name, 5, 15, 100, 30, 0.2, false, false, _)
+  tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
+
+  if gameState.phase == "startGame" then
+    clubhouse.lobby(name)
+    eventNewGameShowLobbyTexts(name)
+
+    ui.addWindow(30, "<p align='center'><font size='13px'><a href='event:selectMap'>Select a map/ball", name, 10, 370, 150, 30,
+      1, false, false, _)
+
+    clubhouse.launcher(name,31)
+  elseif gameState.phase ~= "startGame" then
+    tfm.exec.chatMessage("<ch>If you don't want to see the ranking crowns, type the command !crown false<n>", name)
+    -- Transitional maps can leave every viewer's score pending a redraw.
+    if not isGameplayMapReady() or getTimerId('delayToToggleMap') then
+      clubhouse.showScores()
+    else
+      clubhouse.showScores(name)
+    end
+    gameTeams.placeSpectator(name)
+
+    tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage2, name)
+    canVote[name] = true
+  end
+  showCrownToAllPlayers(name)
+  mapBackgrounds.showBorders(name)
+  mapBackgrounds.show(name)
+  clubhouse.ballSkins.show(name)
+  tfm.exec.chatMessage("<j>#Volley Version: " .. gameVersion .. "<n>", name)
+  tfm.exec.chatMessage("<ce>Join our #Volley Discord server: https://discord.com/invite/pWNTesmNhu<n>", name)
+end
+
+function eventNewPlayer(name)
+  if type(name) ~= 'string' or not tfm.get.room.playerList[name] then return end
+  clearPreviousConnection(name)
+  local keysBound = preparePlayerAccess(name)
+  resetConnectionState(name)
+  initializeSessionRecords(name)
 
   playerCanTransform[name] = true
   playerInGame[name] = false
@@ -143,42 +192,6 @@ function eventNewPlayer(name)
     isPlayerDead[name] = false
   end
 
-  if lobbyTransition.blocksInput() then
-    lobbyTransition.enqueue(name)
-    tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
-    tfm.exec.chatMessage("<j>#Volley Version: " .. gameVersion .. "<n>", name)
-    tfm.exec.chatMessage("<ce>Join our #Volley Discord server: https://discord.com/invite/pWNTesmNhu<n>", name)
-    return
-  end
-
-  ui.addWindow(23, "<p align='center'><font size='13px'><a href='event:menuOpen'>Menu", name, 5, 15, 100, 30, 0.2, false, false, _)
-  tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage, name)
-
-  if gameState.phase == "startGame" then
-    clubhouse.lobby(name)
-    eventNewGameShowLobbyTexts(name)
-
-    ui.addWindow(30, "<p align='center'><font size='13px'><a href='event:selectMap'>Select a map/ball", name, 10, 370, 150, 30,
-      1, false, false, _)
-
-    clubhouse.launcher(name,31)
-  elseif gameState.phase ~= "startGame" then
-    tfm.exec.chatMessage("<ch>If you don't want to see the ranking crowns, type the command !crown false<n>", name)
-    -- Transitional maps can leave every viewer's score pending a redraw.
-    if not isGameplayMapReady() or getTimerId('delayToToggleMap') then
-      showTheScore()
-    else
-      showTheScore(name)
-    end
-    teleportPlayersToSpecWithSpecificSpawn(name)
-
-    tfm.exec.chatMessage(playerLanguage[name].tr.welcomeMessage2, name)
-    canVote[name] = true
-  end
-  showCrownToAllPlayers(name)
-  mapBackgrounds.showBorders(name)
-  mapBackgrounds.show(name)
-  clubhouse.ballSkins.show(name)
-  tfm.exec.chatMessage("<j>#Volley Version: " .. gameVersion .. "<n>", name)
-  tfm.exec.chatMessage("<ce>Join our #Volley Discord server: https://discord.com/invite/pWNTesmNhu<n>", name)
+  showPlayerArrival(name)
+end
 end

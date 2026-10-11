@@ -1,4 +1,4 @@
-function leaveTeam(name)
+function gameTeams.leaveStandard(name)
   local key, index = gameTeams.find(name)
   if key ~= 'red' and key ~= 'blue' then return false end
 
@@ -10,14 +10,14 @@ function leaveTeam(name)
   gameState.teams[key][index].name = ''
   local positions = key == 'red' and twoTeamsPlayerRedPosition or twoTeamsPlayerBluePosition
   positions[index] = ''
-  removePlayerOnSpawnConfig(name)
-  leaveConfigRealMode(name, key)
+  gameTeams.releaseSpawn(name)
+  realServe.playerLeft(name, key)
   tfm.exec.killPlayer(name)
   if not killSpecPermanent then
     addPlayerRoundTimer(name, function()
       if playerInGame[name] or killSpecPermanent then return end
       tfm.exec.respawnPlayer(name)
-      teleportPlayersToSpecWithSpecificSpawn(name)
+      gameTeams.placeSpectator(name)
     end, 1000, 1, 'movePlayer')
   end
   return true

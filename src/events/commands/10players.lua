@@ -93,12 +93,12 @@ function commandHandlers.cmdLeave(args)
 
   if (gameStats.threeTeamsMode or gameStats.teamsMode) and
       gameStats.canTransform then
-    leaveTeamTeamsMode(name)
+    gameTeams.leaveMulti(name)
     return
   end
 
   if not gameStats.teamsMode and not gameStats.threeTeamsMode then
-    leaveTeam(name)
+    gameTeams.leaveStandard(name)
     return
   end
   tfm.exec.chatMessage("<bv>The leave command is disabled now<n>", name)
@@ -284,15 +284,15 @@ function commandHandlers.cmdProfile(args)
   local name = args[1]
   -- The dispatcher appends the command/alias as the last argument.
   local query = #args > 2 and args[2] or name
-  local target, reason = resolveProfileTarget(query)
+  local target, reason = clubhouse.resolveProfileTarget(query)
   if not target then
-    tfm.exec.chatMessage("<rose>" .. getProfileText(name)[reason] .. "<n>", name)
+    tfm.exec.chatMessage("<rose>" .. clubhouse.profileText(name)[reason] .. "<n>", name)
     return
   end
-  if profileKeyTime[name] and os.time() - profileKeyTime[name] < 2000 then return end
-  profileKeyTime[name] = os.time()
-  closeAllWindows(name)
-  profileUI(name, target)
+  if uiState.profileKeyTime[name] and os.time() - uiState.profileKeyTime[name] < 2000 then return end
+  uiState.profileKeyTime[name] = os.time()
+  clubhouse.closeWindows(name)
+  clubhouse.profile(name, target)
 end
 
 function commandHandlers.cmdDiscord(args)

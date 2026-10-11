@@ -1,7 +1,7 @@
-function removePlayerOnSpawnConfig(name, additional)
+function gameTeams.releaseSpawn(name, additional)
   if not name or name == '' then return 0 end
   local removed = 0
-  local groups = {playersSpawn400, playersSpawn800, playersSpawn1200, playersSpawn1600}
+  local groups = {gameState.court.playerSpawns[1], gameState.court.playerSpawns[2], gameState.court.playerSpawns[3], gameState.court.playerSpawns[4]}
   if additional then groups[#groups+1] = additional end
   for _, markers in ipairs(groups) do
     for _, marker in ipairs(markers) do
